@@ -6,8 +6,12 @@ import { EntityHandler } from "../../handlers/entity-handler";
 import { PropertyBuilder } from "./component-builder";
 import { ObservableList } from "../../../common/patterns/observer/observable-list";
 import { Transform } from "../../../assets/components/transform";
+import { Dropdown, DropdownItem } from "../dropdown";
+import { Engine } from "../../../core/engine/engine";
+import { Entity } from "../../../core/api/entity";
 
 export class ComponentUI {
+    private _engine: Engine;
     private _entityHandler: EntityHandler;
 
     private _container: HTMLElement;
@@ -16,7 +20,8 @@ export class ComponentUI {
     private _open: boolean;
     public get open(): boolean { return this._open; }
 
-    public constructor(entityHandler: EntityHandler, component: Component, open: boolean = true) {
+    public constructor(engine: Engine, entityHandler: EntityHandler, component: Component, open: boolean = true) {
+        this._engine = engine;
         this._entityHandler = entityHandler;
         this._open = open;
 
@@ -95,42 +100,48 @@ export class ComponentUI {
             fieldContentColumn.className = 'w-3/4 flex';
             row.appendChild(fieldContentColumn);
 
-            const property = (component as any)[propertyName];
-            // if(Array.isArray(property)) {
-            //     if(property[0] instanceof Vector3) {
-            //         PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn)
-            //     }
-            //     else if (typeof property[0].value === 'number') {
-            //         PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
-            //     }
-            // }
+            let property = (component as any)[propertyName];
+            
             if(property instanceof ObservableList) {
                 fieldContentColumn.classList.add("space-y-1", "flex-col")
                 
-                if(property.items[0] instanceof Vector3) {
-                    PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn)
-                }
-                else if (typeof property.items[0].value === 'number') {
-                    PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
-                }
+                if(property.items[0] instanceof Vector3) PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn)
+                else if(typeof property.items[0].value === 'number') PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
             }
             else {
-                if(property instanceof Vector3) {
-                    const inputs = PropertyBuilder.buildVector3Property(property, fieldContentColumn);
-                    if(component instanceof Transform) {
-                        inputs.forEach(input => input.addEventListener("input", () => {component.children.forEach(child => child.updateWorldMatrix())}))
-                    }
-                }
+                if(property instanceof Vector3) PropertyBuilder.buildVector3Property(property, fieldContentColumn);
                 else if (property instanceof ObservableField) {
                     const value = property.value;
                 
-                    if (typeof value === 'number') {
-                        PropertyBuilder.buildNumberProperty(property, fieldContentColumn);
-                    }
-                    else if (typeof value === 'string') {
-                        PropertyBuilder.buildStringProperty(property, fieldContentColumn);
-                    }
+                    if (typeof value === 'number') PropertyBuilder.buildNumberProperty(property, fieldContentColumn);
+                    else if (typeof value === 'string') PropertyBuilder.buildStringProperty(property, fieldContentColumn);
                 }
+                else if (propertyName === "parent") {
+                    const entitiesRepresentation: DropdownItem[] = [];
+                                
+                    entitiesRepresentation.push({
+                        label: "None",
+                        action: () => (component as any)[propertyName] = null,
+                    });
+                
+                    this._engine.entityManager.getEntities().forEach(entity => {
+                        if (entity.id === this._entityHandler.selectedEntity.value?.id) return;
+                    
+                        const transform = entity.getComponent(Transform);
+                        if (!transform) return;
+                    
+                        entitiesRepresentation.push({
+                            label: entity.name.value,
+                            action: () => (component as any)[propertyName] = entity,
+                        });
+                    });
+                    
+                    const initialValue = property ? property.name.value : "None";
+
+                    const dropdown = new Dropdown(entitiesRepresentation, initialValue);
+                    fieldContentColumn.appendChild(dropdown.getElement());
+                }
+
             }
         }
 

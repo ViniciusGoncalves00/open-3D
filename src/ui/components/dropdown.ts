@@ -1,13 +1,7 @@
-type DropdownItem = {
-  label: string;
-  value: any;
-};
-
-type DropdownOptions = {
-  items: DropdownItem[];
-  defaultLabel?: string;
-  onSelect?: (item: DropdownItem) => void;
-};
+export type DropdownItem = {
+    label: string;
+    action: () => void,
+}
 
 /**
 * Represents a reusable Dropdown component.
@@ -15,7 +9,7 @@ type DropdownOptions = {
 * Displays a list of options that can be selected, triggering an external action.
 * 
 * @param items - List of items for the dropdown.
-* @param defaultLabel - Default text displayed on the button. Use this when you want a fixed text on the button. If none exists, the text displayed will be the first in the list of items, and will be replaced when an item is selected.
+* @param fixedLabel - Default text displayed on the button. Use this when you want a fixed text on the button. If none exists, the text displayed will be the first in the list of items, and will be replaced when an item is selected.
 * @param onSelect - Function called when selecting an item.
 */
 export class Dropdown {
@@ -25,14 +19,14 @@ export class Dropdown {
     private button: HTMLButtonElement;
     private menu: HTMLUListElement;
     private isOpen = false;
-    private selectedItem: DropdownItem | null = null;
-    private defaultLabel: string | undefined;
-    private onSelect?: (item: DropdownItem) => void;
+    private fixedLabel: string | null = null;
 
-    constructor({ items, defaultLabel, onSelect }: DropdownOptions) {
-        this.items = items.slice();
-        this.defaultLabel = defaultLabel;
-        this.onSelect = onSelect;
+    public constructor(items: DropdownItem[], initialSelection: string | null = null, fixedLabel: string | null = null) {
+        if(!initialSelection && !fixedLabel)
+            throw new Error("Dropdown must contain or an initial selection or a fixed label");
+
+        this.items = items;
+        this.fixedLabel = fixedLabel;
 
         this.sortItems();
 
@@ -40,26 +34,23 @@ export class Dropdown {
         this.container.classList = "inline-block relative"
 
         this.button = document.createElement("button");
-        this.button.textContent = this.defaultLabel ? this.defaultLabel : items[0].label;
-        this.button.classList = "w-48 bg-zinc-700 text-white px-4 py-2 rounded truncate hover:bg-zinc-600 cursor-pointer";
+        this.button.textContent = this.fixedLabel ? this.fixedLabel : initialSelection;
+        this.button.classList = "w-full bg-zinc-700 text-white px-2 py-1 rounded truncate hover:bg-zinc-600 cursor-pointer";
         this.button.onclick = () => this.toggle();
 
         this.menu = document.createElement("ul");
-        this.menu.classList = "absolute left-0 top-full mt-1 w-full bg-zinc-700 text-white text-sm rounded";
+        this.menu.classList = "absolute left-0 top-full mt-1 bg-zinc-700 text-white text-sm rounded z-50";
         this.menu.style.display = "none";
 
         this.renderItems();
 
         this.container.appendChild(this.button);
-        this.container.appendChild(this.menu);
+        // this.container.appendChild(this.menu);
+        document.body.appendChild(this.menu);
     }
 
     public getElement(): HTMLElement {
         return this.container;
-    }
-
-    public getSelectedItem(): DropdownItem | null {
-        return this.selectedItem;
     }
 
     public setItems(items: DropdownItem[]) {
@@ -70,12 +61,6 @@ export class Dropdown {
 
     public addItem(item: DropdownItem): void {
         this.items.push(item);
-        this.sortItems();
-        this.renderItems();
-    }
-
-    public removeItemByValue(value: any): void {
-        this.items = this.items.filter(item => item.value !== value);
         this.sortItems();
         this.renderItems();
     }
@@ -96,16 +81,23 @@ export class Dropdown {
     }
 
     private selectItem(item: DropdownItem) {
-        this.selectedItem = item;
-        this.button.textContent = this.defaultLabel ? this.defaultLabel : item.label;
+        this.button.textContent = this.fixedLabel ? this.fixedLabel : item.label;
         this.toggle(false);
-        if (this.onSelect) {
-            this.onSelect(item);
-        }
+        item.action();
     }
 
     private toggle(state?: boolean) {
         this.isOpen = typeof state === "boolean" ? state : !this.isOpen;
-        this.menu.style.display = this.isOpen ? "block" : "none";
+        if (this.isOpen) {
+            const rect = this.button.getBoundingClientRect();
+            this.menu.style.position = "absolute";
+            this.menu.style.left = `${rect.left}px`;
+            this.menu.style.top = `${rect.bottom + window.scrollY}px`;
+            this.menu.style.width = `${rect.width}px`;
+            this.menu.style.zIndex = "9999";
+            this.menu.style.display = "block";
+        } else {
+            this.menu.style.display = "none";
+        }
     }
 }

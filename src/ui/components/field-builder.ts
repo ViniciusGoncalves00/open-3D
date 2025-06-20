@@ -95,75 +95,75 @@ export class FieldBuilder {
         row.className = 'w-full flex items-center justify-center';
         container.appendChild(row);
 
-        const dropdown = new Dropdown({
-            items: [
-                { label: "Cube", value: {
-                  vertices: [
-                    -1.0, -1.0, 1.0,
-                     1.0, -1.0, 1.0,
-                     1.0,  1.0, 1.0,
-                     1.0,  1.0, 1.0,
-                    -1.0,  1.0, 1.0,
-                    -1.0, -1.0, 1.0
-                  ],
-                  indices: [
-                    0, 1, 2,
-                    2, 3, 0,
+        // const dropdown = new Dropdown({
+        //     items: [
+        //         { label: "Cube", value: {
+        //           vertices: [
+        //             -1.0, -1.0, 1.0,
+        //              1.0, -1.0, 1.0,
+        //              1.0,  1.0, 1.0,
+        //              1.0,  1.0, 1.0,
+        //             -1.0,  1.0, 1.0,
+        //             -1.0, -1.0, 1.0
+        //           ],
+        //           indices: [
+        //             0, 1, 2,
+        //             2, 3, 0,
                                 
-                    4, 5, 6,
-                    6, 7, 4,
+        //             4, 5, 6,
+        //             6, 7, 4,
                                 
-                    8, 9, 10,
-                    10, 11, 8,
+        //             8, 9, 10,
+        //             10, 11, 8,
                                 
-                    12, 13, 14,
-                    14, 15, 12,
+        //             12, 13, 14,
+        //             14, 15, 12,
                                 
-                    16, 17, 18,
-                    18, 19, 16,
+        //             16, 17, 18,
+        //             18, 19, 16,
                                 
-                    20, 21, 22,
-                    22, 23, 20
-                  ]
-                } },
-                { label: "Quad", value: {
-                  vertices: [
-                    -0.5, 0.0, -0.5,
-                     0.5, 0.0, -0.5,
-                    -0.5, 0.0,  0.5,
-                     0.5, 0.0,  0.5
-                  ],
-                  indices: [
-                    0, 1, 2,
-                    3, 2, 1
-                  ]
-                }
-                 },
-              ],
-            defaultLabel: "Select Mesh",
-            onSelect: (item) => {
-                // const mesh = EntityHandler.selectedEntity.value?.getComponent(Mesh);
-                // if (!mesh) return;
+        //             20, 21, 22,
+        //             22, 23, 20
+        //           ]
+        //         } },
+        //         { label: "Quad", value: {
+        //           vertices: [
+        //             -0.5, 0.0, -0.5,
+        //              0.5, 0.0, -0.5,
+        //             -0.5, 0.0,  0.5,
+        //              0.5, 0.0,  0.5
+        //           ],
+        //           indices: [
+        //             0, 1, 2,
+        //             3, 2, 1
+        //           ]
+        //         }
+        //          },
+        //       ],
+        //     defaultLabel: "Select Mesh",
+        //     onSelect: (item) => {
+        //         const mesh = EntityHandler.selectedEntity.value?.getComponent(Mesh);
+        //         if (!mesh) return;
 
-                // mesh.name.value = item.label;
+        //         mesh.name.value = item.label;
 
-                // mesh.vertices.clear();
-                // for (let i = 0; i < item.value.vertices.length; i += 3) {
-                //     mesh.vertices.add(new Vector3(
-                //         item.value.vertices[i],
-                //         item.value.vertices[i + 1],
-                //         item.value.vertices[i + 2]
-                //     ));
-                // }
+        //         mesh.vertices.clear();
+        //         for (let i = 0; i < item.value.vertices.length; i += 3) {
+        //             mesh.vertices.add(new Vector3(
+        //                 item.value.vertices[i],
+        //                 item.value.vertices[i + 1],
+        //                 item.value.vertices[i + 2]
+        //             ));
+        //         }
             
-                // mesh.indices.clear();
-                // for (let i = 0; i < item.value.indices.length; i++) {
-                //     mesh.indices.add(new ObservableField(item.value.indices[i]));
-                // }
-            }
-        });
+        //         mesh.indices.clear();
+        //         for (let i = 0; i < item.value.indices.length; i++) {
+        //             mesh.indices.add(new ObservableField(item.value.indices[i]));
+        //         }
+        //     }
+        // });
 
-        container.appendChild(dropdown.getElement());
+        // container.appendChild(dropdown.getElement());
 
         // select.onchange = () => {
         //     const selectedPath = select.value;

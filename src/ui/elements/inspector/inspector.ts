@@ -7,13 +7,16 @@ import { ComponentUI } from "../../components/inspector/component-ui";
 import { EntityHandler } from "../../handlers/entity-handler";
 import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/component";
+import { Engine } from "../../../core/engine/engine";
 
 export class Inspector {
   private _container: HTMLElement;
+  private _engine: Engine;
   private _entityHandler: EntityHandler;
 
-  public constructor(container: HTMLElement, entityHandler: EntityHandler) {
+  public constructor(container: HTMLElement, engine: Engine, entityHandler: EntityHandler) {
     this._container = container;
+    this._engine = engine;
     this._entityHandler = entityHandler;
 
     this._entityHandler.selectedEntity?.subscribe(() => {
@@ -34,7 +37,7 @@ export class Inspector {
     this._container.appendChild(entityWrapper)
 
     this._entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
-      const componentUI = new ComponentUI(this._entityHandler, component).container;
+      const componentUI = new ComponentUI(this._engine, this._entityHandler, component).container;
       this._container.appendChild(componentUI);
     });
 
@@ -42,19 +45,14 @@ export class Inspector {
     row.className = 'w-full flex items-center justify-center';
     this._container.appendChild(row);
 
-    const dropdown = new Dropdown({
-      items: [
-        { label: "Transform", value: Transform },
-        { label: "Rotate", value: Rotate },
-        { label: "Orbit", value: Orbit },
-        { label: "Mesh", value: Mesh },
-      ],
-      defaultLabel: "Add Component",
-      onSelect: (item) => {
-        const ComponentClass = item.value;
-        this._entityHandler.selectedEntity.value?.addComponent(new ComponentClass());
-      },
-    });
+    const items = [
+        { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(this._entityHandler.selectedEntity.value))},
+        { label: "Rotate", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Rotate())},
+        { label: "Orbit", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Orbit())},
+        { label: "Mesh", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Mesh())},
+    ]
+
+    const dropdown = new Dropdown(items, null, "Add Component");
     
     row.appendChild(dropdown.getElement());
   }
@@ -84,7 +82,7 @@ export class Inspector {
 
     const title = document.createElement('p');
     titleRow.appendChild(title)
-    title.textContent = entity.name;
+    title.textContent = entity.name.value;
     title.className = 'w-full font-bold';
 
     const options = document.createElement('i');
@@ -128,6 +126,23 @@ export class Inspector {
       inputColumn.checked = (this._entityHandler.selectedEntity as any)[field];
       row.appendChild(inputColumn);
     });
+
+    const row_name = document.createElement('div');
+    row_name.className = 'w-full flex items-center';
+    body.appendChild(row_name)
+
+    const labelColumn_name = document.createElement('div');
+    labelColumn_name.className = 'w-1/4 font-medium text-sm';
+    labelColumn_name.textContent = "name";
+    row_name.appendChild(labelColumn_name);
+    
+    const inputColumn_name = document.createElement('input');
+    inputColumn_name.className = 'w-3/4 flex';
+    inputColumn_name.placeholder = entity.name.value;
+    inputColumn_name.addEventListener('input', () => {
+    entity.name.value = inputColumn_name.value;
+    });
+    row_name.appendChild(inputColumn_name);
 
     return entityWrapper;
   }

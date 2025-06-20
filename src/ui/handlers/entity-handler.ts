@@ -23,7 +23,7 @@ export class EntityHandler {
     const indices = createSequentialIndices(vertices.length);
 
     const entity = new Entity(crypto.randomUUID());
-    entity.addComponent(new Transform());
+    entity.addComponent(new Transform(entity));
 
     const meshComponent = new Mesh("Sphere", vertices, indices);
     entity.addComponent(meshComponent);

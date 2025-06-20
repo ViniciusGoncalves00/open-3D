@@ -1,13 +1,14 @@
 import { Component } from "../../assets/components/component";
+import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
 
 export class Entity {
   private _id: `${string}-${string}-${string}-${string}-${string}`;
   public get id(): string { return this._id; }
 
-  private _name: string = "Entity";
-  public get name(): string { return this._name; }
-  public set name(name: string) { this._name = name; }
+  private _name: ObservableField<string> = new ObservableField("Entity");
+  public get name(): ObservableField<string> { return this._name; }
+  public set name(name: ObservableField<string>) { this._name = name; }
 
   private _isEnabled = true;
   public get isEnabled(): boolean { return this._isEnabled; }

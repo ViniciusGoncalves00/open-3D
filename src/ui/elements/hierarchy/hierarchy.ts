@@ -17,9 +17,7 @@ export class Hierarchy {
     this._entitiesContainer.querySelector(`#${CSS.escape(entity.id)}`)?.remove();
   }
 
-  public addEntity(entity: Entity): void {
-    const entityName = entity.name ?? entity.id;
-        
+  public addEntity(entity: Entity): void {        
     const entityLine = document.createElement("div");
     entityLine.id = entity.id;
     entityLine.classList.add("entity", "w-full", "h-6", "flex", "items-center", "justify-between", "px-2");
@@ -35,7 +33,8 @@ export class Hierarchy {
   
     const nameParagraph = document.createElement("p");
     nameParagraph.classList.add("w-full", "whitespace-nowrap", "overflow-ellipsis");
-    nameParagraph.textContent = entityName;
+    nameParagraph.textContent = entity.name.value;
+    entity.name.subscribe((name) => nameParagraph.textContent = name);
   
     leftContainer.appendChild(caretIcon);
     leftContainer.appendChild(boxIcon);
@@ -60,8 +59,6 @@ export class Hierarchy {
         this._entitiesContainer.innerHTML = "";
             
         entities.forEach(entity => {
-            const entityName = entity.name ?? entity.id;
-          
             const entityLine = document.createElement("div");
             entityLine.classList.add("entity", "w-full", "h-6", "flex", "items-center", "justify-between", "px-2");
           
@@ -76,7 +73,8 @@ export class Hierarchy {
           
             const nameParagraph = document.createElement("p");
             nameParagraph.classList.add("w-full", "whitespace-nowrap", "overflow-ellipsis");
-            nameParagraph.textContent = entityName;
+            nameParagraph.textContent = entity.name.value;
+            entity.name.subscribe((name) => nameParagraph.textContent = name);
           
             leftContainer.appendChild(caretIcon);
             leftContainer.appendChild(boxIcon);

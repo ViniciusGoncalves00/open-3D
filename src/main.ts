@@ -202,7 +202,7 @@ export class Program {
 
     private initializeInspector(): void {
         this.inspectorContainer = this.getElementOrFail<HTMLElement>('inspectorContainer');
-        this._inspector = new Inspector(this.inspectorContainer, this.entityHandler);
+        this._inspector = new Inspector(this.inspectorContainer, this.engine, this.entityHandler);
     };
 
     private initializePlayer(): void {

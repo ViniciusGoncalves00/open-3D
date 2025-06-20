@@ -3,28 +3,38 @@ import { Vector3 } from "../../core/api/vector3";
 import { mat4 as matrix4 } from "gl-matrix";
 import { vec3 as vector3 } from "gl-matrix";
 import { quat as quaternion } from "gl-matrix";
-import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableMatrix4 } from "../../common/patterns/observer/observable-matrix4";
+import { Entity } from "../../core/api/entity";
 
 export class Transform extends Component {
-  private _parent: Transform | null = null;
-  public get parent(): Transform | null { return this._parent; }
-  public set parent(parent: Transform | null) {
+  public readonly owner: Entity;
+
+  private _parent: Entity | null = null;
+  public get parent(): Entity | null {
+    return this._parent;
+  }
+
+  public set parent(newParent: Entity | null) {
+    if(newParent?.id === this._parent?.id) return;
+    if(newParent && this.children.includes(newParent)) return;
+
     if (this._parent) {
-      const index = this._parent.children.indexOf(this);
-      if (index !== -1) this._parent.children.splice(index, 1);
+      const transform = this._parent.getComponent(Transform);
+      const index = transform.children.indexOf(this.owner);
+      transform.children.splice(index, 1);
     }
+    
+    this._parent = newParent;
 
-    this._parent = parent;
-
-    if (parent && !parent.children.includes(this)) {
-      parent.children.push(this);
+    if (this._parent) {
+      const transform = this._parent.getComponent(Transform);
+      transform.children.push(this.owner);
     }
 
     this.updateWorldMatrix();
   }
 
-  public readonly children: Transform[] = [];
+  public readonly children: Entity[] = [];
 
   private readonly _position: Vector3;
   public get position(): Vector3 { return this._position; }
@@ -38,8 +48,10 @@ export class Transform extends Component {
   public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
-  constructor(position?: Vector3, rotation?: Vector3, scale?: Vector3) {
+  constructor(owner: Entity, position?: Vector3, rotation?: Vector3, scale?: Vector3) {
     super();
+
+    this.owner = owner;
 
     this._position = position ?? Vector3.zero();
     this._rotation = rotation ?? Vector3.zero();
@@ -73,25 +85,27 @@ export class Transform extends Component {
     this.updateWorldMatrix();
   }
 
-public updateWorldMatrix(): void {
-  if (this._parent) {
-    const temp = matrix4.create();
-    matrix4.multiply(temp, this._parent.worldMatrix.value, this.localMatrix.value);
-    this.worldMatrix.value = temp;
-  } else {
-    this.worldMatrix.value = matrix4.clone(this.localMatrix.value);
-  }
+  public updateWorldMatrix(): void {
+    const parentTransform = this._parent?.getComponent(Transform);
+    if (parentTransform) {
+      const temp = matrix4.create();
+      matrix4.multiply(temp, parentTransform.worldMatrix.value, this.localMatrix.value);
+      this.worldMatrix.value = temp;
+    } else {
+      this.worldMatrix.value = matrix4.clone(this.localMatrix.value);
+    }
 
-  for (const child of this.children) {
-    child.updateWorldMatrix();
+    for (const childEntity of this.children) {
+      const childTransform = childEntity.getComponent(Transform);
+      childTransform?.updateWorldMatrix();
+    }
   }
-}
 
 
   public setWorldMatrix(matrix: matrix4): void {
     this.worldMatrix.value = matrix;
 
-    const inverseParent = this._parent?.worldMatrix.value ?? matrix4.create();
+    const inverseParent = this._parent?.getComponent(Transform).worldMatrix.value ?? matrix4.create();
     const inv = matrix4.invert(matrix4.create(), inverseParent);
     if (inv) {
       matrix4.multiply(this.localMatrix.value, inv, matrix);
@@ -114,6 +128,7 @@ public updateWorldMatrix(): void {
 
   public clone(): Transform {
     const clone = new Transform(
+      this.owner,
       this._position.clone(),
       this._rotation.clone(),
       this._scale.clone()
