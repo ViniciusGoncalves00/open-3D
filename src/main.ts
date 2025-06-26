@@ -19,6 +19,7 @@ import * as THREE from "three";
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
 import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
+import { Storage } from './core/persistence/Storage';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -190,14 +191,17 @@ export class Program {
         })
     };
 
-    private initializeAssets(): void {
+    private async initializeAssets(): Promise<void> {
         this.assetsContainer = this.getElementOrFail<HTMLElement>('assetsContainer');
         this._tree = new Tree(this.assetsContainer);
 
-        (async () => {
-            const rootNode = await this.loadAssets();
-            this._tree.addChild(rootNode);
-        })();
+        // (async () => {
+        //     const rootNode = await this.loadAssets();
+        //     this._tree.addChild(rootNode);
+        // })();
+
+        const persistence = new Storage(this.engine, this.console);
+        await persistence.init();
     };
 
     private initializeInspector(): void {

@@ -4,14 +4,14 @@ import { Vector3 } from "../../core/api/vector3";
 import { Component } from "./component";
 
 export class Mesh extends Component {
-    private readonly _name: ObservableField<string>;
-    public get name(): ObservableField<string> { return this._name; }
+  private readonly _name: ObservableField<string>;
+  public get name(): ObservableField<string> { return this._name; }
 
-    private readonly _vertices: ObservableList<Vector3>;
-    public get vertices(): ObservableList<Vector3> { return this._vertices; }
+  private readonly _vertices: ObservableList<Vector3>;
+  public get vertices(): ObservableList<Vector3> { return this._vertices; }
     
-    private readonly _indices: ObservableList<ObservableField<number>>;
-    public get indices(): ObservableList<ObservableField<number>> { return this._indices; }
+  private readonly _indices: ObservableList<ObservableField<number>>;
+  public get indices(): ObservableList<ObservableField<number>> { return this._indices; }
 
   constructor(
     name = "name",
@@ -24,25 +24,54 @@ export class Mesh extends Component {
     this._indices = new ObservableList(indices);
   }
 
-    public clone(): Mesh {
-      const clone = new Mesh(
-        this._name.value,
-        this._vertices.items,
-        this._indices.items,
-      );
-      
-      clone.enabled = this.enabled;
-      return clone;
+  public clone(): Mesh {
+    const clone = new Mesh(
+      this._name.value,
+      this._vertices.items,
+      this._indices.items,
+    );
+    
+    clone.enabled = this.enabled;
+    return clone;
+  }
+
+  public copyFrom(mesh: Mesh): void {
+    this._name.value = mesh._name.value;
+    this._vertices.clear();
+    mesh._vertices.items.forEach(item => this._vertices.add(item));
+    this._indices.clear();
+    mesh._indices.items.forEach(item => this._indices.add(item));
+    this.enabled = mesh.enabled;
+  }
+
+  public toJSON() {
+    return {
+      type: "Mesh",
+      enabled: this.enabled,
+      name: this._name.value,
+      vertices: this._vertices.items.map(v => ({
+        x: v.x.value,
+        y: v.y.value,
+        z: v.z.value,
+      })),
+      indices: this._indices.items.map(i => i.value),
+    };
+  }
+
+  public fromJSON(json: any): void {
+    this.enabled = json.enabled;
+    this._name.value = json.name;
+
+    this._vertices.clear();
+    for (const v of json.vertices) {
+      this._vertices.add(new Vector3(v.x, v.y, v.z));
     }
 
-    public copyFrom(mesh: Mesh): void {
-      this._name.value = mesh._name.value;
-      this._vertices.clear();
-      mesh._vertices.items.forEach(item => this._vertices.add(item));
-      this._indices.clear();
-      mesh._indices.items.forEach(item => this._indices.add(item));
-      this.enabled = mesh.enabled;
+    this._indices.clear();
+    for (const i of json.indices) {
+      this._indices.add(new ObservableField<number>(i));
     }
+  }
 
-    public destroy(): void {}
+  public destroy(): void {}
 }

@@ -1,4 +1,6 @@
 import { Component } from "../../assets/components/component";
+import { Mesh } from "../../assets/components/mesh";
+import { Transform } from "../../assets/components/transform";
 import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
 
@@ -65,6 +67,57 @@ export class Entity {
     }
   
     return clone;
+  }
+
+  public toJSON(): any {
+    return {
+      id: this.id,
+      name: this.name.value,
+      isEnabled: this.isEnabled,
+      isAwaked: this.isAwaked,
+      isStarted: this.isStarted,
+      components: this.getComponents().map(component => ({
+        type: component.constructor.name,
+        data: component.toJSON?.() ?? {}
+      }))
+    };
+  }
+
+  public static fromJSON(json: any): Entity {
+    const entity = new Entity(json.id);
+  
+    entity.name.value = json.name;
+    entity.isEnabled = json.isEnabled;
+    entity.isAwaked = json.isAwaked;
+    entity.isStarted = json.isStarted;
+  
+    const componentMap: Record<string, new () => Component> = {
+      'Mesh': Mesh,
+    };
+  
+    for (const compJson of json.components) {
+      const ctor = componentMap[compJson.type];
+      if (!ctor) {
+        console.warn(`Componente desconhecido: ${compJson.type}`);
+        continue;
+      }
+      else if(ctor instanceof Transform) {
+        const component = new Transform(entity);
+        if (component.fromJSON) {
+          component.fromJSON(compJson.data);
+          entity.addComponent(component);
+        }
+      }
+      else {
+        const component = new ctor();
+        if (component.fromJSON) {
+          component.fromJSON(compJson.data);
+          entity.addComponent(component);
+        }
+      }  
+    }
+
+    return entity;
   }
 
   public restoreFrom(clone: Entity): void {

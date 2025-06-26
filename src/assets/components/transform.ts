@@ -143,6 +143,38 @@ export class Transform extends Component {
     this._scale.setFromVector(transform.scale);
   }
 
+  public toJSON() {
+    return {
+      type: "Transform",
+      enabled: this.enabled,
+      position: {
+        x: this._position.x.value,
+        y: this._position.y.value,
+        z: this._position.z.value,
+      },
+      rotation: {
+        x: this._rotation.x.value,
+        y: this._rotation.y.value,
+        z: this._rotation.z.value,
+      },
+      scale: {
+        x: this._scale.x.value,
+        y: this._scale.y.value,
+        z: this._scale.z.value,
+      },
+      parentId: this._parent?.id ?? null
+    };
+  }
+
+  public fromJSON(json: any): void {
+    this._parent = json.parent;
+    this.position.set(json.position.x, json.position.y, json.position.z)
+    this.rotation.set(json.rotation.x, json.rotation.y, json.rotation.z)
+    this.scale.set(json.scale.x, json.scale.y, json.scale.z)
+
+    this.enabled = json.enabled ?? true;
+  }
+
   public destroy(): void {
     this.children.length = 0;
     this._parent = null;

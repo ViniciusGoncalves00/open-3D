@@ -3,6 +3,9 @@ import { Vector3 } from "../../core/api/vector3";
 import { Component } from "./component";
 
 export class Orbit extends Component {
+  public fromJSON(json: any): void {
+    throw new Error("Method not implemented.");
+  }
   private readonly _center: Vector3;
   public get center(): Vector3 { return this._center; }
 
@@ -48,6 +51,10 @@ export class Orbit extends Component {
       this._axis.set(orbit.axis.x.value, orbit.axis.y.value, orbit.axis.z.value);
       this._distance.value = orbit.distance.value;
       this._speed.value = orbit.speed.value;
+  }
+
+  public toJSON() {
+    throw new Error("Method not implemented.");
   }
   
   public destroy(): void {}
