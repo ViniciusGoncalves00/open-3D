@@ -61,6 +61,7 @@ export class Mesh extends Component {
   public fromJSON(json: any): void {
     this.enabled = json.enabled;
     this._name.value = json.name;
+    console.log(json)
 
     this._vertices.clear();
     for (const v of json.vertices) {

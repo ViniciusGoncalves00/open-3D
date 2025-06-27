@@ -96,17 +96,20 @@ export class Entity {
     };
   
     for (const compJson of json.components) {
-      const ctor = componentMap[compJson.type];
-      if (!ctor) {
-        console.warn(`Componente desconhecido: ${compJson.type}`);
-        continue;
-      }
-      else if(ctor instanceof Transform) {
+      if(compJson.type === "Transform") {
         const component = new Transform(entity);
         if (component.fromJSON) {
           component.fromJSON(compJson.data);
           entity.addComponent(component);
         }
+        continue;
+      }
+
+      const ctor = componentMap[compJson.type];
+
+      if (!ctor) {
+        console.warn(`Unknown component: ${compJson.type}`);
+        continue;
       }
       else {
         const component = new ctor();
