@@ -27,7 +27,7 @@ export class Storage {
       this.engine.entityManager.addEntity(entity);
     }
 
-    this.console.log(LogType.Log, `${entities.length} entidades carregadas.`);
+    this.console.log(LogType.Log, `${entities.length} entities loaded.`);
 
     this.startAutoSave();
   }
@@ -92,28 +92,23 @@ export class Storage {
 
   public async loadEntitiesWithHierarchy(): Promise<Entity[]> {
     const entitiesData = await this.listEntities();
-
+    console.log("entitiesData:", entitiesData)
     const entities: Entity[] = entitiesData.map(data => Entity.fromJSON(data));
 
     const entityMap = new Map<string, Entity>();
-    for (const e of entities) {
-      entityMap.set(e.id, e);
-    }
-
     for (const entity of entities) {
-      const transform = entity.getComponent(Transform);
-      if (!transform) continue;
-
-      const parentId = transform.parent?.id;
-      if (parentId) {
-        const parentEntity = entityMap.get(parentId);
-        if (parentEntity) {
-          transform.parent = parentEntity;
-        } else {
-          this.console.log(LogType.Warning, `Parent entity ${parentId} not found for entity ${entity.id}`);
-        }
-      }
+      entityMap.set(entity.id, entity);
     }
+    entities.forEach(entity => {
+      const transform = entity.getComponent(Transform);
+      const entityData = entitiesData.find((value: any) => value.id === entity.id);
+      const componentsData = entityData["components"] as { type: string; data: any }[];
+    
+      const transformData = componentsData.find((component: { type: string; data: any }) => component.type === "Transform");
+    
+      transform.parent = entityMap.get(transformData?.data.parentId) as Entity;
+    });
+
 
     return entities;
   }
@@ -155,7 +150,6 @@ export class Storage {
     const currentIds = new Set(currentEntities.map(entity => entity.id));
     
     for (const entity of currentEntities) {
-      console.log(entity)
       await this.saveEntity(entity);
     }
 

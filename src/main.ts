@@ -159,7 +159,8 @@ export class Program {
         this._console = new Console(this.consoleContent);
 
         this.engine.timeController.isRunning.subscribe((value => {
-                const log = LogType.Log; value ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.")
+                const log = LogType.Log;
+                value ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.")
             }
         ))
 

@@ -145,7 +145,6 @@ export class Transform extends Component {
 
   public toJSON() {
     return {
-      type: "Transform",
       enabled: this.enabled,
       position: {
         x: this._position.x.value,
