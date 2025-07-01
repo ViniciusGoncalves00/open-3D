@@ -52,6 +52,8 @@ export class Program {
     public speedNormal!: HTMLButtonElement;
     public speedDown!: HTMLButtonElement;
     public fullScreen!: HTMLButtonElement;
+
+    public save!: HTMLButtonElement;
     //#endregion
 
     //#region [HTMLElements]
@@ -199,6 +201,7 @@ export class Program {
 
     private async initializeAssets(): Promise<void> {
         this.assetsContainer = this.getElementOrFail<HTMLElement>('assetsContainer');
+        this.save = this.getElementOrFail<HTMLButtonElement>('save');
         this._tree = new Tree(this.assetsContainer);
 
         // (async () => {
@@ -208,6 +211,7 @@ export class Program {
 
         this._storage = new Storage(this.engine, this.console);
         await this._storage.init();
+        this.save.addEventListener("click", () => this.storage.saveAll());
     };
 
     private initializeInspector(): void {
