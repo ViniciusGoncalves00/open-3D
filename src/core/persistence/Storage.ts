@@ -10,8 +10,14 @@ export class Storage {
   private dbName = 'open3d-storage';
   private dbVersion = 1;
   private db!: IDBDatabase;
-  private saveIntervalId: number | undefined;
-  public saveTimeInSeconds: number = 600;
+  private autoSaveEnabled: boolean = true;
+  private autoSaveIntervalId: number | undefined;
+  private _autoSaveIntervalInSeconds: number = 60;
+  public get autoSaveIntervalInSeconds(): number { return this._autoSaveIntervalInSeconds};
+  public set autoSaveIntervalInSeconds(intervalInSeconds: number) {
+    this._autoSaveIntervalInSeconds =  intervalInSeconds
+    this.restartAutoSave();
+  };
 
   public constructor(engine: Engine, console: Console) {
     this.engine = engine;
@@ -21,13 +27,14 @@ export class Storage {
   public async init(): Promise<void> {
     this.db = await this.openDatabase();
 
+    await this.loadSettings();
     const entities = await this.loadEntitiesWithHierarchy();
 
     for (const entity of entities) {
       this.engine.entityManager.addEntity(entity);
     }
 
-    this.startAutoSave();
+    this.autoSaveEnabled ? this.startAutoSave(this._autoSaveIntervalInSeconds) : undefined;
   }
 
   private openDatabase(): Promise<IDBDatabase> {
@@ -65,16 +72,26 @@ export class Storage {
     });
   }
 
-  private startAutoSave() {
-    this.saveIntervalId = window.setInterval(() => {
-      this.saveAll();
-    }, this.saveTimeInSeconds * 1000);
+  // ------------------ AUTOSAVE ------------------ 
+  
+  public toggleAutoSave(): void {
+    this.autoSaveEnabled = !this.autoSaveEnabled;
+    this.autoSaveEnabled ? this.startAutoSave(this._autoSaveIntervalInSeconds) : this.stopAutoSave();
   }
 
-  public stopAutoSave() {
-    if (this.saveIntervalId !== undefined) {
-      clearInterval(this.saveIntervalId);
-    }
+  private restartAutoSave(): void {
+    this.stopAutoSave();
+    this.startAutoSave(this._autoSaveIntervalInSeconds);
+  }
+
+  private startAutoSave(interval: number): void {
+    this.autoSaveIntervalId = window.setInterval(() => {
+      this.saveAll();
+    }, interval * 1000);
+  }
+
+  private stopAutoSave(): void {
+    clearInterval(this.autoSaveIntervalId);
   }
 
   // ------------------ ENTITIES ------------------ 
@@ -82,6 +99,24 @@ export class Storage {
   public async saveEntity(entity: Entity): Promise<void> {
     const data = entity.toJSON();
     await this.runTransaction('entities', 'readwrite', (store) => {return store.put(data)}, `save entity (name: ${data.name}, id: ${data.id})`);
+  }
+
+  public async saveAllEntities(): Promise<void> {
+    const currentEntities = this.engine.entityManager.getEntities();
+    const currentIds = new Set(currentEntities.map(entity => entity.id));
+    
+    for (const entity of currentEntities) {
+      await this.saveEntity(entity);
+    }
+
+    const savedEntities = await this.listEntities();
+    const savedIds = savedEntities.map(e => e.id);
+
+    for (const savedId of savedIds) {
+      if (!currentIds.has(savedId)) {
+        await this.deleteEntity(savedId);
+      }
+    }
   }
 
   public async getEntity(id: string): Promise<any | undefined> {
@@ -140,6 +175,19 @@ export class Storage {
     }, "save setting");
   }
 
+  public async loadSettings(): Promise<void> {
+    const savedAutoSaveEnabled = await this.getSetting(`autoSaveEnabled`);
+    const savedAutoSaveInterval = await this.getSetting(`autoSaveIntervalInSeconds`);
+    
+    this.autoSaveEnabled = savedAutoSaveEnabled !== undefined ? savedAutoSaveEnabled : true;
+    this._autoSaveIntervalInSeconds = savedAutoSaveInterval !== undefined ? savedAutoSaveInterval : 60;
+  }
+
+  public async saveAllSettings(): Promise<void> {
+    await this.saveSetting(`autoSaveEnabled`, this.autoSaveEnabled);
+    await this.saveSetting(`autoSaveIntervalInSeconds`, this._autoSaveIntervalInSeconds);
+  }
+
   public async getSetting(key: string): Promise<any | undefined> {
     return await this.runTransaction('settings', 'readonly', (store) => {
       return store.get(key);
@@ -149,23 +197,10 @@ export class Storage {
   // ------------------ GLOBAL ------------------
 
   public async saveAll(): Promise<void> {
-    this.console.log(LogType.Debug, "Auto-saving...")
+    this.console.log(LogType.Debug, "Saving...")
 
-    const currentEntities = this.engine.entityManager.getEntities();
-    const currentIds = new Set(currentEntities.map(entity => entity.id));
-    
-    for (const entity of currentEntities) {
-      await this.saveEntity(entity);
-    }
-
-    const savedEntities = await this.listEntities();
-    const savedIds = savedEntities.map(e => e.id);
-
-    for (const savedId of savedIds) {
-      if (!currentIds.has(savedId)) {
-        await this.deleteEntity(savedId);
-      }
-    }
+    this.saveAllEntities();
+    this.saveAllSettings();
   }
 
   public async clearAll(): Promise<void> {

@@ -15,11 +15,11 @@ import { FileNode } from './common/tree/file-node';
 import { LogType } from './core/api/enum/log-type';
 import { Scenes } from './ui/elements/scenes/scenes';
 import { IGraphicEngine } from './graphics/IGraphicEngine';
-import * as THREE from "three";
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
 import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/Storage';
+import { Settings } from './ui/elements/settings/settings';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -52,6 +52,8 @@ export class Program {
     public speedNormal!: HTMLButtonElement;
     public speedDown!: HTMLButtonElement;
     public fullScreen!: HTMLButtonElement;
+
+    public save!: HTMLButtonElement;
     //#endregion
 
     //#region [HTMLElements]
@@ -84,13 +86,22 @@ export class Program {
 
     private _storage!: Storage;
     private get storage(): Storage { return this._storage; }
+
+    private _settings!: Settings;
+    private get settings(): Settings { return this._settings; }
     //#endregion
 
     public constructor(devMode: boolean = false) {
         this.devMode = devMode;
 
+        this.initialize();
+    }
+
+    private async initialize(): Promise<void> {
         this.initializeEngine();
         this.initializeConsole();
+        await this.initializeStorage();
+        this.initializeSettings();
 
         this._console.log(LogType.Log, "creating the best interface...")
 
@@ -197,7 +208,24 @@ export class Program {
         })
     };
 
-    private async initializeAssets(): Promise<void> {
+    private async initializeStorage(): Promise<void>  {
+        this._storage = new Storage(this.engine, this.console);
+        await this._storage.init();
+        this.save = this.getElementOrFail<HTMLButtonElement>('save');
+        this.save.addEventListener("click", () => this.storage.saveAll());
+    }
+
+    private initializeSettings(): void {
+        const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
+        const open = this.getElementOrFail<HTMLButtonElement>("openSettings");
+        const close = this.getElementOrFail<HTMLButtonElement>("closeSettings");
+        const autoSaveEnabledButton = this.getElementOrFail<HTMLButtonElement>("autoSaveEnabled");
+        const autoSaveIntervalInput = this.getElementOrFail<HTMLInputElement>("autoSaveInterval");
+
+        this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
+    };
+
+    private initializeAssets(): void {
         this.assetsContainer = this.getElementOrFail<HTMLElement>('assetsContainer');
         this._tree = new Tree(this.assetsContainer);
 
@@ -205,9 +233,6 @@ export class Program {
         //     const rootNode = await this.loadAssets();
         //     this._tree.addChild(rootNode);
         // })();
-
-        this._storage = new Storage(this.engine, this.console);
-        await this._storage.init();
     };
 
     private initializeInspector(): void {
@@ -247,8 +272,6 @@ export class Program {
         this._scenes = new Scenes(this.viewportEditorContainer,  this.viewportSceneContainer);
         this.engine.timeController.isRunning.subscribe(() => this._scenes.toggleHighlight())
     };
-
-    private initializeSettings(): void {};
 
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);

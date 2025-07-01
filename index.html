@@ -10,15 +10,28 @@
 </head>
 <body>
   <div id="explorer-window" class="bg-zinc-900 w-screen h-screen flex flex-col overflow-hidden">
+    <!-- FIXED -->
+    <div id="settingsOverlay" class="fixed hidden w-full h-full z-50 items-center justify-center">
+      <div id="settingsWindow" class="bg-zinc-700 text-white w-1/2 h-1/2 pointer-events-auto">
+        <button id="closeSettings" class="">X</button>
+        <div class="flex items-center justify-between">
+          <label>autosave</label>
+          <input id="autoSaveEnabled" type="checkbox" value="true" checked>
+        </div>
+        <div class="flex items-center justify-between">
+          <label>save time interval (seconds)</label>
+          <input id="autoSaveInterval" type="number" value="">
+        </div>
+      </div>
+    </div>
     <!-- TOP -->
     <div id="top" class="w-full h-8 flex items-center justify-between px-2">
       <div class="w-full h-8 flex items-center justify-start space-x-[2px]">
-        <button class="btn btn--time-controller space-x-2">
-          <i class="bi bi-person-circle"></i>
-          <p>username</p>
+        <button id="openSettings" class="btn btn--time-controller">
+          <i class="bi bi-gear"></i>
         </button>
-        <button class="btn btn--time-controller">
-          <i class="bi bi-cloud"></i>
+        <button id="save" class="btn btn--time-controller">
+          <i class="bi bi-floppy"></i>
         </button>
         <div class="btn btn--time-controller">
           <p id="averageFpsContainer"></p>
