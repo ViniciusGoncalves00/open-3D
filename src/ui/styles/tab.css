@@ -31,3 +31,7 @@
 .log-error {
   color: red;
 }
+
+.log-debug {
+  color: yellow;
+}

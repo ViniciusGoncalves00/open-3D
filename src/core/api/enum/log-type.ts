@@ -3,4 +3,5 @@ export enum LogType {
     Success,
     Warning,
     Error,
+    Debug,
 }

@@ -29,6 +29,9 @@ export class Console{
             case LogType.Error:
                 logLine.classList.add("log-error");
                 break;
+            case LogType.Debug:
+                logLine.classList.add("log-debug");
+                break;
             default:
                 logLine.classList.add("log-log");
                 break;

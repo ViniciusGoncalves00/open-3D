@@ -11,7 +11,7 @@ export class Storage {
   private dbVersion = 1;
   private db!: IDBDatabase;
   private saveIntervalId: number | undefined;
-  public saveTimeInSeconds: number = 10;
+  public saveTimeInSeconds: number = 600;
 
   public constructor(engine: Engine, console: Console) {
     this.engine = engine;
@@ -27,8 +27,6 @@ export class Storage {
       this.engine.entityManager.addEntity(entity);
     }
 
-    this.console.log(LogType.Log, `${entities.length} entities loaded.`);
-
     this.startAutoSave();
   }
 
@@ -38,14 +36,21 @@ export class Storage {
 
       request.onupgradeneeded = (event) => {
         const db = request.result;
+        let neededCreateStore = false;
         if (!db.objectStoreNames.contains('entities')) {
           db.createObjectStore('entities', { keyPath: 'id' });
+          neededCreateStore = true;
         }
         if (!db.objectStoreNames.contains('assets')) {
           db.createObjectStore('assets');
+          neededCreateStore = true;
         }
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings');
+          neededCreateStore = true;
+        }
+        if(neededCreateStore) {
+          this.console.log(LogType.Debug, `Creating missing stores in your database...`);
         }
       };
 
@@ -54,6 +59,7 @@ export class Storage {
       };
 
       request.onerror = () => {
+        this.console.log(LogType.Error, `Oh no! Something went wrong during opening your local database`);
         reject(request.error);
       };
     });
@@ -92,7 +98,6 @@ export class Storage {
 
   public async loadEntitiesWithHierarchy(): Promise<Entity[]> {
     const entitiesData = await this.listEntities();
-    console.log("entitiesData:", entitiesData)
     const entities: Entity[] = entitiesData.map(data => Entity.fromJSON(data));
 
     const entityMap = new Map<string, Entity>();
@@ -144,7 +149,7 @@ export class Storage {
   // ------------------ GLOBAL ------------------
 
   public async saveAll(): Promise<void> {
-    this.console.log(LogType.Log, "Auto-saving...")
+    this.console.log(LogType.Debug, "Auto-saving...")
 
     const currentEntities = this.engine.entityManager.getEntities();
     const currentIds = new Set(currentEntities.map(entity => entity.id));
@@ -159,7 +164,6 @@ export class Storage {
     for (const savedId of savedIds) {
       if (!currentIds.has(savedId)) {
         await this.deleteEntity(savedId);
-        this.console.log(LogType.Log, `Removed entity from storage: ${savedId}`);
       }
     }
   }
@@ -184,7 +188,6 @@ export class Storage {
       const request = operation(store);
 
       request.onsuccess = () => {
-        this.console.log(LogType.Log, `Successfully completed ${action} operation`);
         resolve(request.result);
       };
 

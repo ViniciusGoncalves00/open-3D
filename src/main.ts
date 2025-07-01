@@ -81,6 +81,9 @@ export class Program {
 
     private _entityHandler!: EntityHandler;
     private get entityHandler(): EntityHandler { return this._entityHandler; }
+
+    private _storage!: Storage;
+    private get storage(): Storage { return this._storage; }
     //#endregion
 
     public constructor(devMode: boolean = false) {
@@ -158,15 +161,15 @@ export class Program {
         this.consoleContent = this.getElementOrFail<HTMLElement>('consoleContent');
         this._console = new Console(this.consoleContent);
 
-        this.engine.timeController.isRunning.subscribe((value => {
-                const log = LogType.Log;
-                value ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.")
+        const log = LogType.Log;
+        this.engine.timeController.isRunning.subscribe((wasStarted => {
+                wasStarted ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.");
+                wasStarted ? this._storage.saveAll() : '';
             }
         ))
 
-        this.engine.timeController.isPaused.subscribe((value => {
-                const log = LogType.Log;
-                value ? this.console.log(log, "Paused.") : this.console.log(log, "Unpaused.")
+        this.engine.timeController.isPaused.subscribe((wasPaused => {
+                wasPaused ? this.console.log(log, "Paused.") : this.console.log(log, "Unpaused.")
             }
         ))
 
@@ -175,12 +178,14 @@ export class Program {
         const filterSuccess = this.getElementOrFail<HTMLElement>('filterSuccess');
         const filterWarning = this.getElementOrFail<HTMLElement>('filterWarning');
         const filterError = this.getElementOrFail<HTMLElement>('filterError');
+        const filterDebug = this.getElementOrFail<HTMLElement>('filterDebug');
 
         filterAll.addEventListener("click", () => this._console.filter(null))
         filterLog.addEventListener("click", () => this._console.filter(LogType.Log))
         filterSuccess.addEventListener("click", () => this._console.filter(LogType.Success))
         filterWarning.addEventListener("click", () => this._console.filter(LogType.Warning))
         filterError.addEventListener("click", () => this._console.filter(LogType.Error))
+        filterDebug.addEventListener("click", () => this._console.filter(LogType.Debug))
     };
 
     private initializeHierarchy(): void {
@@ -201,8 +206,8 @@ export class Program {
         //     this._tree.addChild(rootNode);
         // })();
 
-        const persistence = new Storage(this.engine, this.console);
-        await persistence.init();
+        this._storage = new Storage(this.engine, this.console);
+        await this._storage.init();
     };
 
     private initializeInspector(): void {
