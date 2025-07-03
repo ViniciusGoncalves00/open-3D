@@ -18,7 +18,7 @@ import { IGraphicEngine } from './graphics/IGraphicEngine';
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
 import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
-import { Storage } from './core/persistence/Storage';
+import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -227,7 +227,6 @@ export class Program {
 
     private initializeAssets(): void {
         this.assetsContainer = this.getElementOrFail<HTMLElement>('assetsContainer');
-        this.save = this.getElementOrFail<HTMLButtonElement>('save');
         this._tree = new Tree(this.assetsContainer);
 
         // (async () => {
