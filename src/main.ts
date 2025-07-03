@@ -100,8 +100,6 @@ export class Program {
     private async initialize(): Promise<void> {
         this.initializeEngine();
         this.initializeConsole();
-        await this.initializeStorage();
-        this.initializeSettings();
 
         this._console.log(LogType.Log, "creating the best interface...")
 
@@ -109,7 +107,6 @@ export class Program {
         this.initializeGraphicEngine();
         this._entityHandler = new EntityHandler(this.engine);
         this.initializeInspector();
-
 
         this._console.log(LogType.Log, "loading your best assets...");
         this.initializeAssets();
@@ -129,6 +126,8 @@ export class Program {
         (window as any).addEntity = () => {
           this._entityHandler.addEntity();
         };
+        await this.initializeStorage();
+        this.initializeSettings();
 
         this.initializeTEMP();
 
