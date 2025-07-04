@@ -3,10 +3,6 @@ import { Vector3 } from "../../core/api/vector3";
 import { ObservableField } from "../../common/patterns/observer/observable-field";
 
 export class Rotate extends Component {
-  public fromJSON(json: any): void {
-    throw new Error("Method not implemented.");
-  }
-
   private readonly _axis: Vector3;
   public get axis(): Vector3 { return this._axis; }
 
@@ -32,7 +28,23 @@ export class Rotate extends Component {
   }
 
   public toJSON() {
-    throw new Error("Method not implemented.");
+    return {
+      enabled: this.enabled,
+
+      speed: this._speed.value,
+      axis: {
+        x: this._axis.x.value,
+        y: this._axis.y.value,
+        z: this._axis.z.value,
+      },
+    }
+  }
+
+  public fromJSON(json: any): void {
+    this.enabled = json.enabled ?? true;
+
+    this._speed.value = json.speed;
+    this._axis.set(json.axis.x, json.axis.y, json.axis.z)
   }
 
   public destroy(): void {}

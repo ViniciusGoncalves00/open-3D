@@ -1,5 +1,7 @@
 import { Component } from "../../assets/components/component";
 import { Mesh } from "../../assets/components/mesh";
+import { Orbit } from "../../assets/components/orbit";
+import { Rotate } from "../../assets/components/rotate";
 import { Transform } from "../../assets/components/transform";
 import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
@@ -93,6 +95,8 @@ export class Entity {
   
     const componentMap: Record<string, new () => Component> = {
       'Mesh': Mesh,
+      'Rotate': Rotate,
+      'Orbit': Orbit,
     };
   
     for (const compJson of json.components) {
