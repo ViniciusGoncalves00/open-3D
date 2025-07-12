@@ -20,6 +20,7 @@ import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
+import { Open3DAdapter } from './graphics/open3DAdapter';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -139,7 +140,7 @@ export class Program {
     }
 
     private initializeGraphicEngine(): void {
-        this.graphicEngine = new ThreeGEAdapter();
+        this.graphicEngine = new Open3DAdapter();
 
         this.graphicEngine.init(this.engine, this.canvasA, this.canvasB);
 
