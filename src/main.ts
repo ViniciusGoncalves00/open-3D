@@ -21,6 +21,7 @@ import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
 import { Open3DAdapter } from './graphics/open3DAdapter';
+import { GraphicSettings } from './graphics/graphicSettings';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -157,8 +158,8 @@ export class Program {
         observerB.observe(this.canvasB);
 
         this.graphicEngine.setFog({r: 0.02, g: 0.02, b: 0.02}, 0, 100);
-        this.graphicEngine.setBackground({r: 0.02, g: 0.02, b: 0.02});
-        this.graphicEngine.setGridHelper({r: 0.1, g: 0.1, b: 0.1});
+        this.graphicEngine.setBackground(GraphicSettings.backgroundColor);
+        this.graphicEngine.setGridHelper({r: 0.1, g: 0.1, b: 0.1, a: 1});
 
         this.graphicEngine.startRender();
     }

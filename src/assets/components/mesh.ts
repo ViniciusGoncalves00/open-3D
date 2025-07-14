@@ -16,7 +16,7 @@ export class Mesh extends Component {
   constructor(
     name = "name",
     vertices = [new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0)],
-    indices = [new ObservableField(0), new ObservableField(1), new ObservableField(2)]
+    indices: ObservableField<number>[] = [new ObservableField(0), new ObservableField(1), new ObservableField(2)]
   ) {
     super();
     this._name = new ObservableField(name);

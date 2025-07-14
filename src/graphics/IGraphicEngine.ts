@@ -30,7 +30,7 @@ export interface IGraphicEngine {
 //   getActiveCamera(): Camera;
 
   setFog(color: {r: number, g: number, b: number}, near: number, far: number): void;
-  setBackground(color: {r: number, g: number, b: number}): void;
-  setGridHelper(color: {r: number, g: number, b: number}): void;
-  setAxisHelper(color: {r: number, g: number, b: number}): void;
+  setBackground(color: {r: number, g: number, b: number, a: number}): void;
+  setGridHelper(color: {r: number, g: number, b: number, a: number}): void;
+  setAxisHelper(color: {r: number, g: number, b: number, a: number}): void;
 }

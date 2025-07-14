@@ -5,6 +5,7 @@ import { ObservableField } from '../../common/patterns/observer/observable-field
 import { Vector3 } from '../../core/api/vector3';
 import { Mesh } from '../../assets/components/mesh';
 import { ObservableNullableField } from '../../common/patterns/observer/observable-nullable-field';
+import { PrefabMesh } from "../../core/api/prefab-mesh";
 
 export class EntityHandler {
     private _engine: Engine;
@@ -18,14 +19,17 @@ export class EntityHandler {
     }
     
   public addEntity(): void {
-    const sphereVertices = generateSphereVertices(1, 4, 4);
-    const vertices = float32ArrayToVector3List(sphereVertices);
-    const indices = createSequentialIndices(vertices.length);
+    // const sphereVertices = generateSphereVertices(1, 4, 4);
+    // const vertices = float32ArrayToVector3List(sphereVertices);
+    // const indices = createSequentialIndices(vertices.length);
 
     const entity = new Entity(crypto.randomUUID());
     entity.addComponent(new Transform(entity));
 
-    const meshComponent = new Mesh("Sphere", vertices, indices);
+    const cube = PrefabMesh.cube();
+    const observableIndices: ObservableField<number>[] = []
+    cube.indices.forEach(index => observableIndices.push(new ObservableField(index)));
+    const meshComponent = new Mesh("Sphere", float32ArrayToVector3List(cube.vertices), observableIndices);
     entity.addComponent(meshComponent);
 
     this._engine.entityManager.addEntity(entity);
