@@ -2,7 +2,7 @@ import { IGraphicEngine } from "./IGraphicEngine";
 import { Entity } from '../core/api/entity';
 import { Engine } from '../core/engine/engine';
 import { GraphicSettings } from "./graphicSettings";
-import { mat4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { Mesh } from "../assets/components/mesh";
 import { Transform } from "../assets/components/transform";
 
@@ -84,13 +84,13 @@ export class Open3DAdapter implements IGraphicEngine {
         // throw new Error("Method not implemented.");
     }
     public bind(entity: Entity): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     public addEntity(entity: Entity): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     public removeEntity(entity: Entity): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     public setEditorCamera(canvas: HTMLCanvasElement, startPosition: { x: number; y: number; z: number; }): void {
         // throw new Error("Method not implemented.");
@@ -99,7 +99,7 @@ export class Open3DAdapter implements IGraphicEngine {
         // throw new Error("Method not implemented.");
     }
     public toggleActiveCamera(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     public setFog(color: { r: number; g: number; b: number; }, near: number, far: number): void {
         // throw new Error("Method not implemented.");
@@ -112,7 +112,7 @@ export class Open3DAdapter implements IGraphicEngine {
         // throw new Error("Method not implemented.");
     }
     public setAxisHelper(color: { r: number; g: number; b: number; }): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
 
     private initShaderProgram(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
@@ -164,7 +164,7 @@ export class Open3DAdapter implements IGraphicEngine {
       
       const verticesBuffer = this.initVerticesBuffer(gl, vertices);
       const indexBuffer = this.initIndexBuffer(gl, indices);
-      const colorBuffer = this.initColorBuffer(gl);
+      const colorBuffer = this.initColorBuffer(gl, mesh);
 
       return {
         position: verticesBuffer,
@@ -203,6 +203,12 @@ export class Open3DAdapter implements IGraphicEngine {
           return;
         }
 
+        const cameraPosition: Float32Array = new Float32Array([-5, 5, -10]);
+
+        const viewMatrix = mat4.create();
+        mat4.translate(viewMatrix, viewMatrix, cameraPosition);
+        mat4.lookAt(viewMatrix, cameraPosition, [0, 0, 0], [0, 1, 0]);
+
         entities.forEach(entity => {
           if(!entity.hasComponent(Transform) || !entity.hasComponent(Mesh)) return;
           
@@ -210,28 +216,17 @@ export class Open3DAdapter implements IGraphicEngine {
           const mesh = entity.getComponent(Mesh);
 
           const position = transform.position;
+          const rotation = transform.rotation;
             
-          const modelViewMatrix = mat4.create();
-          mat4.translate(modelViewMatrix, modelViewMatrix, [position.x.value, position.y.value, position.z.value]);
+          const modelMatrix = mat4.create();
+          mat4.translate(modelMatrix, modelMatrix, [position.x.value, position.y.value, position.z.value]);
 
-          mat4.rotate(
-            modelViewMatrix, // destination matrix
-            modelViewMatrix, // matrix to rotate
-            0, // amount to rotate in radians
-            [0, 0, 1],
-          ); // axis to rotate around (Z)
-          mat4.rotate(
-            modelViewMatrix, // destination matrix
-            modelViewMatrix, // matrix to rotate
-            0 * 0.7, // amount to rotate in radians
-            [0, 1, 0],
-          ); // axis to rotate around (Y)
-          mat4.rotate(
-            modelViewMatrix, // destination matrix
-            modelViewMatrix, // matrix to rotate
-            0 * 0.3, // amount to rotate in radians
-            [1, 0, 0],
-          ); // axis to rotate around (X)
+          mat4.rotateX(modelMatrix, modelMatrix, rotation.x.value);
+          mat4.rotateY(modelMatrix, modelMatrix, rotation.y.value);
+          mat4.rotateZ(modelMatrix, modelMatrix, rotation.z.value);
+
+          const modelViewMatrix = mat4.create();
+          mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
 
           const buffers = this.initBuffers(gl, mesh);
 
@@ -268,20 +263,18 @@ export class Open3DAdapter implements IGraphicEngine {
       gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
 
-  private initColorBuffer(gl: WebGLRenderingContext) {
-    const faceColors = [
-      [1.0, 1.0, 1.0, 1.0], // Front face: white
-      [1.0, 0.0, 0.0, 1.0], // Back face: red
-      [0.0, 1.0, 0.0, 1.0], // Top face: green
-      [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
-      [1.0, 1.0, 0.0, 1.0], // Right face: yellow
-      [1.0, 0.0, 1.0, 1.0], // Left face: purple
-    ];
+  private initColorBuffer(gl: WebGLRenderingContext, mesh: Mesh) {
+    const vertices = mesh.vertices.items;
+    const numVertices = vertices.length;
 
-    let colors: number[] = [];
+    const colors: number[] = [];
 
-    for (const c of faceColors) {
-      colors = colors.concat(c, c, c, c);
+    for (let i = 0; i < numVertices; i++) {
+      const t = i / numVertices;
+      const r = t % 2 == 0 ? 0 : t / 3;
+      const g = t % 2 == 0 ? 0 : t / 3;
+      const b = t % 2 == 0 ? 0 : t;
+      colors.push(r, g, b, 1.0);
     }
 
     const colorBuffer = gl.createBuffer();
