@@ -31,7 +31,7 @@ export class Storage {
     const entities = await this.loadEntitiesWithHierarchy();
 
     for (const entity of entities) {
-      this.engine.entityManager.addEntity(entity);
+      this.engine.currentProject.addEntity(entity);
     }
 
     this.autoSaveEnabled ? this.startAutoSave(this._autoSaveIntervalInSeconds) : undefined;
@@ -102,7 +102,7 @@ export class Storage {
   }
 
   public async saveAllEntities(): Promise<void> {
-    const currentEntities = this.engine.entityManager.getEntities();
+    const currentEntities = this.engine.currentProject.getEntities();
     const currentIds = new Set(currentEntities.map(entity => entity.id));
     
     for (const entity of currentEntities) {

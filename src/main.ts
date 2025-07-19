@@ -201,7 +201,7 @@ export class Program {
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
         this._hierarchy = new Hierarchy(this.entitiesContainer, entity => this.entityHandler.selectedEntity.value = entity, this._entityHandler);
-        this.engine.entityManager.entities.subscribe({
+        this.engine.currentProject.entities.subscribe({
             onAdd: (entity) => this._hierarchy.addEntity(entity),
             onRemove: (entity) => this._hierarchy.removeEntity(entity)
         })

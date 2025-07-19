@@ -1,20 +1,20 @@
 import { Transform } from "../../assets/components/transform";
 import { Entity } from "../../core/api/entity";
-import { Engine } from '../../core/engine/engine';
 import { ObservableField } from '../../common/patterns/observer/observable-field';
 import { Vector3 } from '../../core/api/vector3';
 import { Mesh } from '../../assets/components/mesh';
 import { ObservableNullableField } from '../../common/patterns/observer/observable-nullable-field';
+import { Scene } from "../../core/engine/scene";
 
 export class EntityHandler {
-    private _engine: Engine;
+    private _scene: Scene;
 
     private _selectedEntity: ObservableNullableField<Entity> = new ObservableNullableField<Entity>(null);
     public get selectedEntity() : ObservableNullableField<Entity> { return this._selectedEntity; }
     public set selectedEntity(entity: ObservableNullableField<Entity>) { this._selectedEntity = entity; }
 
-    public constructor(engine: Engine) {
-        this._engine = engine;
+    public constructor(scene: Scene) {
+        this._scene = scene;
     }
     
   public addEntity(): void {
@@ -28,11 +28,11 @@ export class EntityHandler {
     const meshComponent = new Mesh("Sphere", vertices, indices);
     entity.addComponent(meshComponent);
 
-    this._engine.entityManager.addEntity(entity);
+    this._scene.addEntity(entity);
   }
 
   public removeEntity(id: string): void {
-    this._engine.entityManager.removeEntity(id);
+    this._scene.removeEntity(id);
   }
 }
 

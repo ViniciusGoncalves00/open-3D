@@ -1,10 +1,14 @@
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
-import { Entity } from "./entity";
+import { Entity } from "../api/entity";
 
 /**
-* Class responsible for managing entities.
+* Class responsible for representing scene.
 */
-export class EntityManager {
+export class Scene {
+  public id: string = '';
+  public name: string = '';
+  public isLoaded: boolean = false;
+  
   public readonly entities: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
   public readonly backup: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
 
@@ -24,14 +28,14 @@ export class EntityManager {
     return Array.from(this.entities.values());
   }    
   
-  public saveEntities(): void {
+  public saveState(): void {
     this.backup.clear();
     for (const [id, entity] of this.entities.entries()) {
       this.backup.set(id, entity.clone());
     }
   }
   
-  public restoreEntities(): void {
+  public restoreState(): void {
     for (const [id, clone] of this.backup.entries()) {
       const currentEntity = this.entities.get(id);
 
