@@ -1,3 +1,4 @@
+import { Transform } from "../../assets/components/transform";
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
 import { Entity } from "../api/entity";
 
@@ -5,12 +6,17 @@ import { Entity } from "../api/entity";
 * Class responsible for representing scene.
 */
 export class Scene {
-  public id: string = '';
-  public name: string = '';
-  public isLoaded: boolean = false;
+  public id: `${string}-${string}-${string}-${string}-${string}`;
+  public name: string;
   
   public readonly entities: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
   public readonly backup: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
+
+  public constructor(id: `${string}-${string}-${string}-${string}-${string}`, name: string, entities?: Entity[]) {
+    this.id = id;
+    this.name = name;
+    entities?.forEach(entity => this.addEntity(entity));
+  }
 
   public addEntity(entity: Entity): void {
     this.entities.set(entity.id, entity);
@@ -51,6 +57,34 @@ export class Scene {
       if (!this.backup.has(id)) {
         this.removeEntity(id)
       }
+    }
+  }
+
+  public fromJSON(data: any): Scene {
+    const entities: Entity[] =  data["entities"].forEach((data: any) => Entity.fromJSON(data));
+
+    entities.forEach(entity => {
+      if(!entity.hasComponent(Transform)) return;
+      
+      const entityData = data["entities"].find((data: any) => data.id === entity.id);
+      const componentsData = entityData["components"] as { type: string; data: any }[];
+      const transformData = componentsData.find((component: { type: string; data: Transform }) => component.type === "Transform");
+      if(!transformData || !transformData.data.parent) return;
+
+      const parent = entities.find(entity => entity.id === transformData.data.parent?.id)
+      if(!parent || !parent.hasComponent(Transform)) return;
+
+      entity.getComponent(Transform).parent = parent;
+    })
+
+    return new Scene(data["id"], data["name"], entities);
+  }
+
+  public toJSON(): any {
+    return {
+      id: this.id,
+      name: this.name,
+      entities: this.entities,
     }
   }
 }
