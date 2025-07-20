@@ -1,235 +1,144 @@
-import { Transform } from "../../assets/components/transform";
 import { Console } from "../../ui/elements/console/console";
-import { Entity } from "../api/entity";
 import { LogType } from "../api/enum/log-type";
 import { Engine } from "../engine/engine";
+import { Project } from "../engine/project";
+import { Scene } from "../engine/scene";
+import { Preferences } from "./preferences";
 
 export class Storage {
-  private readonly engine;
-  private readonly console;
-  private dbName = 'open3d-storage';
-  private dbVersion = 1;
-  private db!: IDBDatabase;
-  private autoSaveEnabled: boolean = true;
-  private autoSaveIntervalId: number | undefined;
-  private _autoSaveIntervalInSeconds: number = 60;
-  public get autoSaveIntervalInSeconds(): number { return this._autoSaveIntervalInSeconds};
-  public set autoSaveIntervalInSeconds(intervalInSeconds: number) {
-    this._autoSaveIntervalInSeconds =  intervalInSeconds
-    this.restartAutoSave();
-  };
+    public static readonly dbName = 'open3d-storage';
+    public static readonly dbVersion = 1;
+    public static db: IDBDatabase | null;
+    public static engine: Engine;
+    public static autoSaveIntervalId: number = 0;
+    
+    private static preferences: Preferences;
+    private static readonly hour: number = 3600000;
+    private static readonly second: number = 1000;
+    
+    private constructor(){}
 
-  public constructor(engine: Engine, console: Console) {
-    this.engine = engine;
-    this.console = console;
-  }
-
-  public async init(): Promise<void> {
-    this.db = await this.openDatabase();
-
-    await this.loadSettings();
-    const entities = await this.loadEntitiesWithHierarchy();
-
-    for (const entity of entities) {
-      this.engine.currentProject.addEntity(entity);
+    public static async init(): Promise<void> {
+        this.openDB();
+        this.loadPreferences();
+        this.loadProjects();
     }
 
-    this.autoSaveEnabled ? this.startAutoSave(this._autoSaveIntervalInSeconds) : undefined;
-  }
+    private static async openDB(): Promise<void> {
+        this.db = await new Promise((resolve, reject) => {
+          const request = indexedDB.open(this.dbName, this.dbVersion);
 
-  private openDatabase(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
+          request.onupgradeneeded = async () => {
+            const db = request.result;
 
-      request.onupgradeneeded = (event) => {
-        const db = request.result;
-        let neededCreateStore = false;
-        if (!db.objectStoreNames.contains('entities')) {
-          db.createObjectStore('entities', { keyPath: 'id' });
-          neededCreateStore = true;
-        }
-        if (!db.objectStoreNames.contains('assets')) {
-          db.createObjectStore('assets');
-          neededCreateStore = true;
-        }
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings');
-          neededCreateStore = true;
-        }
-        if(neededCreateStore) {
-          this.console.log(LogType.Debug, `Creating missing stores in your database...`);
-        }
-      };
+            if (!db.objectStoreNames.contains('preferences')) {
+                db.createObjectStore('preferences');
+                
+                const preferences = new Preferences();
+                await this.runTransaction('preferences', 'readwrite', (store) => {return store.put(preferences.toJSON())}, "");
+            }
+            if (!db.objectStoreNames.contains('projects')) {
+              db.createObjectStore('projects');
 
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
+              const scene = new Scene(crypto.randomUUID(), "scene1");
+              const project = new Project(crypto.randomUUID(), "project1", [scene]);
+              await this.runTransaction('projects', 'readwrite', (store) => {return store.put(project)}, "");
+            }
+          }
 
-      request.onerror = () => {
-        this.console.log(LogType.Error, `Oh no! Something went wrong during opening your local database`);
-        reject(request.error);
-      };
-    });
-  }
+          request.onsuccess = () => {
+            resolve(request.result);
+          }
 
-  // ------------------ AUTOSAVE ------------------ 
-  
-  public toggleAutoSave(): void {
-    this.autoSaveEnabled = !this.autoSaveEnabled;
-    this.autoSaveEnabled ? this.startAutoSave(this._autoSaveIntervalInSeconds) : this.stopAutoSave();
-  }
-
-  private restartAutoSave(): void {
-    this.stopAutoSave();
-    this.startAutoSave(this._autoSaveIntervalInSeconds);
-  }
-
-  private startAutoSave(interval: number): void {
-    this.autoSaveIntervalId = window.setInterval(() => {
-      this.saveAll();
-    }, interval * 1000);
-  }
-
-  private stopAutoSave(): void {
-    clearInterval(this.autoSaveIntervalId);
-  }
-
-  // ------------------ ENTITIES ------------------ 
-
-  public async saveEntity(entity: Entity): Promise<void> {
-    const data = entity.toJSON();
-    await this.runTransaction('entities', 'readwrite', (store) => {return store.put(data)}, `save entity (name: ${data.name}, id: ${data.id})`);
-  }
-
-  public async saveAllEntities(): Promise<void> {
-    const currentEntities = this.engine.currentProject.getEntities();
-    const currentIds = new Set(currentEntities.map(entity => entity.id));
-    
-    for (const entity of currentEntities) {
-      await this.saveEntity(entity);
+          request.onerror = () => {
+            reject(request.error);
+          }
+        });
     }
 
-    const savedEntities = await this.listEntities();
-    const savedIds = savedEntities.map(e => e.id);
+    // ------------------ AUTOSAVE ------------------ 
 
-    for (const savedId of savedIds) {
-      if (!currentIds.has(savedId)) {
-        await this.deleteEntity(savedId);
-      }
+    public static setAutoSaveInterval(interval: number, magnitude: TimeFormat = TimeFormat.Milisecond): void {
+      if(magnitude == TimeFormat.Second) interval *= 1000;
+      else if(magnitude == TimeFormat.Minute) interval *= 60000;
+      else if(magnitude == TimeFormat.Hour) interval *= 3600000;
+
+      if(interval < this.second || interval > this.hour) return;
+      this.preferences.autoSaveInterval = interval;
+
+      this.restartAutoSave();
     }
-  }
 
-  public async getEntity(id: string): Promise<any | undefined> {
-    return await this.runTransaction('entities', 'readonly', (store) => {return store.get(id)}, `get entity (id: ${id})`);
-  }
-
-  public async listEntities(): Promise<any[]> {
-    return await this.runTransaction('entities', 'readonly', (store) => {return store.getAll()}, `list entities`);
-  }
-
-  public async deleteEntity(id: string): Promise<void> {
-    await this.runTransaction('entities', 'readwrite', (store) => {return store.delete(id)}, `delete entity (id: ${id})`);
-  }
-
-  public async loadEntitiesWithHierarchy(): Promise<Entity[]> {
-    const entitiesData = await this.listEntities();
-    const entities: Entity[] = entitiesData.map(data => Entity.fromJSON(data));
-
-    const entityMap = new Map<string, Entity>();
-    for (const entity of entities) {
-      entityMap.set(entity.id, entity);
+    public static toggleAutoSave(): void {
+      this.preferences.autoSaveEnabled = !this.preferences.autoSaveEnabled;
+      this.preferences.autoSaveEnabled ? this.startAutoSave(this.preferences.autoSaveInterval) : this.stopAutoSave();
     }
-    entities.forEach(entity => {
-      const transform = entity.getComponent(Transform);
-      const entityData = entitiesData.find((value: any) => value.id === entity.id);
-      const componentsData = entityData["components"] as { type: string; data: any }[];
-    
-      const transformData = componentsData.find((component: { type: string; data: any }) => component.type === "Transform");
-    
-      transform.parent = entityMap.get(transformData?.data.parentId) as Entity;
-    });
 
+    private static restartAutoSave(): void {
+      this.stopAutoSave();
+      this.startAutoSave(this.preferences.autoSaveInterval);
+    }
 
-    return entities;
-  }
+    private static startAutoSave(interval: number): void {
+      const project = this.engine.currentProject.value;
+      if(!project) return;
+      this.autoSaveIntervalId = window.setInterval(() => {this.saveAll(this.preferences, project)}, interval);
+    }
 
-  // ------------------ ASSETS ------------------
+    private static stopAutoSave(): void {
+      clearInterval(this.autoSaveIntervalId);
+    }
 
-  public async saveAsset(id: string, data: Blob | ArrayBuffer): Promise<void> {
-    await this.runTransaction('assets', 'readwrite', (store) => {
-      return store.put(data, id);
-    }, "save asset");
-  }
+    // ------------------ DATABASE ------------------ 
 
-  public async getAsset(id: string): Promise<Blob | ArrayBuffer | undefined> {
-    return await this.runTransaction('assets', 'readonly', (store) => {
-      return store.get(id);
-    }, "get asset");
-  }
+    public static async saveAll(preferences: Preferences, project: Project): Promise<void> {
+      this.savePreferences(preferences);
+      this.saveProject(project);
+    }
 
-  // ------------------ SETTINGS ------------------
+    public static async saveProject(project: Project): Promise<void> {
+        await this.runTransaction('project', 'readwrite', (store) => store.put(project.toJSON(), ''));
+    }
 
-  public async saveSetting(key: string, value: any): Promise<void> {
-    await this.runTransaction('settings', 'readwrite', (store) => {
-      return store.put(value, key);
-    }, "save setting");
-  }
+    private static async loadProjects(): Promise<void> {
+      const dbProjects = await Storage.runTransaction('projects', 'readonly', (store) => {return store.getAll()}, ``) as Project[];
+      if(dbProjects.length < 1) return;
 
-  public async loadSettings(): Promise<void> {
-    const savedAutoSaveEnabled = await this.getSetting(`autoSaveEnabled`);
-    const savedAutoSaveInterval = await this.getSetting(`autoSaveIntervalInSeconds`);
-    
-    this.autoSaveEnabled = savedAutoSaveEnabled !== undefined ? savedAutoSaveEnabled : true;
-    this._autoSaveIntervalInSeconds = savedAutoSaveInterval !== undefined ? savedAutoSaveInterval : 60;
-  }
+      this.engine.currentProject.value = new Project(dbProjects[0].id, dbProjects[0].name, dbProjects[0].scenes);
+      this.engine.currentProject.value.SetActiveSceneByIndex(0);
 
-  public async saveAllSettings(): Promise<void> {
-    await this.saveSetting(`autoSaveEnabled`, this.autoSaveEnabled);
-    await this.saveSetting(`autoSaveIntervalInSeconds`, this._autoSaveIntervalInSeconds);
-  }
+      if(this.preferences.autoSaveEnabled) Storage.startAutoSave(Storage.preferences.autoSaveInterval);
+    }
 
-  public async getSetting(key: string): Promise<any | undefined> {
-    return await this.runTransaction('settings', 'readonly', (store) => {
-      return store.get(key);
-    }, "get setting");
-  }
+    public static async savePreferences(preferences: Preferences): Promise<void> {
+      await this.runTransaction('preferences', 'readwrite', (store) => store.put(preferences.toJSON(), ''));
+    }
 
-  // ------------------ GLOBAL ------------------
+    private static async loadPreferences(): Promise<void> {
+      const dbPreferencesData = await Storage.runTransaction('preferences', 'readonly', (store) => {return store.getAll()}, "");
+      Storage.preferences = Preferences.fromJSON(dbPreferencesData);
+    }
 
-  public async saveAll(): Promise<void> {
-    this.console.log(LogType.Debug, "Saving...")
+    private static runTransaction<T>(
+        storeName: string,
+        mode: IDBTransactionMode,
+        operation: (store: IDBObjectStore) => IDBRequest<T>,
+        transactionDescription?: string
+    ): Promise<T> {
+      return new Promise<T>((resolve, reject) => {
+        const transaction = Storage.db?.transaction(storeName, mode);
+        if(!transaction) return;
 
-    this.saveAllEntities();
-    this.saveAllSettings();
-  }
+        const store = transaction.objectStore(storeName);
+        const request = operation(store);
 
-  public async clearAll(): Promise<void> {
-    await this.runTransaction('entities', 'readwrite', (store) => store.clear(), "clear all");
-    await this.runTransaction('assets', 'readwrite', (store) => store.clear(), "clear all");
-    await this.runTransaction('settings', 'readwrite', (store) => store.clear(), "clear all");
-  }
-
-  // ------------------ UTIL ------------------
-
-  private runTransaction<T>(
-    storeName: string,
-    mode: IDBTransactionMode,
-    operation: (store: IDBObjectStore) => IDBRequest<T>,
-    action?: string
-  ): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const transaction = this.db.transaction(storeName, mode);
-      const store = transaction.objectStore(storeName);
-      const request = operation(store);
-
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        this.console.log(LogType.Error, `Oh no! Something went wrong during the ${action} operation`);
-        reject(request.error);
+        request.onsuccess = () => {
+          resolve(request.result);
         };
-    });
-  }
+    
+        request.onerror = () => {
+          reject(request.error);
+          };
+      });
+    }
 }

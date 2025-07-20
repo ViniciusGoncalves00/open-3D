@@ -7,11 +7,11 @@ export class Preferences {
         this.autoSaveInterval = data.autoSaveInterval ?? 60;
     }
 
-    public static fromJson(data: any): Preferences {
+    public static fromJSON(data: any): Preferences {
         return new Preferences(data);
     }
 
-    public toJson(): any {
+    public toJSON(): Object {
         return {
             autoSaveEnabled : this.autoSaveEnabled,
             autoSaveInterval : this.autoSaveInterval,

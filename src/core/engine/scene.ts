@@ -60,7 +60,7 @@ export class Scene {
     }
   }
 
-  public fromJSON(data: any): Scene {
+  public static fromJSON(data: any): Scene {
     const entities: Entity[] =  data["entities"].forEach((data: any) => Entity.fromJSON(data));
 
     entities.forEach(entity => {
@@ -84,7 +84,7 @@ export class Scene {
     return {
       id: this.id,
       name: this.name,
-      entities: this.entities,
+      entities: this.entities.forEach(entity => entity.toJSON()),
     }
   }
 }
