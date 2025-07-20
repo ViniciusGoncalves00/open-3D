@@ -9,10 +9,14 @@ export class Storage {
     public static readonly dbName = 'open3d-storage';
     public static readonly dbVersion = 1;
     public static db: IDBDatabase | null;
-    public static preferences: Preferences | undefined;
     public static engine: Engine;
-
     public static autoSaveIntervalId: number = 0;
+    
+    private static preferences: Preferences;
+    private static readonly hour: number = 3600000;
+    private static readonly second: number = 1000;
+    
+    private constructor(){}
 
     public async init(): Promise<void> {
         Storage.db = await Storage.openDB();
@@ -26,10 +30,10 @@ export class Storage {
         Storage.engine.currentProject.value = new Project(dbProjects[0].id, dbProjects[0].name, dbProjects[0].scenes);
         Storage.engine.currentProject.value.SetActiveSceneByIndex(0);
 
-        Storage.preferences.autoSave ? this.startAutoSave(this._autoSaveIntervalInSeconds) : undefined;
+        if(Storage.preferences.autoSaveEnabled) Storage.startAutoSave(Storage.preferences.autoSaveInterval);
     }
 
-    public static async openDB(): Promise<IDBDatabase> {
+    private static async openDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
           const request = indexedDB.open(this.dbName, this.dbVersion);
 
@@ -49,19 +53,33 @@ export class Storage {
               const project = new Project(crypto.randomUUID(), "project1", [scene]);
               await Storage.runTransaction('projects', 'readwrite', (store) => {return store.put(project)}, "");
             }
-          };
+          }
 
           request.onsuccess = () => {
             resolve(request.result);
-          };
+          }
 
           request.onerror = () => {
             reject(request.error);
-          };
+          }
         });
     }
 
     // ------------------ AUTOSAVE ------------------ 
+
+    public setAutoSaveInterval(interval: number, magnitude: TimeFormat = TimeFormat.Milisecond): void {
+      if(magnitude == TimeFormat.Second) interval *= 1000;
+      else if(magnitude == TimeFormat.Minute) interval *= 60000;
+      else if(magnitude == TimeFormat.Hour) interval *= 3600000;
+
+      if(interval < Storage.second || interval > Storage.hour) return;
+      Storage.preferences.autoSaveInterval = interval;
+    }
+
+    public toggleAutoSave(): void {
+      Storage.preferences.autoSaveEnabled = !Storage.preferences.autoSaveEnabled;
+      Storage.preferences.autoSaveEnabled ? Storage.startAutoSave(Storage.preferences.autoSaveInterval) : Storage.stopAutoSave();
+    }
 
     private static restartAutoSave(): void {
       Storage.stopAutoSave();
@@ -69,7 +87,7 @@ export class Storage {
     }
 
     private static startAutoSave(interval: number): void {
-      Storage.autoSaveIntervalId = window.setInterval(() => {Storage.saveAll()}, interval * 1000);
+      Storage.autoSaveIntervalId = window.setInterval(() => {Storage.saveAll()}, interval);
     }
 
     private static stopAutoSave(): void {
