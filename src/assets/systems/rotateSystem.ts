@@ -1,7 +1,6 @@
-import { ISystem } from "./interfaces/system";
+import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
 import { Rotate } from "../components/rotate";
-import { IUpdate } from "./interfaces/update";
 import { Entity } from "../../core/api/entity";
 
 export class RotateSystem implements ISystem, IUpdate {

@@ -105,7 +105,10 @@ export class Program {
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
-        this._entityHandler = new EntityHandler(this.engine);
+        
+        const scene = this.engine.currentProject.value?.activeScene.value;
+        if(!scene) return;
+        this._entityHandler = new EntityHandler(scene);
         this.initializeInspector();
 
         this._console.log(LogType.Log, "loading your best assets...");
@@ -174,7 +177,9 @@ export class Program {
         const log = LogType.Log;
         this.engine.timeController.isRunning.subscribe((wasStarted => {
                 wasStarted ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.");
-                wasStarted ? this._storage.saveAll() : '';
+                const project = this.engine.currentProject.value;
+                if(!project) return;
+                wasStarted ? this._storage.saveAll(project) : '';
             }
         ))
 
@@ -201,7 +206,7 @@ export class Program {
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
         this._hierarchy = new Hierarchy(this.entitiesContainer, entity => this.entityHandler.selectedEntity.value = entity, this._entityHandler);
-        this.engine.currentProject.entities.subscribe({
+        this.engine.currentProject.value?.activeScene.value?.entities.subscribe({
             onAdd: (entity) => this._hierarchy.addEntity(entity),
             onRemove: (entity) => this._hierarchy.removeEntity(entity)
         })
@@ -211,7 +216,10 @@ export class Program {
         this._storage = new Storage(this.engine, this.console);
         await this._storage.init();
         this.save = this.getElementOrFail<HTMLButtonElement>('save');
-        this.save.addEventListener("click", () => this.storage.saveAll());
+        
+        const project = this.engine.currentProject.value;
+        if(!project) return;
+        this.save.addEventListener("click", () => this._storage.saveAll(project));
     }
 
     private initializeSettings(): void {

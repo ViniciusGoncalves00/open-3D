@@ -1,6 +1,5 @@
-import { ISystem } from "./interfaces/system";
+import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
-import { IUpdate } from "./interfaces/update";
 import { Entity } from "../../core/api/entity";
 import { Vector3 } from "../../core/api/vector3";
 import { Orbit } from "../components/orbit";

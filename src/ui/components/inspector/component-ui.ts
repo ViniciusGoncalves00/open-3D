@@ -124,7 +124,10 @@ export class ComponentUI {
                         action: () => (component as any)[propertyName] = null,
                     });
                 
-                    this._engine.currentProject.getEntities().forEach(entity => {
+                    const entities = this._engine.currentProject.value?.activeScene.value?.getEntities();
+                    if(!entities) continue;
+
+                    entities.forEach(entity => {
                         if (entity.id === this._entityHandler.selectedEntity.value?.id) return;
                     
                         const transform = entity.getComponent(Transform);
