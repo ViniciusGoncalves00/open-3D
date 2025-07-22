@@ -2,6 +2,8 @@
 @import './ui/styles/tab.css';
 @import './ui/styles/time-controller.css';
 
+@plugin 'tailwind-scrollbar';
+
 html, body {
   margin: 0;
   height: 100%;

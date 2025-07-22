@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>open-3D | hub</title>
+  <script type="module" src="./dist/bundle.js"></script>
+  <script type="module" src="./bundle.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+    <body>
+        <div class="bg-zinc-900 w-full h-full flex p-4 gap-[4px]">
+            <aside class="bg-zinc-800 w-1/4 h-full rounded-[8px]"></aside>
+            <main class="w-3/4 h-full flex flex-col gap-[4px]">
+                <div class="bg-zinc-800 w-full h-16 rounded-[8px] flex items-center justify-between p-4 text-white">
+                    <div class="text-4xl">projects</div>
+                    <button class="bg-teal-700 px-4 h-8 rounded-[4px] cursor-pointer hover:bg-teal-600">new project</button>
+                </div>
+                <div class="bg-zinc-800 w-full h-12 rounded-[8px] flex items-center justify-between text-white">
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                    <button class="w-[calc(20%-9.6px)] h-full flex items-center cursor-pointer hover:bg-zinc-700"><p class="w-full text-center truncate">name</p></button>
+                    <button class="w-[calc(20%-9.6px)] h-full flex items-center cursor-pointer hover:bg-zinc-700"><p class="w-full text-center truncate">created at</p></button>
+                    <button class="w-[calc(20%-9.6px)] h-full flex items-center cursor-pointer hover:bg-zinc-700"><p class="w-full text-center truncate">modified</p></button>
+                    <button class="w-[calc(20%-9.6px)] h-full flex items-center cursor-pointer hover:bg-zinc-700"><p class="w-full text-center truncate">version</p></button>
+                    <button class="w-[calc(20%-9.6px)] h-full flex items-center cursor-pointer hover:bg-zinc-700"><p class="w-full text-center truncate">id</p></button>
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                </div>
+                <div class="bg-zinc-800 w-full h-full rounded-[8px] flex flex-col overflow-y-auto scrollbar scrollbar-thumb-zinc-700 scrollbar-hover:scrollbar-thumb-zinc-600 scrollbar-active:scrollbar-thumb-zinc-500">
+                    <div class="w-full h-12 flex-none flex items-center justify-between text-white hover:bg-zinc-700">
+                        <button class="w-full h-full flex items-center justify-between cursor-pointer">
+                            <span class="bi bi-box w-12 h-full flex-none flex items-center justify-center cursor-pointer"></span>
+                            <span class="w-[calc(20%-9.6px)] h-full flex items-center"><p class="w-full text-center truncate">project10000000000000000000000</p></span>
+                            <span class="w-[calc(20%-9.6px)] h-full flex items-center"><p class="w-full text-center truncate">21/07/2025</p></span>
+                            <span class="w-[calc(20%-9.6px)] h-full flex items-center"><p class="w-full text-center truncate">21/07/2025</p></span>
+                            <span class="w-[calc(20%-9.6px)] h-full flex items-center"><p class="w-full text-center truncate">1.0.0</p></span>
+                            <span class="w-[calc(20%-9.6px)] h-full flex items-center"><p class="w-full text-center truncate">59afdd1c-997f-43c2-8a0d-e618a635db55</p></span>
+                        </button>
+                        <i class="bi bi-download w-12 h-full flex items-center justify-center cursor-pointer hover:bg-zinc-600"></i>
+                        <i class="bi bi-trash w-12 h-full flex items-center justify-center cursor-pointer hover:bg-zinc-600"></i>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>open-3D | editor</title>
+  <script type="module" src="./dist/bundle.js"></script>
+  <script type="module" src="./bundle.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <div id="explorer-window" class="bg-zinc-900 w-screen h-screen flex flex-col overflow-hidden">
+    <!-- FIXED -->
+    <div id="settingsOverlay" class="fixed hidden w-full h-full z-50 items-center justify-center">
+      <div id="settingsWindow" class="bg-zinc-700 text-white w-1/2 h-1/2 pointer-events-auto">
+        <button id="closeSettings" class="">X</button>
+        <div class="flex items-center justify-between">
+          <label>autosave</label>
+          <input id="autoSaveEnabled" type="checkbox" value="true" checked>
+        </div>
+        <div class="flex items-center justify-between">
+          <label>save time interval (seconds)</label>
+          <input id="autoSaveInterval" type="number" value="">
+        </div>
+      </div>
+    </div>
+    <!-- TOP -->
+    <div id="top" class="w-full h-8 flex items-center justify-between px-2">
+      <div class="w-full h-8 flex items-center justify-start space-x-[2px]">
+        <button id="openSettings" class="btn btn--time-controller">
+          <i class="bi bi-gear"></i>
+        </button>
+        <button id="save" class="btn btn--time-controller">
+          <i class="bi bi-floppy"></i>
+        </button>
+        <div class="btn btn--time-controller">
+          <p id="averageFpsContainer"></p>
+        </div>
+        <div class="btn btn--time-controller">
+          <p id="fpsContainer"></p>
+        </div>
+      </div>
+
+      <div id="controls" class="w-full h-8 flex items-center justify-center space-x-[16px]">
+
+        <div id="player-controls" class="flex space-x-[2px]">
+          <button id="play" class="btn btn--time-controller">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+              <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
+            </svg>
+          </button>
+          <button id="pause" class="btn btn--time-controller">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
+              <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5"/>
+            </svg>
+          </button>
+          <button id="stop" class="btn btn--time-controller">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-stop" viewBox="0 0 16 16">
+              <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div id="timescale-controls" class="flex space-x-[2px]">
+          <button id="speedDown" class="btn btn--time-controller">
+            <p>0.5x</p>
+          </button>
+          <button id="speedNormal" class="btn btn--time-controller">
+            <p>1.0x</p>
+          </button>
+          <button id="speedUp" class="btn btn--time-controller">
+            <p>2.0x</p>
+          </button>
+        </div>
+
+        <div id="screen-controls" class="flex space-x-[2px]">
+          <button id="fullScreen" class="btn btn--time-controller">
+            <i class="bi bi-fullscreen"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="w-full h-8 flex items-center justify-end space-x-[2px]">
+        <a target="_blank" href="https://www.linkedin.com/in/viniciusgonçalves00/" class="btn btn--time-controller">
+          <i class="bi bi-linkedin"></i>
+        </a>
+        <a target="_blank" href="https://github.com/ViniciusGoncalves00"  class="btn btn--time-controller">
+          <i class="bi bi-github"></i>
+        </a>
+        <a target="_blank" href="https://github.com/ViniciusGoncalves00/open-3D" class="btn btn--time-controller">
+          <p>open-3D</p>
+        </a>
+      </div>
+    </div>
+    <div id="drag-n-drop-overlay" class="z-50 absolute w-full h-full bg-black/50"></div>
+    <!-- BOTTOM -->
+    <div id="bottom" class="w-full h-full flex items-start justify-start space-x-[2px]">
+      <!-- LEFT -->
+      <div id="left" class="dropzone-body">
+        <div class="dropzone">drop</div>
+        <div id="Hierarchy" class="tab-body">
+          <div class="title-bar tab-title cursor-grab">
+            <i class="bi bi-list-nested"></i>
+            <p>Hierarchy</p>
+          </div>
+          <button onclick="addEntity(`true`)" class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center
+           px-2 cursor-pointer truncate">
+            Add Entity
+          </button>
+          <div id="entitiesContainer" class="content"></div>
+        </div>
+        <div id="Assets" class="tab-body">
+          <div class="title-bar tab-title cursor-grab">
+            <i class="bi bi-box"></i>
+            <p>Assets</p>
+          </div>
+          <div id="assetsContainer" class="content"></div>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div id="center" class="w-full h-full flex flex-col items-start justify-start relative">
+        <div class="dropzone">drop</div>
+        <div id="viewport-container" class="tab-body flex items-start justify-start space-x-[2px]">
+          <div class="w-1/2 h-full flex flex-col">
+            <div class="title-bar tab-title">
+              <i class="bi bi-grid-3x3"></i>
+              <p>Editor</p>
+            </div>
+            <div id="viewportEditorContainer" class="w-full h-full relative">
+              <canvas id="canvasA" class="absolute w-full h-full"></canvas>
+            </div>
+          </div>
+          <div class="w-1/2 h-full flex flex-col">
+            <div class="title-bar tab-title">
+              <i class="bi bi-dice-3"></i>
+              <p>Preview</p>
+            </div>
+            <div id="viewportSceneContainer" class="w-full h-full relative">
+              <canvas id="canvasB" class="absolute w-full h-full"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div id="Console" class="tab-body max-h-1/2 flex flex-col">
+          <div class="title-bar tab-title cursor-grab">
+            <i class="bi bi-file-text"></i>
+            <p>Console</p>
+          </div>
+          <div id="consoleFilters" class="flex items-center justify-start bg-zinc-600">
+            <button id="filterAll" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">all</button>
+            <button id="filterLog" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">log</button>
+            <button id="filterSuccess" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">success</button>
+            <button id="filterWarning" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">warning</button>
+            <button id="filterError" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">error</button>
+            <button id="filterDebug" class="px-4 py-[2px] hover:bg-zinc-500 cursor-pointer">debug</button>
+          </div>
+          <div id="consoleContent" class="flex-1 p-2 overflow-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div id="right" class="dropzone-body">
+        <div class="dropzone">drop</div>
+
+        <div id="Inspector" class="tab-body">
+          <div class="title-bar tab-title cursor-grab">
+            <i class="bi bi-info-circle"></i>
+            <p>Inspector</p>
+          </div>
+          <div id="inspectorContainer" class="w-full h-full flex-none flex flex-col space-y-2 overflow-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById("drag-n-drop-overlay");
+    const dropzones = document.querySelectorAll(".dropzone");
+    let ghost = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let draggedElement = null;
+  
+    const makeDraggable = (element) => {
+      const titleBar = element.querySelector(".title-bar");
+      if (!titleBar) return;
+    
+      titleBar.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        draggedElement = element;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+    
+        // Impede scroll
+        document.body.classList.add("no-scroll");
+        document.documentElement.classList.add("no-scroll");
+    
+        // Cria uma cópia visual da div
+        ghost = element.cloneNode(true);
+        ghost.id = "ghost";
+        ghost.style.position = "absolute";
+        ghost.style.width = "128px";
+        ghost.style.height = "128px";
+        ghost.style.pointerEvents = "none";
+        ghost.style.opacity = 0.7;
+        ghost.style.zIndex = 1000;
+    
+        // Exemplo de personalização visual:
+        ghost.innerText = "Dragging..."; 
+        document.body.appendChild(ghost);
+    
+        const ghostWidth = ghost.offsetWidth;
+        const ghostHeight = ghost.offsetHeight;
+    
+        ghost.style.left = `${e.clientX - ghostWidth / 2}px`;
+        ghost.style.top = `${e.clientY - ghostHeight / 2}px`;
+    
+        // Evita que o clique vá para outros elementos
+        e.stopPropagation();
+      });
+    };
+    
+  
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging || !ghost) return;
+  
+      // Move o ghost centralizado na posição do mouse
+      const ghostWidth = ghost.offsetWidth;
+      const ghostHeight = ghost.offsetHeight;
+  
+      ghost.style.left = `${e.clientX - ghostWidth / 2}px`;
+      ghost.style.top = `${e.clientY - ghostHeight / 2}px`;
+  
+      // Mostra overlay
+      overlay.classList.add("active");
+  
+      dropzones.forEach(zone => {
+        zone.classList.add("active");
+  
+        const rect = zone.getBoundingClientRect();
+        const inside =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+  
+        zone.classList.remove("hovered");
+        if (inside) {
+          zone.classList.add("hovered");
+        }
+      });
+    });
+  
+    document.addEventListener("mouseup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+  
+      // Remove scroll lock
+      document.body.classList.remove("no-scroll");
+      document.documentElement.classList.remove("no-scroll");
+  
+      let dropped = false;
+  
+      dropzones.forEach(zone => {
+        const rect = zone.getBoundingClientRect();
+        const inside =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+  
+        zone.classList.remove("border-lime-400", "text-white");
+  
+        if (inside) {
+          // Move o item original para a zona
+          draggedElement.style.position = "relative";
+          draggedElement.style.left = "0px";
+          draggedElement.style.top = "0px";
+          draggedElement.style.zIndex = "auto";
+          draggedElement.style.transform = "none";
+  
+          zone.parentElement.appendChild(draggedElement);
+          dropped = true;
+        }
+      });
+  
+      // Se não foi solto numa zona válida, volta para o local original
+      if (!dropped) {
+        draggedElement.style.position = "relative";
+        draggedElement.style.left = "0px";
+        draggedElement.style.top = "0px";
+        draggedElement.style.zIndex = "auto";
+        document.getElementById("center").appendChild(draggedElement);
+      }
+  
+      // Limpa ghost e overlay
+      overlay.classList.remove("active");
+      dropzones.forEach(zone => zone.classList.remove("active"));
+      if (ghost) {
+        ghost.remove();
+        ghost = null;
+      }
+    });
+  
+    // Torna as divs arrastáveis
+    makeDraggable(document.getElementById("Hierarchy"));
+    makeDraggable(document.getElementById("Assets"));
+    makeDraggable(document.getElementById("Inspector"));
+    makeDraggable(document.getElementById("Console"));
+  </script>
+  
+</body>
+</html>
