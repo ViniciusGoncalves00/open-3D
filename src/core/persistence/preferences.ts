@@ -1,14 +1,12 @@
 export class Preferences {
-    public autoSaveEnabled: boolean;
-    public autoSaveInterval: number;
-
-    public constructor(data?: any) {
-        this.autoSaveEnabled = data.autoSaveEnabled ?? true;
-        this.autoSaveInterval = data.autoSaveInterval ?? 60;
-    }
+    public autoSaveEnabled: boolean = true;
+    public autoSaveInterval: number = 60;
 
     public static fromJSON(data: any): Preferences {
-        return new Preferences(data);
+        const preferences = new Preferences();
+        preferences.autoSaveEnabled = data.autoSaveEnabled;
+        preferences.autoSaveInterval = data.autoSaveEnabled;
+        return preferences;
     }
 
     public toJSON(): Object {

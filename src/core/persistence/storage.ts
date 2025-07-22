@@ -5,13 +5,23 @@ import { Project } from "../engine/project";
 import { Scene } from "../engine/scene";
 import { Preferences } from "./preferences";
 
+interface ProjectMetadata {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  version: string;
+}
+
 export class Storage {
   public readonly dbName = 'open3d-storage';
   public readonly dbVersion = 1;
   public db!: IDBDatabase | null;
   public autoSaveIntervalId: number = 0;
+  public projectsMetadata!: ProjectMetadata[];
 
   private preferences!: Preferences;
+
   private readonly hour: number = 3600000;
   private readonly second: number = 1000;
   private readonly engine!: Engine;
@@ -25,40 +35,42 @@ export class Storage {
   public async init(): Promise<void> {
     await this.openDB();
     await this.loadPreferences();
-    await this.loadProjects();
+    await this.loadProjectsMetadata();
   }
 
   private async openDB(): Promise<void> {
     this.db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
+      const request = indexedDB.open('open3d-storage', this.dbVersion);
+      let needsInitPreferences = false;
 
-      request.onupgradeneeded = async () => {
+      request.onupgradeneeded = () => {
         const db = request.result;
-        let createdPreferences = false;
-        let createdProjects = false;
 
         if (!db.objectStoreNames.contains('preferences')) {
-            db.createObjectStore('preferences');
-              
-            const preferences = new Preferences();
-            await this.runTransaction('preferences', 'readwrite', (store) => {return store.put(preferences.toJSON())}, "");
-          }
-        if (!db.objectStoreNames.contains('projects')) {
-            db.createObjectStore('projects');
-
-          const scene = new Scene(crypto.randomUUID(), "scene1");
-          const project = new Project(crypto.randomUUID(), "project1", [scene]);
-          await this.runTransaction('projects', 'readwrite', (store) => {return store.put(project)}, "");
+          db.createObjectStore('preferences');
+          needsInitPreferences = true;
         }
-      }
 
-      request.onsuccess = () => {
-        resolve(request.result);
-      }
+        if (!db.objectStoreNames.contains('projects')) {
+          db.createObjectStore('projects');
+        }
+      };
+
+      request.onsuccess = async () => {
+        const db = request.result;
+        this.db = db;
+
+        if (needsInitPreferences) {
+          this.preferences = new Preferences();
+          await this.savePreferences();
+        }
+
+        resolve(db);
+      };
 
       request.onerror = () => {
         reject(request.error);
-      }
+      };
     });
   }
 
@@ -106,27 +118,64 @@ export class Storage {
       this.saveProject(project);
     }
 
+    public async createProject(name?: string): Promise<Project> {
+      const id = crypto.randomUUID();
+      const now = new Date().toISOString();
+    
+      const scene = new Scene(crypto.randomUUID(), "scene");
+      const project = new Project(id, name ?? "project", [scene]);
+    
+      const metadata = {
+        id,
+        name: project.name,
+        createdAt: now,
+        updatedAt: now,
+        version: this.dbVersion,
+        data: project.toJSON()
+      };
+    
+      await this.runTransaction('projects', 'readwrite', (store) => store.put(metadata, id));
+    
+      return project;
+    }
+
     public async saveProject(project: Project): Promise<void> {
         await this.runTransaction('projects', 'readwrite', (store) => store.put(project.toJSON(), ''));
     }
 
-    private async loadProjects(): Promise<void> {
-      const dbProjects = await this.runTransaction('projects', 'readonly', (store) => {return store.getAll()}, ``) as Project[];
-      if(dbProjects.length < 1) return;
+    private async loadProjectsMetadata(): Promise<void> {
+      const projectsRaw = await this.runTransaction('projects', 'readonly', (store) => store.getAll(), '');
 
-      this.engine.currentProject.value = new Project(dbProjects[0].id, dbProjects[0].name, dbProjects[0].scenes);
-      this.engine.currentProject.value.SetActiveSceneByIndex(0);
-
-      if(this.preferences.autoSaveEnabled) this.startAutoSave(this.preferences.autoSaveInterval);
+      this.projectsMetadata = projectsRaw.map((entry: any) => ({
+        id: entry.id,
+        name: entry.name,
+        createdAt: entry.createdAt,
+        updatedAt: entry.updatedAt,
+        version: entry.version
+      }));
     }
+
+    public async loadProjectById(id: string): Promise<Project | null> {
+      const entry = await this.runTransaction('projects', 'readonly', (store) => store.get(id), '');
+        
+      if (!entry || !entry.data) {
+        return null;
+      }
+    
+      return Project.fromJSON(entry.data);
+    }
+
+    public async deleteProjectById(id: string): Promise<void> {
+      await this.runTransaction('projects', 'readwrite', (store) => {return store.delete(id)});
+    } 
 
     public async savePreferences(): Promise<void> {
       await this.runTransaction('preferences', 'readwrite', (store) => store.put(this.preferences.toJSON(), 'preferences'));
     }
 
     private async loadPreferences(): Promise<void> {
-      const dbPreferencesData = await this.runTransaction('preferences', 'readonly', (store) => store.get('preferences'), "");
-      this.preferences = Preferences.fromJSON(dbPreferencesData);
+      const preferencesData = await this.runTransaction('preferences', 'readonly', (store) => store.get('preferences'), "");
+      this.preferences = Preferences.fromJSON(preferencesData);
     }
 
     private runTransaction<T>(

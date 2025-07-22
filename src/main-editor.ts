@@ -130,6 +130,15 @@ export class Program {
           this._entityHandler.addEntity();
         };
         await this.initializeStorage();
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get("projectId");
+        if (projectId) {
+            const project = await this._storage.loadProjectById(projectId);
+            if (project) {
+                this.engine.currentProject.value = project;
+                this.engine.currentProject.value.SetActiveSceneByIndex(0);
+            }
+        }
         this.initializeSettings();
 
         this.initializeTEMP();
