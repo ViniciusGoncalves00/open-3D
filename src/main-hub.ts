@@ -15,6 +15,7 @@ export class Program {
 
     public constructor(devMode: boolean = false) {
         this.devMode = devMode;
+        document.body.setAttribute("data-theme", "light")
 
         this.initialize();
     }
@@ -25,7 +26,7 @@ export class Program {
         const projectsList = this.getElementOrFail<HTMLDivElement>('projectsList');
         this._storage.projectsMetadata.forEach(metadata => {
             const rowDiv = document.createElement("div");
-            rowDiv.className = "w-full h-12 flex-none flex items-center justify-between text-white hover:bg-zinc-700";
+            rowDiv.className = "w-full h-12 border-b border-(--color-gray-02) flex-none flex items-center justify-between hover:bg-(--color-gray-09)";
                     
             const href = this.redirectToProject(metadata.id);
             const link = document.createElement("a");
@@ -42,11 +43,11 @@ export class Program {
             rowDiv.appendChild(link);
                     
             const downloadButton = document.createElement("button");
-            downloadButton.className = "bi bi-download w-12 h-full flex items-center justify-center cursor-pointer hover:bg-zinc-600";
+            downloadButton.className = "bi bi-download w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-gray-09) hover:bg-(--color-teal-green-lightest)";
             rowDiv.appendChild(downloadButton);
 
             const deleteButton = document.createElement("button");
-            deleteButton.className = "bi bi-trash w-12 h-full flex items-center justify-center cursor-pointer hover:bg-zinc-600";
+            deleteButton.className = "bi bi-trash w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-gray-09) hover:bg-(--color-teal-green-lightest)";
             deleteButton.addEventListener("click", () => this.storage.deleteProjectById(metadata.id));
             rowDiv.appendChild(deleteButton);
                     

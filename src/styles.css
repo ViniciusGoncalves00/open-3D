@@ -1,6 +1,10 @@
-@import 'tailwindcss';
 @import './ui/styles/tab.css';
 @import './ui/styles/time-controller.css';
+
+@import 'tailwindcss';
+/* @import "tailwindcss/preflight" */
+/* @import "tailwindcss/utilities"; */
+/* @import "tailwindcss/screens"; */
 
 @plugin 'tailwind-scrollbar';
 
@@ -40,4 +44,65 @@ html, body {
 #drag-n-drop-overlay.active {
   opacity: 1;
   pointer-events: auto;
+}
+
+@layer utilities {
+  .hover-bg-gray-08:hover {
+    background-color: var(--color-gray-08);
+  }
+  .hover-bg-gray-09:hover {
+    background-color: var(--color-gray-09);
+  }
+}
+
+@theme {
+  --color-gray-01: #0a0a0a;
+  --color-gray-02: #0f0f0f;
+  --color-gray-03: #141414;
+  --color-gray-04: #1a1a1a;
+  --color-gray-05: #1f1f1f;
+  --color-gray-06: #242424;
+  --color-gray-07: #292929;
+  --color-gray-08: #2e2e2e;
+  --color-gray-09: #333333;
+}
+
+@layer base {
+  [data-theme='dark'] {
+    --color-gray-01: #0a0a0a;
+    --color-gray-02: #0f0f0f;
+    --color-gray-03: #141414;
+    --color-gray-04: #1a1a1a;
+    --color-gray-05: #1f1f1f;
+    --color-gray-06: #242424;
+    --color-gray-07: #292929;
+    --color-gray-08: #2e2e2e;
+    --color-gray-09: #333333;
+    --color-contrast: #FFFFFF;
+    --color-border: #333333;
+    --color-teal-green-darkest: #091313;
+    --color-teal-green-dark: #152F2D;
+    --color-teal-green-regular: #1A4042;
+    --color-teal-green-light: #305C53;
+    --color-teal-green-lightest: #597669;
+  }
+
+  [data-theme='light'] {
+    --color-gray-01: #D7D7D7;
+    --color-gray-02: #DCDCDC;
+    --color-gray-03: #E1E1E1;
+    --color-gray-04: #E6E6E6;
+    --color-gray-05: #EBEBEB;
+    --color-gray-06: #F0F0F0;
+    --color-gray-07: #F5F5F5;
+    --color-gray-08: #FAFAFA;
+    --color-gray-09: #FFFFFF;
+    --color-contrast: #0a0a0a;
+    --color-border: #D7D7D7;
+    --color-teal-green-darkest: #091313;
+    --color-teal-green-dark: #152F2D;
+    --color-teal-green-regular: #1A4042;
+    --color-teal-green-light: #305C53;
+    --color-teal-green-lightest: #597669;
+  }
 }
