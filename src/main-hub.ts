@@ -2,6 +2,7 @@ import './styles.css';
 import { Storage } from './core/persistence/storage';
 import { Engine } from './core/engine/engine';
 import { Console } from './ui/elements/console/console';
+import { Theme } from './ui/enums/theme';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -15,13 +16,14 @@ export class Program {
 
     public constructor(devMode: boolean = false) {
         this.devMode = devMode;
-        document.body.setAttribute("data-theme", "light")
 
         this.initialize();
     }
 
     private async initialize(): Promise<void> {
         await this.initiliazeStorage();
+
+        this.initializeTheme();
 
         const projectsList = this.getElementOrFail<HTMLDivElement>('projectsList');
         this._storage.projectsMetadata.forEach(metadata => {
@@ -43,11 +45,11 @@ export class Program {
             rowDiv.appendChild(link);
                     
             const downloadButton = document.createElement("button");
-            downloadButton.className = "bi bi-download w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-gray-09) hover:bg-(--color-teal-green-lightest)";
+            downloadButton.className = "bi bi-download w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-text-fixed) hover:bg-(--color-teal-green-lightest)";
             rowDiv.appendChild(downloadButton);
 
             const deleteButton = document.createElement("button");
-            deleteButton.className = "bi bi-trash w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-gray-09) hover:bg-(--color-teal-green-lightest)";
+            deleteButton.className = "bi bi-trash w-12 h-full flex items-center justify-center cursor-pointer hover:text-(--color-text-fixed) hover:bg-(--color-teal-green-lightest)";
             deleteButton.addEventListener("click", () => this.storage.deleteProjectById(metadata.id));
             rowDiv.appendChild(deleteButton);
                     
@@ -66,6 +68,29 @@ export class Program {
     private redirectToProject(id: string): string {
       return `editor.html?projectId=${id}`;
     }
+
+    private initializeTheme(): void {
+    const onIcon = this.getElementOrFail<HTMLButtonElement>('on');
+    const offIcon = this.getElementOrFail<HTMLButtonElement>('off');
+    const darkModeToggle = this.getElementOrFail<HTMLButtonElement>('darkMode');
+
+    const currentTheme = this.storage.preferences.theme;
+
+    document.body.setAttribute("data-theme", currentTheme);
+    const isDarkMode = this.storage.preferences.theme === Theme.Dark;
+    isDarkMode ? offIcon.classList.add("hidden") : onIcon.classList.add("hidden")
+
+    darkModeToggle.addEventListener("click", () => {
+        const isDarkMode = this.storage.preferences.theme === Theme.Dark;
+        const newTheme = isDarkMode ? Theme.Light : Theme.Dark;
+
+        this.storage.preferences.theme = newTheme;
+        document.body.setAttribute("data-theme", newTheme);
+
+        onIcon.classList.toggle("hidden");
+        offIcon.classList.toggle("hidden");
+    });
+}
 
     private async initiliazeStorage(): Promise<void> {
         const engine = new Engine();

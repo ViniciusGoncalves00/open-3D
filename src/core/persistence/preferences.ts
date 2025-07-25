@@ -1,11 +1,15 @@
+import { Theme } from "../../ui/enums/theme";
+
 export class Preferences {
     public autoSaveEnabled: boolean = true;
     public autoSaveInterval: number = 60;
+    public theme: Theme = Theme.Light;
 
     public static fromJSON(data: any): Preferences {
         const preferences = new Preferences();
-        preferences.autoSaveEnabled = data.autoSaveEnabled;
-        preferences.autoSaveInterval = data.autoSaveEnabled;
+        preferences.autoSaveEnabled = data.autoSaveEnabled || true;
+        preferences.autoSaveInterval = data.autoSaveEnabled || 60;
+        preferences.theme = data.theme || Theme.Light;
         return preferences;
     }
 
@@ -13,6 +17,7 @@ export class Preferences {
         return {
             autoSaveEnabled : this.autoSaveEnabled,
             autoSaveInterval : this.autoSaveInterval,
+            theme : this.theme,
         }
     }
 }

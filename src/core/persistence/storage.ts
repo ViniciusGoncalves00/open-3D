@@ -20,7 +20,7 @@ export class Storage {
   public autoSaveIntervalId: number = 0;
   public projectsMetadata!: ProjectMetadata[];
 
-  private preferences!: Preferences;
+  public preferences!: Preferences;
 
   private readonly hour: number = 3600000;
   private readonly second: number = 1000;
