@@ -26,10 +26,11 @@ export class Program {
         this.initializeTheme();
 
         const projectsList = this.getElementOrFail<HTMLDivElement>('projectsList');
-        this._storage.projectsMetadata.forEach(metadata => {
+        console.log(this._storage.metadata)
+        this._storage.metadata.forEach(metadata => {
             const rowDiv = document.createElement("div");
             rowDiv.className = "w-full h-12 border-b border-(--color-gray-02) flex-none flex items-center justify-between hover:bg-(--color-gray-09)";
-                    
+
             const href = this.redirectToProject(metadata.id);
             const link = document.createElement("a");
             link.href = href;
@@ -37,8 +38,8 @@ export class Program {
             link.innerHTML = `
                 <span class="bi bi-box w-12 h-full flex-none flex items-center justify-center cursor-pointer"></span>
                 <span class="w-[calc(25%)] h-full flex items-center"><p class="w-full text-center truncate">${metadata.name}</p></span>
-                <span class="w-[calc(20%)] h-full flex items-center"><p class="w-full text-center truncate">${metadata.createdAt}</p></span>
-                <span class="w-[calc(20%)] h-full flex items-center"><p class="w-full text-center truncate">${metadata.updatedAt}</p></span>
+                <span class="w-[calc(20%)] h-full flex items-center"><p class="w-full text-center truncate">${new Date(metadata.createdAt).toLocaleString()}</p></span>
+                <span class="w-[calc(20%)] h-full flex items-center"><p class="w-full text-center truncate">${new Date(metadata.updatedAt).toLocaleString()}</p></span>
                 <span class="w-[calc(10%-48px)] h-full flex items-center"><p class="w-full text-center truncate">${metadata.version}</p></span>
                 <span class="w-[calc(25%)] h-full flex items-center"><p class="w-full text-center truncate">${metadata.id}</p></span>
             `;
@@ -73,7 +74,7 @@ export class Program {
     const onIcon = this.getElementOrFail<HTMLButtonElement>('on');
     const offIcon = this.getElementOrFail<HTMLButtonElement>('off');
     const darkModeToggle = this.getElementOrFail<HTMLButtonElement>('darkMode');
-
+ 
     const currentTheme = this.storage.preferences.theme;
 
     document.body.setAttribute("data-theme", currentTheme);
@@ -85,6 +86,7 @@ export class Program {
         const newTheme = isDarkMode ? Theme.Light : Theme.Dark;
 
         this.storage.preferences.theme = newTheme;
+        this.storage.savePreferences();
         document.body.setAttribute("data-theme", newTheme);
 
         onIcon.classList.toggle("hidden");

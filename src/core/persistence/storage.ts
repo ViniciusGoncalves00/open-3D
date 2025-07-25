@@ -3,22 +3,15 @@ import { LogType } from "../api/enum/log-type";
 import { Engine } from "../engine/engine";
 import { Project } from "../engine/project";
 import { Scene } from "../engine/scene";
+import { Metadata } from "./metadata";
 import { Preferences } from "./preferences";
-
-interface ProjectMetadata {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  version: string;
-}
 
 export class Storage {
   public readonly dbName = 'open3d-storage';
   public readonly dbVersion = 1;
   public db!: IDBDatabase | null;
   public autoSaveIntervalId: number = 0;
-  public projectsMetadata!: ProjectMetadata[];
+  public metadata: Map<string, Metadata> = new Map();
 
   public preferences!: Preferences;
 
@@ -35,7 +28,7 @@ export class Storage {
   public async init(): Promise<void> {
     await this.openDB();
     await this.loadPreferences();
-    await this.loadProjectsMetadata();
+    await this.loadMetadata();
   }
 
   private async openDB(): Promise<void> {
@@ -120,40 +113,72 @@ export class Storage {
 
     public async createProject(name?: string): Promise<Project> {
       const id = crypto.randomUUID();
-      const now = new Date().toISOString();
+      const timestamp = Date.now();
     
-      const scene = new Scene(crypto.randomUUID(), "scene");
+      const scene = new Scene(crypto.randomUUID(), "scene_1");
       const project = new Project(id, name ?? "project", [scene]);
+      const metadata = new Metadata(id, project.name, timestamp, timestamp, this.dbVersion);
+      
+      const data = {
+        metadata: metadata.toJSON(),
+        data: project.toJSON(),
+      }
     
-      const metadata = {
-        id,
-        name: project.name,
-        createdAt: now,
-        updatedAt: now,
-        version: this.dbVersion,
-        data: project.toJSON()
-      };
-    
-      await this.runTransaction('projects', 'readwrite', (store) => store.put(metadata, id));
+      await this.runTransaction('projects', 'readwrite', (store) => store.put(data, id));
+      this.metadata.set(id, metadata);
     
       return project;
     }
 
     public async saveProject(project: Project): Promise<void> {
-        await this.runTransaction('projects', 'readwrite', (store) => store.put(project.toJSON(), ''));
+      const id = project.id;
+      const record = await this.runTransaction('projects', 'readonly', (store) => store.get(id));
+      if (!record) return;
+
+      const metadata = Metadata.fromJSON(record.metadata);
+      metadata.updatedAt = Date.now();
+
+      const updatedRecord = {
+        metadata: metadata.toJSON(),
+        data: project.toJSON(),
+      };
+    
+      await this.runTransaction('projects', 'readwrite', (store) => store.put(updatedRecord, id));
+    
+      this.metadata.set(id, metadata);
     }
 
-    private async loadProjectsMetadata(): Promise<void> {
-      const projectsRaw = await this.runTransaction('projects', 'readonly', (store) => store.getAll(), '');
+    public async updateMetadata(id: string, name?: string, updatedAt?: number): Promise<void> {
+      const record = await this.runTransaction('projects', 'readonly', (store) => store.get(id), '');
+      if (!record) return;
 
-      this.projectsMetadata = projectsRaw.map((entry: any) => ({
-        id: entry.id,
-        name: entry.name,
-        createdAt: entry.createdAt,
-        updatedAt: entry.updatedAt,
-        version: entry.version
-      }));
+      const metadata = Metadata.fromJSON(record.metadata);
+      if (name) metadata.name = name;
+      if (updatedAt) metadata.updatedAt = updatedAt;
+
+      const updatedRecord = {
+        metadata: metadata.toJSON(),
+        data: record.data,
+      };
+    
+      await this.runTransaction('projects', 'readwrite', (store) => store.put(updatedRecord, id));
+    
+      this.metadata.set(id, metadata);
     }
+
+
+    private async loadMetadata(): Promise<void> {
+      const records = await this.runTransaction('projects', 'readonly', (store) => store.getAll(), '');
+      this.metadata.clear();
+
+      records.forEach(record => {
+        if (record.metadata) {
+          const metadata = Metadata.fromJSON(record.metadata);
+          this.metadata.set(metadata.id, metadata);
+        }
+      });
+    }
+
 
     public async loadProjectById(id: string): Promise<Project | null> {
       const entry = await this.runTransaction('projects', 'readonly', (store) => store.get(id), '');
@@ -161,13 +186,14 @@ export class Storage {
       if (!entry || !entry.data) {
         return null;
       }
-    
+      
       return Project.fromJSON(entry.data);
     }
 
     public async deleteProjectById(id: string): Promise<void> {
-      await this.runTransaction('projects', 'readwrite', (store) => {return store.delete(id)});
-    } 
+      await this.runTransaction('projects', 'readwrite', (store) => store.delete(id));
+      this.metadata.delete(id);
+    }
 
     public async savePreferences(): Promise<void> {
       await this.runTransaction('preferences', 'readwrite', (store) => store.put(this.preferences.toJSON(), 'preferences'));
