@@ -61,7 +61,8 @@ export class Scene {
   }
 
   public static fromJSON(data: any): Scene {
-    const entities: Entity[] =  data["entities"].forEach((data: any) => Entity.fromJSON(data));
+    const entities: Entity[] = [];
+    data["entities"].forEach((data: any) => entities.push(Entity.fromJSON(data)));
 
     entities.forEach(entity => {
       if(!entity.hasComponent(Transform)) return;
@@ -81,10 +82,12 @@ export class Scene {
   }
 
   public toJSON(): any {
+    const entities: any[] = []
+    this.entities.forEach(entity => entities.push(entity.toJSON()));
     return {
       id: this.id,
       name: this.name,
-      entities: this.entities.forEach(entity => entity.toJSON()),
+      entities: entities,
     }
   }
 }

@@ -1,5 +1,4 @@
 import { ObservableNullableField } from "../../common/patterns/observer/observable-nullable-field";
-import { Entity } from "../api/entity";
 import { Scene } from "./scene";
 
 export class Project {
@@ -32,16 +31,18 @@ export class Project {
     }
 
     public static fromJSON(data: any): Project {
-        const scenes: Scene[] =  data["scenes"].forEach((data: any) => Scene.fromJSON(data));
+        const scenes: Scene[] = []
+        data["scenes"].forEach((data: any) => scenes.push(Scene.fromJSON(data)));
         return new Project(data["id"], data["name"], scenes);
     }
 
     public toJSON(): Object {
+        const scenes: any[] = []
+        this.scenes.forEach(scene => scenes.push(scene.toJSON()));
         return {
             id : this.id,
             name : this.name,
-            activeScene : this.activeScene,
-            scenes : this.scenes.forEach(scene => scene.toJSON()),
+            scenes : scenes,
         }
     }
 }

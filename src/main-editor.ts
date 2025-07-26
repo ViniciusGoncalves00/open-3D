@@ -99,17 +99,24 @@ export class Program {
 
     private async initialize(): Promise<void> {
         this.initializeEngine();
+
+        await this.initializeStorage();
+
         this.initializeConsole();
 
         this._console.log(LogType.Log, "creating the best interface...")
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
+
+
         
         const scene = this.engine.currentProject.value?.activeScene.value;
         if(!scene) return;
+
         this._entityHandler = new EntityHandler(scene);
         this.initializeInspector();
+
 
         this._console.log(LogType.Log, "loading your best assets...");
         this.initializeAssets();
@@ -117,6 +124,8 @@ export class Program {
         this.initializePlayer();
         this.initializeTimescale();
         this.initializeScreen();
+
+
 
         this.fpsContainer = this.getElementOrFail<HTMLElement>('fpsContainer');
         this.averageFpsContainer = this.getElementOrFail<HTMLElement>('averageFpsContainer');
@@ -129,16 +138,6 @@ export class Program {
         (window as any).addEntity = () => {
           this._entityHandler.addEntity();
         };
-        await this.initializeStorage();
-        const params = new URLSearchParams(window.location.search);
-        const projectId = params.get("projectId");
-        if (projectId) {
-            const project = await this._storage.loadProjectById(projectId);
-            if (project) {
-                this.engine.currentProject.value = project;
-                this.engine.currentProject.value.SetActiveSceneByIndex(0);
-            }
-        }
         this.initializeSettings();
 
         this.initializeTEMP();
@@ -215,6 +214,7 @@ export class Program {
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
         this._hierarchy = new Hierarchy(this.entitiesContainer, entity => this.entityHandler.selectedEntity.value = entity, this._entityHandler);
+        this.engine.currentProject.value?.activeScene.value?.entities.forEach(entity => {this._hierarchy.addEntity(entity)})
         this.engine.currentProject.value?.activeScene.value?.entities.subscribe({
             onAdd: (entity) => this._hierarchy.addEntity(entity),
             onRemove: (entity) => this._hierarchy.removeEntity(entity)
@@ -224,10 +224,19 @@ export class Program {
     private async initializeStorage(): Promise<void>  {
         this._storage = new Storage(this.engine, this.console);
         await this._storage.init();
-        this.save = this.getElementOrFail<HTMLButtonElement>('save');
         
-        const project = this.engine.currentProject.value;
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get("projectId");
+
+        if(!projectId) return;
+
+        const project = await this._storage.loadProjectById(projectId);
         if(!project) return;
+
+        this.engine.currentProject.value = project;
+        this.engine.currentProject.value.SetActiveSceneByIndex(0);
+
+        this.save = this.getElementOrFail<HTMLButtonElement>('save')
         this.save.addEventListener("click", () => this._storage.saveAll(project));
     }
 

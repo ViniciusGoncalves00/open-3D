@@ -142,7 +142,7 @@ export class Storage {
         metadata: metadata.toJSON(),
         data: project.toJSON(),
       };
-    
+
       await this.runTransaction('projects', 'readwrite', (store) => store.put(updatedRecord, id));
     
       this.metadata.set(id, metadata);
@@ -166,7 +166,6 @@ export class Storage {
       this.metadata.set(id, metadata);
     }
 
-
     private async loadMetadata(): Promise<void> {
       const records = await this.runTransaction('projects', 'readonly', (store) => store.getAll(), '');
       this.metadata.clear();
@@ -179,10 +178,9 @@ export class Storage {
       });
     }
 
-
     public async loadProjectById(id: string): Promise<Project | null> {
       const entry = await this.runTransaction('projects', 'readonly', (store) => store.get(id), '');
-        
+      
       if (!entry || !entry.data) {
         return null;
       }

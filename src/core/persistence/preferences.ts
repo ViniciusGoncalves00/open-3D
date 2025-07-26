@@ -2,7 +2,7 @@ import { Theme } from "../../ui/enums/theme";
 
 export class Preferences {
     public autoSaveEnabled: boolean = true;
-    public autoSaveInterval: number = 60;
+    public autoSaveInterval: number = 6000;
     public theme: Theme = Theme.Light;
 
     public static fromJSON(data: any): Preferences {
