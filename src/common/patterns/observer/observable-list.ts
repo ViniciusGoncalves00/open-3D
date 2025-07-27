@@ -1,10 +1,6 @@
-type ListChangeType = "add" | "remove" | "clear" | "update";
-
-type ListObserver<T> = (type: ListChangeType, item: T, index?: number) => void;
-
 export class ObservableList<T> {
     private _items: T[] = [];
-    private _observers: ListObserver<T>[] = [];
+    private _listeners: Set<{onAdd: (value: T) => void, onRemove: (value: T) => void}> = new Set();
 
     constructor(items: T[] = []) {
         this._items = items;
@@ -16,26 +12,30 @@ export class ObservableList<T> {
 
     public add(item: T): void {
         this._items.push(item);
-        this.notify("add", item, this._items.length - 1);
+        this._listeners.forEach(listener => listener.onAdd(item));
     }
 
     public removeAt(index: number): void {
         const removed = this._items.splice(index, 1)[0];
-        this.notify("remove", removed, index);
+        this._listeners.forEach(listener => listener.onRemove(removed));
+    }
+
+    public remove(item: T): void {
+        const index = this._items.indexOf(item);
+        if (index !== -1) {
+            this.removeAt(index);
+        }
     }
 
     public clear(): void {
         this._items = [];
-        this.notify("clear", null as any);
     }
 
-    public onChange(observer: ListObserver<T>): void {
-        this._observers.push(observer);
+    public subscribe(listener: {onAdd: (value: T) => void, onRemove: (value: T) => void}): void {
+        this._listeners.add(listener);
     }
 
-    private notify(type: ListChangeType, item: T, index?: number): void {
-        for (const observer of this._observers) {
-            observer(type, item, index);
-        }
+    public unsubscribe(listener: {onAdd: (value: T) => void, onRemove: (value: T) => void}): void {
+        this._listeners.delete(listener);
     }
 }

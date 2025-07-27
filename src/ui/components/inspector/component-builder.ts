@@ -77,7 +77,10 @@ export class PropertyBuilder {
 
     render();
 
-    list.onChange(() => render());
+    list.subscribe({
+        onAdd: (value) => render(),
+        onRemove: (value) => render()
+    });
 }
 
     public static buildArrayNumberProperty(list: ObservableList<ObservableField<number>>, field: HTMLElement): void {
@@ -101,6 +104,9 @@ export class PropertyBuilder {
         };
 
         render();
-        list.onChange(() => render());
+        list.subscribe({
+            onAdd: (value) => render(),
+            onRemove: (value) => render()
+        });
     }
 }

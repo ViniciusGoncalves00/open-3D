@@ -2,31 +2,52 @@ import { Entity } from "../../../core/api/entity";
 import { EntityHandler } from "../../handlers/entity-handler";
 
 export class Hierarchy {
+  private _scene: Entity;
   private _entitiesContainer: HTMLElement;
   private _entityHandler: EntityHandler;
 
-  private _onSelectEntity: (entity: Entity) => void;
-
-  public constructor(entitiesContainer: HTMLElement, onSelectEntity: (entity: Entity) => void, entityHandler: EntityHandler) {
-      this._entitiesContainer = entitiesContainer;
-      this._onSelectEntity = onSelectEntity;
-      this._entityHandler = entityHandler;
+  public constructor(scene: Entity, entitiesContainer: HTMLElement, entityHandler: EntityHandler) {
+    this._scene = scene;
+    this._entitiesContainer = entitiesContainer;
+    this._entityHandler = entityHandler;
   }
 
-  public removeEntity(entity: Entity): void {
-    this._entitiesContainer.querySelector(`#${CSS.escape(entity.id)}`)?.remove();
+  public constructHierarchy(): void {
+    this._entitiesContainer.innerHTML = '';
+    this._scene.children.items.forEach(child => this.constructEntity(child, this._entitiesContainer));
   }
 
-  public addEntity(entity: Entity): void {        
-    const entityLine = document.createElement("div");
-    entityLine.id = entity.id;
-    entityLine.classList.add("entity", "w-full", "h-6", "flex", "items-center", "justify-between", "px-2");
+  private constructEntity(entity: Entity, container: HTMLElement): void {
+    const wrapper = document.createElement("div");
+    wrapper.id = entity.id;
+    wrapper.classList.add("w-full", "flex", "flex-col");
+
+    const head = document.createElement("div");
+    head.classList.add("w-full", "h-6", "flex", "items-center", "justify-between", "pr-2", "opacity-70", "hover:opacity-100");
+    head.addEventListener("click", () => this._entityHandler.selectedEntity.value = entity);
+
+    const body = document.createElement("div");
+    body.classList.add("w-full", "flex", "flex-col");
+    body.style.paddingLeft = `24px`;
   
     const leftContainer = document.createElement("div");
     leftContainer.classList.add("h-full", "w-full", "flex", "items-center", "space-x-2");
   
-    const caretIcon = document.createElement("i");
-    caretIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-caret-down-fill");
+    const caretDown = document.createElement("div");
+    caretDown.classList.add("h-full", "bi", "bi-caret-down-fill");
+    caretDown.addEventListener("click", () => {
+      Array.from(body.children).forEach(element => element.classList.toggle("hidden"));
+      caretDown.classList.toggle("hidden");
+      caretRight.classList.toggle("hidden");
+    })
+
+    const caretRight = document.createElement("div");
+    caretRight.classList.add("h-full", "bi", "bi-caret-right-fill", "hidden");
+    caretRight.addEventListener("click", () => {
+      Array.from(body.children).forEach(element => element.classList.toggle("hidden"));
+      caretRight.classList.toggle("hidden");
+      caretDown.classList.toggle("hidden");
+    })
   
     const boxIcon = document.createElement("i");
     boxIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-box");
@@ -36,81 +57,26 @@ export class Hierarchy {
     nameParagraph.textContent = entity.name.value;
     entity.name.subscribe((name) => nameParagraph.textContent = name);
   
-    leftContainer.appendChild(caretIcon);
+    leftContainer.appendChild(caretDown);
+    leftContainer.appendChild(caretRight);
     leftContainer.appendChild(boxIcon);
     leftContainer.appendChild(nameParagraph);
         
     const trashIcon = document.createElement("i");
-    trashIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-trash");
+    trashIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-trash", "cursor-pointer");
     trashIcon.addEventListener("click", () => {
       this._entityHandler.removeEntity(entity.id);
-      this._entityHandler.selectedEntity.value = null;
-    })
+      this.constructHierarchy();
+    });
   
-    entityLine.appendChild(leftContainer);
-    entityLine.appendChild(trashIcon);
+    head.appendChild(leftContainer);
+    head.appendChild(trashIcon);
 
-    leftContainer.addEventListener("click", () => this.selectEntity(entity));              
-        
-    this._entitiesContainer.appendChild(entityLine);
+    wrapper.appendChild(head);
+    wrapper.appendChild(body);
+
+    container.appendChild(wrapper);
+
+    entity.children.items.forEach(entity => this.constructEntity(entity, body));
   }
-
-    public renderHierarchy(entities: Map<string, Entity>): void {
-        this._entitiesContainer.innerHTML = "";
-            
-        entities.forEach(entity => {
-            const entityLine = document.createElement("div");
-            entityLine.classList.add("entity", "w-full", "h-6", "flex", "items-center", "justify-between", "px-2");
-          
-            const leftContainer = document.createElement("div");
-            leftContainer.classList.add("h-full", "w-full", "flex", "items-center", "space-x-2");
-          
-            const caretIcon = document.createElement("i");
-            caretIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-caret-down-fill");
-          
-            const boxIcon = document.createElement("i");
-            boxIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-box");
-          
-            const nameParagraph = document.createElement("p");
-            nameParagraph.classList.add("w-full", "whitespace-nowrap", "overflow-ellipsis");
-            nameParagraph.textContent = entity.name.value;
-            entity.name.subscribe((name) => nameParagraph.textContent = name);
-          
-            leftContainer.appendChild(caretIcon);
-            leftContainer.appendChild(boxIcon);
-            leftContainer.appendChild(nameParagraph);
-          
-            const trashIcon = document.createElement("i");
-            trashIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-trash");
-            trashIcon.addEventListener("click", () => {
-              this._entityHandler.removeEntity(entity.id);
-              this._entityHandler.selectedEntity.value = null;
-            })
-          
-            entityLine.appendChild(leftContainer);
-            entityLine.appendChild(trashIcon);
-
-            leftContainer.addEventListener("click", () => this.selectEntity(entity));              
-          
-            this._entitiesContainer.appendChild(entityLine);
-          });
-      }
-
-    private selectEntity(entity: Entity) {
-      this._onSelectEntity(entity);
-      this.highlightEntityLine(entity.id);
-    }
-
-    private highlightEntityLine(selectedId: string) {
-      const allLines = this._entitiesContainer.querySelectorAll(".entity");
-      allLines.forEach(line => line.classList.remove("bg-zinc-800"));
-    
-      const selectedLine = Array.from(allLines).find(line =>
-        line.textContent?.includes(selectedId)
-      );
-    
-      if (selectedLine) {
-        selectedLine.classList.add("bg-zinc-800");
-      }
-    }
 }

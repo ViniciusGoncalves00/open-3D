@@ -31,7 +31,7 @@ export class Dropdown {
         this.sortItems();
 
         this.container = document.createElement("div");
-        this.container.classList = "inline-block relative"
+        this.container.classList = "w-full inline-block relative"
 
         this.button = document.createElement("button");
         this.button.textContent = this.fixedLabel ? this.fixedLabel : initialSelection;

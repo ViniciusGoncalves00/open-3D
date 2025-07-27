@@ -7,13 +7,13 @@ import { ObservableNullableField } from '../../common/patterns/observer/observab
 import { Scene } from "../../core/engine/scene";
 
 export class EntityHandler {
-    private _scene: Scene;
+    private _scene: Entity;
 
     private _selectedEntity: ObservableNullableField<Entity> = new ObservableNullableField<Entity>(null);
     public get selectedEntity() : ObservableNullableField<Entity> { return this._selectedEntity; }
     public set selectedEntity(entity: ObservableNullableField<Entity>) { this._selectedEntity = entity; }
 
-    public constructor(scene: Scene) {
+    public constructor(scene: Entity) {
         this._scene = scene;
     }
     
@@ -28,11 +28,25 @@ export class EntityHandler {
     const meshComponent = new Mesh("Sphere", vertices, indices);
     entity.addComponent(meshComponent);
 
-    this._scene.addEntity(entity);
+    entity.parent = this._scene;
   }
 
   public removeEntity(id: string): void {
-    this._scene.removeEntity(id);
+    const entity = this.findEntityById(this._scene, id);
+    if (entity && entity.parent) {
+      entity.parent.value?.children.remove(entity);
+    }
+  }
+
+  private findEntityById(current: Entity, targetId: string): Entity | undefined {
+    if (current.id === targetId) return current;
+
+    for (const child of current.children.items) {
+      const found = this.findEntityById(child, targetId);
+      if (found) return found;
+    }
+
+    return undefined;
   }
 }
 

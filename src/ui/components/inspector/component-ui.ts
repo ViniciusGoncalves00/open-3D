@@ -118,26 +118,40 @@ export class ComponentUI {
                 }
                 else if (propertyName === "parent") {
                     const entitiesRepresentation: DropdownItem[] = [];
-                                
-                    entitiesRepresentation.push({
-                        label: "None",
-                        action: () => (component as any)[propertyName] = null,
-                    });
-                
-                    const entities = this._engine.currentProject.value?.activeScene.value?.getEntities();
-                    if(!entities) continue;
 
-                    entities.forEach(entity => {
-                        if (entity.id === this._entityHandler.selectedEntity.value?.id) return;
-                    
-                        const transform = entity.getComponent(Transform);
-                        if (!transform) return;
-                    
-                        entitiesRepresentation.push({
-                            label: entity.name.value,
-                            action: () => (component as any)[propertyName] = entity,
-                        });
+                    entitiesRepresentation.push({
+                      label: "None",
+                      action: () => (component as any)[propertyName] = null,
                     });
+
+                    const scene = this._engine.currentProject.value?.activeScene.value;
+                    if (!scene) continue;
+
+                    const selectedId = this._entityHandler.selectedEntity.value?.id;
+
+                    const appendEntitiesRecursively = (
+                      entity: Entity,
+                      depth: number = 0
+                    ): void => {
+                      if (entity.id === selectedId) return;
+                    
+                      const transform = entity.getComponent(Transform);
+                      if (!transform) return;
+                    
+                      const indent = "  ".repeat(depth);
+                      entitiesRepresentation.push({
+                        label: `${indent}${entity.name.value}`,
+                        action: () => (component as any)[propertyName] = entity,
+                      });
+                  
+                      for (const child of entity.children.items) {
+                        appendEntitiesRecursively(child, depth + 1);
+                      }
+                    };
+
+                    for (const rootEntity of scene.children.items) {
+                      appendEntitiesRecursively(rootEntity);
+                    }
                     
                     const initialValue = property ? property.name.value : "None";
 

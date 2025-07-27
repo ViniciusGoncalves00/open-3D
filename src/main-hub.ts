@@ -95,9 +95,7 @@ export class Program {
 }
 
     private async initiliazeStorage(): Promise<void> {
-        const engine = new Engine();
-        const console = new Console(document.createElement("div"));
-        this._storage = new Storage(engine, console);
+        this._storage = new Storage();
         await this._storage.init();
     }
 

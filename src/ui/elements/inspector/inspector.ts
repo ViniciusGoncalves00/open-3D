@@ -2,22 +2,25 @@ import { Orbit } from "../../../assets/components/orbit";
 import { Rotate } from "../../../assets/components/rotate";
 import { Transform } from "../../../assets/components/transform";
 import { Entity } from "../../../core/api/entity";
-import { Dropdown } from "../../components/dropdown";
+import { Dropdown, DropdownItem } from "../../components/dropdown";
 import { ComponentUI } from "../../components/inspector/component-ui";
 import { EntityHandler } from "../../handlers/entity-handler";
 import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/component";
 import { Engine } from "../../../core/engine/engine";
+import { Hierarchy } from "../hierarchy/hierarchy";
 
 export class Inspector {
   private _container: HTMLElement;
   private _engine: Engine;
   private _entityHandler: EntityHandler;
+  private _hierarchy: Hierarchy;
 
-  public constructor(container: HTMLElement, engine: Engine, entityHandler: EntityHandler) {
+  public constructor(container: HTMLElement, engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
     this._container = container;
     this._engine = engine;
     this._entityHandler = entityHandler;
+    this._hierarchy = hierarchy;
 
     this._entityHandler.selectedEntity?.subscribe(() => {
       const entity = this._entityHandler.selectedEntity.value;
@@ -42,7 +45,7 @@ export class Inspector {
     });
 
     const row = document.createElement('div');
-    row.className = 'w-full flex items-center justify-center';
+    row.className = 'w-full flex items-center justify-center px-2';
     this._container.appendChild(row);
 
     const items = [
@@ -140,9 +143,63 @@ export class Inspector {
     inputColumn_name.className = 'w-3/4 flex';
     inputColumn_name.placeholder = entity.name.value;
     inputColumn_name.addEventListener('input', () => {
-    entity.name.value = inputColumn_name.value;
+      entity.name.value = inputColumn_name.value;
     });
     row_name.appendChild(inputColumn_name);
+
+    const entitiesRepresentation: DropdownItem[] = [];
+
+    entitiesRepresentation.push({
+      label: "None",
+      action: () => entity.parent = null,
+    });
+
+    const scene = this._engine.currentProject.value.activeScene.value;
+    const selectedId = entity.id;
+
+    const appendEntitiesRecursively = (current: Entity, depth: number = 0) => {
+      if (current.id === selectedId) return;
+    
+      const transform = current.getComponent(Transform);
+      if (!transform) return;
+    
+      const indent = "  ".repeat(depth);
+      entitiesRepresentation.push({
+        label: `${indent}${current.name.value}`,
+        action: () => {
+          entity.parent = current;
+          this._hierarchy.constructHierarchy();
+        },
+      });
+    
+      for (const child of current.children.items) {
+        appendEntitiesRecursively(child, depth + 1);
+      }
+    };
+
+    for (const rootEntity of scene.children.items) {
+      appendEntitiesRecursively(rootEntity);
+    }
+
+    const initialValue = entity.parent.value
+      ? entity.parent.value.name.value
+      : "None";
+
+    const dropdown = new Dropdown(entitiesRepresentation, initialValue);
+
+    const row_dropdown = document.createElement('div');
+    row_dropdown.className = 'w-full flex items-center';
+    body.appendChild(row_dropdown)
+
+    const labelColumn_dropdown = document.createElement('div');
+    labelColumn_dropdown.className = 'w-1/4 font-medium text-sm';
+    labelColumn_dropdown.textContent = "parent";
+    row_dropdown.appendChild(labelColumn_dropdown);
+    
+    const inputColumn_dropdown = document.createElement('div');
+    inputColumn_dropdown.className = 'w-3/4 flex';
+    inputColumn_dropdown.appendChild(dropdown.getElement());
+    row_dropdown.appendChild(inputColumn_dropdown);
 
     return entityWrapper;
   }

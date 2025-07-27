@@ -17,10 +17,10 @@ export class Storage {
 
   private readonly hour: number = 3600000;
   private readonly second: number = 1000;
-  private readonly engine!: Engine;
-  private readonly console!: Console;
+  public engine!: Engine | undefined;
+  public console!: Console | undefined;
     
-  public constructor(engine: Engine, console: Console) {
+  public constructor(engine?: Engine, console?: Console) {
     this.engine = engine;
     this.console = console;
   }
@@ -95,7 +95,7 @@ export class Storage {
     }
 
     private startAutoSave(interval: number): void {
-      const project = this.engine.currentProject.value;
+      const project = this.engine!.currentProject.value;
       if(!project) return;
       this.autoSaveIntervalId = window.setInterval(() => this.saveAll(project), interval);
     }
@@ -115,8 +115,7 @@ export class Storage {
       const id = crypto.randomUUID();
       const timestamp = Date.now();
     
-      const scene = new Scene(crypto.randomUUID(), "scene_1");
-      const project = new Project(id, name ?? "project", [scene]);
+      const project = new Project(id, name ?? "project");
       const metadata = new Metadata(id, project.name, timestamp, timestamp, this.dbVersion);
       
       const data = {
@@ -143,6 +142,7 @@ export class Storage {
         data: project.toJSON(),
       };
 
+      await this.runTransaction('projects', 'readwrite', (store) => store.delete(id));
       await this.runTransaction('projects', 'readwrite', (store) => store.put(updatedRecord, id));
     
       this.metadata.set(id, metadata);

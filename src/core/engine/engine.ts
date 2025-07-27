@@ -1,5 +1,7 @@
 import { ISystem, IAwake, IStart, IFixedUpdate, IUpdate, ILateUpdate } from "../../assets/systems/interfaces/system";
+import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableNullableField } from "../../common/patterns/observer/observable-nullable-field";
+import { Entity } from "../api/entity";
 import { Project } from "./project";
 
 import { Time } from "./time";
@@ -9,7 +11,8 @@ import { isIAwake, isIFixedUpdate, isILateUpdate, isIStart, isIUpdate } from "./
 export class Engine {
   public readonly time: Time = new Time();
   public readonly timeController: TimeController = new TimeController();
-  public readonly currentProject: ObservableNullableField<Project | null> = new ObservableNullableField();
+  public readonly currentProject: ObservableField<Project>;
+  public backup: Entity | null = null;
 
   private _systems: ISystem[] = [];
   private _awakeSystems: IAwake[] = [];
@@ -19,7 +22,9 @@ export class Engine {
   private _lateUpdateSystems: ILateUpdate[] = [];
   private _animationFrameId: number | null = null;
 
-  public constructor() {
+  public constructor(project: Project) {
+    this.currentProject = new ObservableField(project);
+
     this.timeController.isRunning.subscribe(wasStarted => this.toggleSceneState(wasStarted));
     this.timeController.isPaused.subscribe(wasPaused => this.toggleLoopPause(wasPaused));
   }
@@ -39,14 +44,15 @@ export class Engine {
       if(this._animationFrameId) return;
 
       this._animationFrameId = requestAnimationFrame(this.loop);
-      this.currentProject.value?.activeScene.value?.saveState();
+      this.backup = this.currentProject.value.activeScene.value.clone();
     }
     else {
       if(!this._animationFrameId) return;
 
       cancelAnimationFrame(this._animationFrameId);
       this._animationFrameId = null;
-      this.currentProject.value?.activeScene.value?.restoreState();
+      
+      if(this.backup !== null) this.currentProject.value.activeScene.value.restoreFrom(this.backup);
     }
   }
 
@@ -66,24 +72,42 @@ export class Engine {
 
   private loop = () => {
     this._animationFrameId = requestAnimationFrame(this.loop);
-  
     this.time.update();
 
-    const scene = this.currentProject.value?.activeScene.value;
-    if(!scene) return;
+    const root = this.currentProject.value?.activeScene.value;
+    if (!root) return;
 
-    const entities = scene.getEntities();
-  
-    const notAwakedEntities = entities.filter(entity => !entity.isAwaked);
-    this._awakeSystems.forEach(system => system.awake(notAwakedEntities));
-    notAwakedEntities.forEach(entity => entity.isAwaked = true);
-  
-    const notStartedEntities = entities.filter(entity => !entity.isStarted);
-    this._startSystems.forEach(system => system.start(notStartedEntities));
-    notStartedEntities.forEach(entity => entity.isStarted = true);
-  
-    this._fixedUpdateSystems.forEach(system => system.fixedUpdate(entities, this.time.deltaTime));
-    this._updateSystems.forEach(system => system.update(entities, this.time.deltaTime));
-    this._lateUpdateSystems.forEach(system => system.lateUpdate(entities, this.time.deltaTime));
-  }; 
+    const notAwaked: Entity[] = [];
+    const notStarted: Entity[] = [];
+
+    this.collectLifecycleEntities(root, notAwaked, notStarted);
+
+    this._awakeSystems.forEach(system => system.awake(notAwaked));
+    notAwaked.forEach(entity => entity.isAwaked = true);
+
+    this._startSystems.forEach(system => system.start(notStarted));
+    notStarted.forEach(entity => entity.isStarted = true);
+
+    this.updateRecursively(root, (entity) => {
+      this._fixedUpdateSystems.forEach(system => system.fixedUpdate([entity], this.time.deltaTime));
+      this._updateSystems.forEach(system => system.update([entity], this.time.deltaTime));
+      this._lateUpdateSystems.forEach(system => system.lateUpdate([entity], this.time.deltaTime));
+    });
+  };
+
+  private collectLifecycleEntities(entity: Entity, notAwaked: Entity[], notStarted: Entity[]): void {
+    if (!entity.isAwaked) notAwaked.push(entity);
+    if (!entity.isStarted) notStarted.push(entity);
+
+    for (const child of entity.children.items) {
+      this.collectLifecycleEntities(child, notAwaked, notStarted);
+    }
+  }
+
+  private updateRecursively(entity: Entity, callback: (entity: Entity) => void): void {
+    callback(entity);
+    for (const child of entity.children.items) {
+      this.updateRecursively(child, callback);
+    }
+  }
 }

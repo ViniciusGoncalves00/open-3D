@@ -20,6 +20,8 @@ import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
+import { Entity } from './core/api/entity';
+import { Project } from './core/engine/project';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -98,9 +100,20 @@ export class Program {
     }
 
     private async initialize(): Promise<void> {
-        this.initializeEngine();
-
         await this.initializeStorage();
+
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get("projectId");
+
+        if(!projectId) return;
+
+        const project = await this._storage.loadProjectById(projectId);
+        if(!project) return;
+
+        this.initializeEngine(project);
+
+        this.save = this.getElementOrFail<HTMLButtonElement>('save')
+        this.save.addEventListener("click", () => this._storage.saveAll(project));
 
         this.initializeConsole();
 
@@ -115,7 +128,9 @@ export class Program {
         if(!scene) return;
 
         this._entityHandler = new EntityHandler(scene);
-        this.initializeInspector();
+        
+        this.initializeHierarchy();
+        this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
 
 
         this._console.log(LogType.Log, "loading your best assets...");
@@ -133,7 +148,6 @@ export class Program {
         if (this.fpsContainer) this.engine.time.framesPerSecond.subscribe(() => this.fpsContainer.innerHTML = `${this.engine.time.framesPerSecond.value.toString()} FPS`);
         if (this.averageFpsContainer) this.engine.time.averageFramesPerSecond.subscribe(() => this.averageFpsContainer.innerHTML = `${this.engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
 
-        this.initializeHierarchy();
 
         (window as any).addEntity = () => {
           this._entityHandler.addEntity();
@@ -145,8 +159,8 @@ export class Program {
         this._console.log(LogType.Log, "All right! You can start now!")
     }
 
-    private initializeEngine(): void {
-        this.engine = new Engine();
+    private initializeEngine(project: Project): void {
+        this.engine = new Engine(project);
     }
 
     private initializeGraphicEngine(): void {
@@ -213,31 +227,26 @@ export class Program {
 
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
-        this._hierarchy = new Hierarchy(this.entitiesContainer, entity => this.entityHandler.selectedEntity.value = entity, this._entityHandler);
-        this.engine.currentProject.value?.activeScene.value?.entities.forEach(entity => {this._hierarchy.addEntity(entity)})
-        this.engine.currentProject.value?.activeScene.value?.entities.subscribe({
-            onAdd: (entity) => this._hierarchy.addEntity(entity),
-            onRemove: (entity) => this._hierarchy.removeEntity(entity)
-        })
-    };
+        
+        this._hierarchy = new Hierarchy(
+            this.engine.currentProject.value.activeScene.value,
+            this.entitiesContainer,
+            this.entityHandler
+        );
+
+        const scene = this.engine.currentProject.value?.activeScene.value;
+        if (!scene) return;
+
+        scene.children.subscribe({
+            onAdd: (entity) => this._hierarchy.constructHierarchy(),
+            onRemove: (entity) => this._hierarchy.constructHierarchy()
+        });
+        this._hierarchy.constructHierarchy();
+    }
 
     private async initializeStorage(): Promise<void>  {
         this._storage = new Storage(this.engine, this.console);
         await this._storage.init();
-        
-        const params = new URLSearchParams(window.location.search);
-        const projectId = params.get("projectId");
-
-        if(!projectId) return;
-
-        const project = await this._storage.loadProjectById(projectId);
-        if(!project) return;
-
-        this.engine.currentProject.value = project;
-        this.engine.currentProject.value.SetActiveSceneByIndex(0);
-
-        this.save = this.getElementOrFail<HTMLButtonElement>('save')
-        this.save.addEventListener("click", () => this._storage.saveAll(project));
     }
 
     private initializeSettings(): void {
@@ -260,9 +269,9 @@ export class Program {
         // })();
     };
 
-    private initializeInspector(): void {
+    private initializeInspector(engine: Engine, handler: EntityHandler, hierarchy: Hierarchy): void {
         this.inspectorContainer = this.getElementOrFail<HTMLElement>('inspectorContainer');
-        this._inspector = new Inspector(this.inspectorContainer, this.engine, this.entityHandler);
+        this._inspector = new Inspector(this.inspectorContainer, engine, handler, hierarchy);
     };
 
     private initializePlayer(): void {

@@ -1,5 +1,4 @@
-import { Transform } from "../../assets/components/transform";
-import { ObservableMap } from "../../common/patterns/observer/observable-map";
+import { ObservableList } from "../../common/patterns/observer/observable-list";
 import { Entity } from "../api/entity";
 
 /**
@@ -8,9 +7,9 @@ import { Entity } from "../api/entity";
 export class Scene {
   public id: `${string}-${string}-${string}-${string}-${string}`;
   public name: string;
-  
-  public readonly entities: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
-  public readonly backup: ObservableMap<string, Entity> = new ObservableMap(new Map<string, Entity>());
+
+  public readonly entities: ObservableList<Entity> = new ObservableList();
+  public readonly backup: ObservableList<Entity> = new ObservableList();
 
   public constructor(id: `${string}-${string}-${string}-${string}-${string}`, name: string, entities?: Entity[]) {
     this.id = id;
@@ -19,75 +18,58 @@ export class Scene {
   }
 
   public addEntity(entity: Entity): void {
-    this.entities.set(entity.id, entity);
+    if(entity.parent.value !== null || this.entities.items.includes(entity)) return;
+    this.entities.add(entity);
   }
 
   public removeEntity(entityId: string): void {
-    const entity = this.entities.get(entityId);
-    if(!entity) return;
-    
+    const entity = this.entities.items.find(e => e.id === entityId);
+    if (!entity) return;
+
     entity.destroy();
-    this.entities.delete(entityId);
+    this.entities.remove(entity);
   }
 
   public getEntities(): Entity[] {
-    return Array.from(this.entities.values());
-  }    
-  
+    return [...this.entities.items];
+  }
+
   public saveState(): void {
     this.backup.clear();
-    for (const [id, entity] of this.entities.entries()) {
-      this.backup.set(id, entity.clone());
+    for (const entity of this.entities.items) {
+      this.backup.add(entity.clone());
     }
   }
-  
-  public restoreState(): void {
-    for (const [id, clone] of this.backup.entries()) {
-      const currentEntity = this.entities.get(id);
 
-      if (currentEntity) {
-        currentEntity.restoreFrom(clone);
-      }
-      else {
-        this.addEntity(clone);
-      }
+  public restoreState(): void {
+    for (const entity of [...this.entities.items]) {
+      const inBackup = this.backup.items.some(b => b.id === entity.id);
+      if (!inBackup) this.entities.remove(entity);
     }
 
-    for (const id of this.entities.keys()) {
-      if (!this.backup.has(id)) {
-        this.removeEntity(id)
+    for (const clone of this.backup.items) {
+      const existing = this.entities.items.find(e => e.id === clone.id);
+      if (existing) {
+        existing.restoreFrom(clone);
+      } else {
+        this.entities.add(clone);
       }
     }
   }
 
   public static fromJSON(data: any): Scene {
     const entities: Entity[] = [];
-    data["entities"].forEach((data: any) => entities.push(Entity.fromJSON(data)));
-
-    entities.forEach(entity => {
-      if(!entity.hasComponent(Transform)) return;
-      
-      const entityData = data["entities"].find((data: any) => data.id === entity.id);
-      const componentsData = entityData["components"] as { type: string; data: any }[];
-      const transformData = componentsData.find((component: { type: string; data: Transform }) => component.type === "Transform");
-      if(!transformData || !transformData.data.parent) return;
-
-      const parent = entities.find(entity => entity.id === transformData.data.parent?.id)
-      if(!parent || !parent.hasComponent(Transform)) return;
-
-      entity.getComponent(Transform).parent = parent;
-    })
-
+    for (const item of data["entities"]) {
+      entities.push(Entity.fromJSON(item));
+    }
     return new Scene(data["id"], data["name"], entities);
   }
 
   public toJSON(): any {
-    const entities: any[] = []
-    this.entities.forEach(entity => entities.push(entity.toJSON()));
     return {
       id: this.id,
       name: this.name,
-      entities: entities,
-    }
+      entities: this.entities.items.map(e => e.toJSON())
+    };
   }
 }

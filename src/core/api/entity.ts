@@ -4,15 +4,16 @@ import { Orbit } from "../../assets/components/orbit";
 import { Rotate } from "../../assets/components/rotate";
 import { Transform } from "../../assets/components/transform";
 import { ObservableField } from "../../common/patterns/observer/observable-field";
+import { ObservableList } from "../../common/patterns/observer/observable-list";
 import { ObservableMap } from "../../common/patterns/observer/observable-map";
+import { ObservableNullableField } from "../../common/patterns/observer/observable-nullable-field";
 
 export class Entity {
-  private _id: `${string}-${string}-${string}-${string}-${string}`;
+  private readonly _id: `${string}-${string}-${string}-${string}-${string}`;
   public get id(): string { return this._id; }
 
-  private _name: ObservableField<string> = new ObservableField("Entity");
+  private readonly _name: ObservableField<string> = new ObservableField("Entity");
   public get name(): ObservableField<string> { return this._name; }
-  public set name(name: ObservableField<string>) { this._name = name; }
 
   private _isEnabled = true;
   public get isEnabled(): boolean { return this._isEnabled; }
@@ -26,8 +27,26 @@ export class Entity {
   public get isStarted(): boolean { return this._isStarted; }
   public set isStarted(isStarted: boolean) { this._isStarted = isStarted; }
   
-  private _components = new ObservableMap<new (...args: any[]) => Component, Component>(new Map());
+  private readonly _components = new ObservableMap<new (...args: any[]) => Component, Component>(new Map());
   public get components(): ObservableMap<new (...args: any[]) => Component, Component> { return this._components; }
+
+  private readonly _parent: ObservableNullableField<Entity | null> = new ObservableNullableField();
+  public get parent(): ObservableNullableField<Entity | null> { return this._parent; }
+  public set parent(newParent: Entity | null) {
+    // return if it is the same entity
+    if(this._parent.value?.id === newParent?.id) return;
+    // return if the parent is a child of this entity or descendant
+    if (newParent && this.isMyDescendant(newParent)) return;
+    
+    // remove this entity from the previous parent's children before assigning the new parent
+    if(this._parent.value !== null) this._parent.value.children.remove(this);
+    if(newParent) newParent.children.add(this)
+
+    this._parent.value = newParent;
+  }
+
+  private readonly _children: ObservableList<Entity> = new ObservableList();
+  public get children(): ObservableList<Entity> { return this._children; }
   
   public constructor(id: `${string}-${string}-${string}-${string}-${string}`) {
     this._id = id;
@@ -59,7 +78,8 @@ export class Entity {
 
   public clone(): Entity {
     const clone = new Entity(this._id);
-    clone._name = this._name;
+    clone._parent.value = this._parent.value;
+    clone._name.value = this._name.value;
     clone._isEnabled = this._isEnabled;
     clone._isAwaked = this._isAwaked;
     clone._isStarted = this._isStarted;
@@ -81,11 +101,12 @@ export class Entity {
       components: this.getComponents().map(component => ({
         type: component.constructor.name,
         data: component.toJSON?.() ?? {}
-      }))
+      })),
+      children: this.children.items.map(child => child.toJSON())
     };
   }
 
-  public static fromJSON(json: any): Entity {
+  public static fromJSON(json: any, parent: Entity | null = null): Entity {
     const entity = new Entity(json.id);
   
     entity.name.value = json.name;
@@ -124,11 +145,19 @@ export class Entity {
       }  
     }
 
+    entity.parent = parent;
+
+    if (json.children && Array.isArray(json.children)) {
+      for (const childJson of json.children) {
+        Entity.fromJSON(childJson, entity);
+      }
+    }
+
     return entity;
   }
 
   public restoreFrom(clone: Entity): void {
-    this._name = clone.name;
+    this._name.value = clone.name.value;
     this._isEnabled = clone.isEnabled;
     this._isAwaked = clone.isAwaked;
     this._isStarted = clone.isStarted;
@@ -147,5 +176,12 @@ export class Entity {
         thisComponent.copyFrom(otherComponent as any);
       }
     }
+  }
+
+  private isMyDescendant(possibleDescendant: Entity): boolean {
+    for (const child of this._children.items) {
+      if (child === possibleDescendant || child.isMyDescendant(possibleDescendant)) return true;
+    }
+    return false;
   }
 }
