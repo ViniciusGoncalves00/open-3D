@@ -1,8 +1,6 @@
 import { Console } from "../../ui/elements/console/console";
-import { LogType } from "../api/enum/log-type";
 import { Engine } from "../engine/engine";
 import { Project } from "../engine/project";
-import { Scene } from "../engine/scene";
 import { Metadata } from "./metadata";
 import { Preferences } from "./preferences";
 

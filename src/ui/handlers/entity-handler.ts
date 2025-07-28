@@ -4,7 +4,6 @@ import { ObservableField } from '../../common/patterns/observer/observable-field
 import { Vector3 } from '../../core/api/vector3';
 import { Mesh } from '../../assets/components/mesh';
 import { ObservableNullableField } from '../../common/patterns/observer/observable-nullable-field';
-import { Scene } from "../../core/engine/scene";
 
 export class EntityHandler {
     private _scene: Entity;

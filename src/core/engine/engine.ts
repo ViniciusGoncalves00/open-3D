@@ -1,12 +1,22 @@
 import { ISystem, IAwake, IStart, IFixedUpdate, IUpdate, ILateUpdate } from "../../assets/systems/interfaces/system";
 import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { ObservableNullableField } from "../../common/patterns/observer/observable-nullable-field";
 import { Entity } from "../api/entity";
 import { Project } from "./project";
 
 import { Time } from "./time";
 import { TimeController } from "./time-controller";
 import { isIAwake, isIFixedUpdate, isILateUpdate, isIStart, isIUpdate } from "./typeguard";
+
+/**
+ * Central class responsible for managing the execution lifecycle of the engine.
+ * 
+ * This includes:
+ * - Controlling simulation time through Time and TimeController.
+ * - Managing and dispatching ECS systems according to their lifecycle phase (awake, start, fixedUpdate, update, lateUpdate).
+ * - Executing the main loop using requestAnimationFrame.
+ * - Backing up and restoring the active scene state when toggling between editor and runtime modes.
+ * - Observing the current project and coordinating updates accordingly.
+ */
 
 export class Engine {
   public readonly time: Time = new Time();

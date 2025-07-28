@@ -13,14 +13,13 @@ import { Tree } from './ui/components/assets/tree';
 import { FolderNode } from './common/tree/folder-node';
 import { FileNode } from './common/tree/file-node';
 import { LogType } from './core/api/enum/log-type';
-import { Scenes } from './ui/elements/scenes/scenes';
+import { Viewports } from './ui/elements/viewports/viewports';
 import { IGraphicEngine } from './graphics/IGraphicEngine';
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
 import { Player } from './ui/elements/controls/player';
 import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
-import { Entity } from './core/api/entity';
 import { Project } from './core/engine/project';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -80,8 +79,8 @@ export class Program {
     private _screen!: Screen;
     public get screen(): Screen { return this._screen; }
 
-    private _scenes!: Scenes;
-    public get scenes(): Scenes { return this._scenes; }
+    private _scenes!: Viewports;
+    public get scenes(): Viewports { return this._scenes; }
 
     private _entityHandler!: EntityHandler;
     private get entityHandler(): EntityHandler { return this._entityHandler; }
@@ -303,7 +302,7 @@ export class Program {
         this.viewportSceneContainer = this.getElementOrFail<HTMLElement>('viewportSceneContainer');
         this.canvasB = this.getElementOrFail<HTMLCanvasElement>('canvasB');
 
-        this._scenes = new Scenes(this.viewportEditorContainer,  this.viewportSceneContainer);
+        this._scenes = new Viewports(this.viewportEditorContainer,  this.viewportSceneContainer);
         this.engine.timeController.isRunning.subscribe(() => this._scenes.toggleHighlight())
     };
 
