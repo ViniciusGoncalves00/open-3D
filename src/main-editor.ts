@@ -103,8 +103,9 @@ export class Program {
 
         const params = new URLSearchParams(window.location.search);
         const projectId = params.get("projectId");
+        const sceneId = params.get("sceneId");
 
-        if(!projectId) return;
+        if(!projectId || !sceneId) return;
 
         const project = await this._storage.loadProjectById(projectId);
         if(!project) return;

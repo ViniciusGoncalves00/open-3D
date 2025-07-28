@@ -103,10 +103,13 @@
             <i class="bi bi-list-nested"></i>
             <p>Hierarchy</p>
           </div>
-          <button onclick="addEntity(`true`)" class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center
-           px-2 cursor-pointer truncate">
-            Add Entity
-          </button>
+          <div class="w-full flex">
+            <button id="addScene" class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">Add Scene</button>
+            <button id="loadScene" class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">Load Scene</button>
+            <button onclick="addEntity(`true`)" class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">
+              Create Entity
+            </button>
+          </div>
           <div id="entitiesContainer" class="content"></div>
         </div>
         <div id="Assets" class="tab-body">
