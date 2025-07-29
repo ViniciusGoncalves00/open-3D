@@ -1,11 +1,12 @@
 import { ObservableField } from "../../common/patterns/observer/observable-field";
+import { ObservableList } from "../../common/patterns/observer/observable-list";
 import { Entity } from "../api/entity";
 
 export class Project {
     public readonly id: `${string}-${string}-${string}-${string}-${string}`;
     public readonly name: string;
     public readonly activeScene: ObservableField<Entity>
-    public readonly scenes: Entity[] = [];
+    public readonly scenes: ObservableList<Entity>;
 
     public constructor(id: `${string}-${string}-${string}-${string}-${string}`, name: string, scenes?: Entity[], activeSceneID?: string) {
         this.id = id;
@@ -18,7 +19,7 @@ export class Project {
                 }
             }
         
-            this.scenes = scenes;
+            this.scenes = new ObservableList(scenes);
 
             if(activeSceneID) {
                 const scene = scenes.find(scene => scene.id === activeSceneID);
@@ -26,17 +27,18 @@ export class Project {
                 this.activeScene = new ObservableField(scene);
             } 
             else {
-                this.activeScene = new ObservableField(this.scenes[0]);
+                this.activeScene = new ObservableField(this.scenes.items[0]);
             } 
         }
         else {
+            this.scenes = new ObservableList();
             const scene = this.CreateScene();
             this.activeScene = new ObservableField(scene);
         }
     }
 
     public GetSceneByName(name: string): Entity | undefined {
-        const scene = this.scenes.find(scene => scene.name.value === name);
+        const scene = this.scenes.items.find(scene => scene.name.value === name);
         if(!scene) {
             console.log("The scene with this name was not found.");
             return;
@@ -45,7 +47,7 @@ export class Project {
     }
 
     public GetSceneById(id: `${string}-${string}-${string}-${string}-${string}`): Entity | undefined {
-        const scene = this.scenes.find(scene => scene.id === id);
+        const scene = this.scenes.items.find(scene => scene.id === id);
         if(!scene) {
             console.log("The scene with this ID was not found.");
             return;
@@ -55,7 +57,7 @@ export class Project {
 
     public CreateScene(name?: string): Entity {
         if (!name) {
-            const names = this.scenes.map(scene => scene.name.value);
+            const names = this.scenes.items.map(scene => scene.name.value);
             let index = 1;
             do {
                 name = `scene_${index++}`;
@@ -65,8 +67,17 @@ export class Project {
         const scene = new Entity(crypto.randomUUID());
         scene.name.value = name;
 
-        this.scenes.push(scene);
+        this.scenes.add(scene);
         return scene;
+    }
+
+    public DestroySceneById(id: string): void {
+        const index = this.scenes.items.findIndex(scene => scene.id === id)
+        if(index === -1) {
+            console.log("The scene with this ID was not found.");
+            return;
+        }
+        this.scenes.removeAt(index);
     }
 
     public SetActiveScene(scene: Entity): void {
@@ -78,15 +89,15 @@ export class Project {
     }
 
     public SetActiveSceneByIndex(index: number): void {
-        if(index < 0 || index >= this.scenes.length) {
+        if(index < 0 || index >= this.scenes.items.length) {
             console.log("There is no scene in this index")
             return;
         }
-        this.activeScene.value = this.scenes[index];
+        this.activeScene.value = this.scenes.items[index];
     }
 
     public SetActiveSceneById(id: string): void {
-        const scene = this.scenes.find(scene => scene.id === id);
+        const scene = this.scenes.items.find(scene => scene.id === id);
         if(!scene) {
             console.log("There is no scene in project with this ID")
             return;
@@ -102,7 +113,7 @@ export class Project {
 
     public toJSON(): Object {
         const scenes: any[] = []
-        this.scenes.forEach(scene => scenes.push(scene.toJSON()));
+        this.scenes.items.forEach(scene => scenes.push(scene.toJSON()));
         return {
             id : this.id,
             name : this.name,

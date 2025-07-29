@@ -21,6 +21,7 @@ import { Screen } from './ui/elements/controls/screen';
 import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
 import { Project } from './core/engine/project';
+import { SceneManager } from './ui/elements/sceneManager/scenes';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -90,6 +91,8 @@ export class Program {
 
     private _settings!: Settings;
     private get settings(): Settings { return this._settings; }
+
+    private _sceneManager!: SceneManager;
     //#endregion
 
     public constructor(devMode: boolean = false) {
@@ -110,17 +113,14 @@ export class Program {
         const project = await this._storage.loadProjectById(projectId);
         if(!project) return;
         project.SetActiveSceneById(sceneId);
-
+        
         this.initializeEngine(project);
+        this.initializeScenes();
         
         this.save = this.getElementOrFail<HTMLButtonElement>('save')
         this.save.addEventListener("click", () => this._storage.saveAll(project));
         
         this.initializeConsole();
-        this.console.log(projectId || '');
-        this.console.log(sceneId || '');
-
-        this._console.log("creating the best interface...")
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
@@ -133,15 +133,11 @@ export class Program {
         this.initializeHierarchy();
         this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
 
-
-        this._console.log("loading your best assets...");
         this.initializeAssets();
 
         this.initializePlayer();
         this.initializeTimescale();
         this.initializeScreen();
-
-
 
         this.fpsContainer = this.getElementOrFail<HTMLElement>('fpsContainer');
         this.averageFpsContainer = this.getElementOrFail<HTMLElement>('averageFpsContainer');
@@ -242,16 +238,6 @@ export class Program {
 
         const newEntity = this.getElementOrFail<HTMLElement>('newEntity');
         newEntity.addEventListener("click", () => this.entityHandler.addEntity());
-        
-        const newScene = this.getElementOrFail<HTMLElement>('newScene');
-        newScene.addEventListener("click", () => {
-            const scene = this.engine.currentProject.value.CreateScene();
-            this.engine.currentProject.value.SetActiveScene(scene);
-            this.storage.saveProject(this.engine.currentProject.value);
-            window.location.href = `editor.html?projectId=${this.engine.currentProject.value.id}&sceneId=${scene.id}`;
-        });
-        
-        const loadScene = this.getElementOrFail<HTMLElement>('loadScene');
     }
 
     private async initializeStorage(): Promise<void>  {
@@ -316,6 +302,23 @@ export class Program {
         this._scenes = new Viewports(this.viewportEditorContainer,  this.viewportSceneContainer);
         this.engine.timeController.isRunning.subscribe(() => this._scenes.toggleHighlight())
     };
+
+    private initializeScenes(): void {
+        const newScene = this.getElementOrFail<HTMLElement>('newScene');
+        newScene.addEventListener("click", () => {
+            const scene = this.engine.currentProject.value.CreateScene();
+            this.engine.currentProject.value.SetActiveScene(scene);
+            window.location.href = `editor.html?projectId=${this.engine.currentProject.value.id}&sceneId=${scene.id}`;
+        });
+        
+        this.engine.currentProject.value.scenes.subscribe({
+            onAdd: () => this.storage.saveProject(this.engine.currentProject.value),
+            onRemove: () => this.storage.saveProject(this.engine.currentProject.value)
+        });
+        
+        const sceneManagerContainer = this.getElementOrFail<HTMLElement>('sceneManagerContainer');
+        this._sceneManager = new SceneManager(sceneManagerContainer, this.engine.currentProject.value);
+    }
 
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);
