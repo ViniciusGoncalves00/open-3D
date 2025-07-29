@@ -29,8 +29,8 @@ jobs:
       - name: Project build
         run: npm run build
 
-      - name: Copy index.html to dist
-        run: cp index.html dist/
+      - name: Copy static HTML files to dist
+        run: cp index.html hub.html editor.html dist/
 
       - name: GitHub Pages Deploy
         uses: peaceiris/actions-gh-pages@v3
