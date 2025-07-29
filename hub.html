@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>open-3D | hub</title>
+  <script type="module" src="./dist/hub-bundle.js"></script>
+  <script type="module" src="./hub-bundle.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+    <body>
+        <div class="bg-(--color-gray-06) w-screen h-screen flex p-4 gap-[8px] text-(--color-text-primary)">
+            <aside class="bg-(--color-gray-07) w-1/4 h-full outline outline-(--color-border) rounded-[8px]">
+                <button class="w-full px-3 py-3 cursor-pointer hover:bg-(--color-gray-09) flex items-center justify-start space-x-2">
+                    <i class="bi bi-box h-full flex-none flex items-center justify-center"></i>
+                    <p class="text-center truncate">Projects</p>
+                </button>
+                <button class="w-full px-3 py-3 cursor-pointer hover:bg-(--color-gray-09) flex items-center justify-start space-x-2">
+                    <i class="bi bi-people h-full flex-none flex items-center justify-center"></i>
+                    <p class="text-center truncate">Community (not available yet)</p>
+                </button>
+                <button class="w-full px-3 py-3 cursor-pointer hover:bg-(--color-gray-09) flex items-center justify-start space-x-2">
+                    <i class="bi bi-braces h-full flex-none flex items-center justify-center"></i>
+                    <p class="text-center truncate">Documentation (not available yet)</p>
+                </button>
+                <button class="w-full px-3 py-3 cursor-pointer hover:bg-(--color-gray-09) flex items-center justify-start space-x-2">
+                    <i class="bi bi-justify h-full flex-none flex items-center justify-center"></i>
+                    <p class="text-center truncate">Credits (not available yet)</p>
+                </button>
+            </aside>
+            <main class="bg-(--color-gray-07) w-3/4 h-full flex flex-col outline outline-(--color-border) rounded-[8px]">
+                <div class="w-full h-24 rounded-[8px] flex items-center justify-between p-4">
+                    <div class="flex flex-col">
+                        <div class="text-2xl">PROJECTS</div>
+                        <div class="">The list of your projects</div>
+                    </div>
+                    <div class="flex gap-1">
+                        <button id="" class="bg-(--color-teal-green-light) px-3 h-8 rounded-[8px] cursor-pointer text-(--color-text-fixed) font-medium hover:bg-(--color-teal-green-lightest) flex items-center space-x-2">
+                            <i class="bi bi-upload h-full flex-none flex items-center justify-center"></i>
+                            <p class="h-full flex-none flex items-center justify-center cursor-pointer">open from disk (not available yet)</p>
+                        </button>
+                        <div id="newProject" class="bg-(--color-teal-green-light) px-3 h-8 rounded-[8px] cursor-pointer text-(--color-text-fixed) font-medium hover:bg-(--color-teal-green-lightest) flex items-center space-x-2">
+                            <i class="bi bi-plus-square"></i>
+                            <p class="h-full flex-none flex items-center justify-center cursor-pointer">New Project</p>
+                        </div>
+                        <div id="darkMode" class="bg-(--color-teal-green-light) px-3 h-8 rounded-[8px] cursor-pointer text-(--color-text-fixed) font-medium hover:bg-(--color-teal-green-lightest) flex items-center space-x-2">
+                            <span id="on" class="bi bi-check-square h-full flex-none flex items-center justify-center"></span>
+                            <span id="off" class="bi bi-square h-full flex-none flex items-center justify-center"></span>
+                            <p class="h-full flex-none flex items-center justify-center cursor-pointer">Dark Mode</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full h-12 flex items-center justify-between font-medium">
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                    <div class="w-[calc(25%)] h-full flex items-center cursor-pointer hover:bg-(--color-gray-09)"><p class="w-full text-center truncate">Name</p></div>
+                    <div class="w-[calc(20%)] h-full flex items-center cursor-pointer hover:bg-(--color-gray-09)"><p class="w-full text-center truncate">Created at</p></div>
+                    <div class="w-[calc(20%)] h-full flex items-center cursor-pointer hover:bg-(--color-gray-09)"><p class="w-full text-center truncate">Modified</p></div>
+                    <div class="w-[calc(10%-48px)] h-full flex items-center cursor-pointer hover:bg-(--color-gray-09)"><p class="w-full text-center truncate">Version</p></div>
+                    <div class="w-[calc(25%)] h-full flex items-center cursor-pointer hover:bg-(--color-gray-09)"><p class="w-full text-center truncate">ID</p></div>
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                    <i class="w-12 h-full flex-none flex items-center justify-center"></i>
+                    </div>
+                <div id="projectsList" class="w-full h-full flex flex-col space-y-1 overflow-y-auto scrollbar scrollbar-thumb-zinc-700 scrollbar-hover:scrollbar-thumb-zinc-600 scrollbar-active:scrollbar-thumb-zinc-500"></div>
+            </main>
+        </div>
+    </body>
+</html>
