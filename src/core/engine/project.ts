@@ -85,6 +85,15 @@ export class Project {
         this.activeScene.value = this.scenes[index];
     }
 
+    public SetActiveSceneById(id: string): void {
+        const scene = this.scenes.find(scene => scene.id === id);
+        if(!scene) {
+            console.log("There is no scene in project with this ID")
+            return;
+        }
+        this.activeScene.value = scene;
+    }
+
     public static fromJSON(data: any): Project {
         const scenes: Entity[] = []
         data["scenes"].forEach((data: any) => scenes.push(Entity.fromJSON(data)));

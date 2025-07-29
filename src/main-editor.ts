@@ -104,27 +104,28 @@ export class Program {
         const params = new URLSearchParams(window.location.search);
         const projectId = params.get("projectId");
         const sceneId = params.get("sceneId");
-
+        
         if(!projectId || !sceneId) return;
-
+        
         const project = await this._storage.loadProjectById(projectId);
         if(!project) return;
+        project.SetActiveSceneById(sceneId);
 
         this.initializeEngine(project);
-
+        
         this.save = this.getElementOrFail<HTMLButtonElement>('save')
         this.save.addEventListener("click", () => this._storage.saveAll(project));
-
+        
         this.initializeConsole();
+        this.console.log(projectId || '');
+        this.console.log(sceneId || '');
 
-        this._console.log(LogType.Log, "creating the best interface...")
+        this._console.log("creating the best interface...")
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
-
-
         
-        const scene = this.engine.currentProject.value?.activeScene.value;
+        const scene = this.engine.currentProject.value.activeScene.value;
         if(!scene) return;
 
         this._entityHandler = new EntityHandler(scene);
@@ -133,7 +134,7 @@ export class Program {
         this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
 
 
-        this._console.log(LogType.Log, "loading your best assets...");
+        this._console.log("loading your best assets...");
         this.initializeAssets();
 
         this.initializePlayer();
@@ -149,14 +150,11 @@ export class Program {
         if (this.averageFpsContainer) this.engine.time.averageFramesPerSecond.subscribe(() => this.averageFpsContainer.innerHTML = `${this.engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
 
 
-        (window as any).addEntity = () => {
-          this._entityHandler.addEntity();
-        };
         this.initializeSettings();
 
         this.initializeTEMP();
 
-        this._console.log(LogType.Log, "All right! You can start now!")
+        this._console.log("All right! You can start now!")
     }
 
     private initializeEngine(project: Project): void {
@@ -196,9 +194,8 @@ export class Program {
         this.consoleContent = this.getElementOrFail<HTMLElement>('consoleContent');
         this._console = new Console(this.consoleContent);
 
-        const log = LogType.Log;
         this.engine.timeController.isRunning.subscribe((wasStarted => {
-                wasStarted ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.");
+                wasStarted ? this.console.log("Started.") : this.console.log("Stoped.");
                 const project = this.engine.currentProject.value;
                 if(!project) return;
                 wasStarted ? this._storage.saveAll(project) : '';
@@ -206,7 +203,7 @@ export class Program {
         ))
 
         this.engine.timeController.isPaused.subscribe((wasPaused => {
-                wasPaused ? this.console.log(log, "Paused.") : this.console.log(log, "Unpaused.")
+                wasPaused ? this.console.log("Paused.") : this.console.log("Unpaused.")
             }
         ))
 
@@ -242,6 +239,19 @@ export class Program {
             onRemove: (entity) => this._hierarchy.constructHierarchy()
         });
         this._hierarchy.constructHierarchy();
+
+        const newEntity = this.getElementOrFail<HTMLElement>('newEntity');
+        newEntity.addEventListener("click", () => this.entityHandler.addEntity());
+        
+        const newScene = this.getElementOrFail<HTMLElement>('newScene');
+        newScene.addEventListener("click", () => {
+            const scene = this.engine.currentProject.value.CreateScene();
+            this.engine.currentProject.value.SetActiveScene(scene);
+            this.storage.saveProject(this.engine.currentProject.value);
+            window.location.href = `editor.html?projectId=${this.engine.currentProject.value.id}&sceneId=${scene.id}`;
+        });
+        
+        const loadScene = this.getElementOrFail<HTMLElement>('loadScene');
     }
 
     private async initializeStorage(): Promise<void>  {
@@ -310,7 +320,7 @@ export class Program {
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);
         if (!element) {
-            this._console.log(LogType.Error, `failed to load container: '${id}' -> ${element}`);
+            this._console.log(`failed to load container: '${id}' -> ${element}`, LogType.Error);
             throw new Error(`UI element '${id}' not found`);
         }
         return element as T;
@@ -320,17 +330,17 @@ export class Program {
         const assetsJson = localStorage.getItem("assets");
 
         if (assetsJson) {
-            this._console.log(LogType.Log, "loading assets from local storage...");
+            this._console.log("loading assets from local storage...", LogType.Log);
             try {
                 const root = this.deserializeTree(JSON.parse(assetsJson));
-                this._console.log(LogType.Success, "assets loaded successfully.");
+                this._console.log("assets loaded successfully.", LogType.Success);
                 return root;
             } catch (e) {
-                this._console.log(LogType.Warning, "failed to parse local assets. Fetching from remote...");
+                this._console.log("failed to parse local assets. Fetching from remote...", LogType.Warning);
                 return await this.fetchAndLoadAssetsFromRepo();
             }
         } else {
-            this._console.log(LogType.Log, "there are no assets in local storage. Loading from remote...");
+            this._console.log("there are no assets in local storage. Loading from remote...", LogType.Log);
             return await this.fetchAndLoadAssetsFromRepo();
         }
     }
@@ -342,10 +352,10 @@ export class Program {
 
             const root = this.deserializeTree(data);
             localStorage.setItem("assets", JSON.stringify(data));
-            this._console.log(LogType.Success, "assets loaded from remote and saved to localStorage.");
+            this._console.log("assets loaded from remote and saved to localStorage.", LogType.Success);
             return root;
         } catch (error) {
-            this._console.log(LogType.Warning, "failed to fetch assets from remote.");
+            this._console.log("failed to fetch assets from remote.", LogType.Warning);
             console.error(error);
             throw error;
         }
