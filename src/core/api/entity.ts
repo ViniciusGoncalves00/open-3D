@@ -78,11 +78,12 @@ export class Entity {
 
   public clone(): Entity {
     const clone = new Entity(this._id);
-    clone._parent.value = this._parent.value;
-    clone._name.value = this._name.value;
-    clone._isEnabled = this._isEnabled;
-    clone._isAwaked = this._isAwaked;
-    clone._isStarted = this._isStarted;
+    clone.parent.value = this._parent.value;
+    clone.name.value = this._name.value;
+    clone.isEnabled = this._isEnabled;
+    clone.isAwaked = this._isAwaked;
+    clone.isStarted = this._isStarted;
+    this._children.items.forEach(child => clone.children.items.push(child.clone()));
   
     for (const [type, component] of this._components.entries()) {
       clone.addComponent(component.clone());
@@ -175,6 +176,12 @@ export class Entity {
         const thisComponent = this._components.get(type)!;
         thisComponent.copyFrom(otherComponent as any);
       }
+    }
+
+    for (let index = 0; index < this.children.items.length; index++) {
+      const child = this.children.items[index];      
+      const childClone = clone.children.items[index];
+      child.restoreFrom(childClone);
     }
   }
 
