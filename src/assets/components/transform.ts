@@ -51,15 +51,15 @@ export class Transform extends Component {
   }
 
   public updateLocalMatrix(): void {
-    const t = vector3.fromValues(this._position.x.value, this._position.y.value, this._position.z.value);
-    const r = vector3.fromValues(this._rotation.x.value, this._rotation.y.value, this._rotation.z.value);
-    const s = vector3.fromValues(this._scale.x.value, this._scale.y.value, this._scale.z.value);
-
+    const translation = vector3.fromValues(this._position.x.value, this._position.y.value, this._position.z.value);
+    const rotation = vector3.fromValues(this._rotation.x.value, this._rotation.y.value, this._rotation.z.value);
+    const scale = vector3.fromValues(this._scale.x.value, this._scale.y.value, this._scale.z.value);
+    
     const q = quaternion.create();
-    quaternion.fromEuler(q, r[0], r[1], r[2]); // graus
-
+    quaternion.fromEuler(q, rotation[0], rotation[1], rotation[2]);
+    
     const temp = matrix4.create();
-    this.localMatrix.value = matrix4.fromRotationTranslationScale(temp, q, t, s);
+    this.localMatrix.value = matrix4.fromRotationTranslationScale(temp, q, translation, scale);
     this.updateWorldMatrix();
   }
 

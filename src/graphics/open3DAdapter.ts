@@ -65,8 +65,7 @@ export class Open3DAdapter implements IGraphicEngine {
       };
       
       const loop = () => {
-        const entities = this._engine?.entityManager.getEntities() as Entity[];
-        this.drawScene(gl, programInfo, entities);
+        this.drawScene(gl, programInfo, this._engine!.currentProject.value.activeScene.value);
 
         requestAnimationFrame(loop);
       }
@@ -182,7 +181,7 @@ export class Open3DAdapter implements IGraphicEngine {
       return buffer;
     }
     
-    private drawScene(gl: WebGLRenderingContext, programInfo: any, entities: Entity[]) {
+    private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity) {
         const bgColor = GraphicSettings.backgroundColor;
         gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         gl.clearDepth(1.0);
@@ -199,50 +198,44 @@ export class Open3DAdapter implements IGraphicEngine {
 
         mat4.perspective(projectionMatrix, fieldOfViewRadians, aspect, zNear, zFar);
 
-        if(entities.length < 1) {
-          return;
-        }
-
         const cameraPosition: Float32Array = new Float32Array([-5, 5, -10]);
 
         const viewMatrix = mat4.create();
         mat4.translate(viewMatrix, viewMatrix, cameraPosition);
         mat4.lookAt(viewMatrix, cameraPosition, [0, 0, 0], [0, 1, 0]);
 
-        entities.forEach(entity => {
-          if(!entity.hasComponent(Transform) || !entity.hasComponent(Mesh)) return;
-          
-          const transform = entity.getComponent(Transform);
-          const mesh = entity.getComponent(Mesh);
+        const drawEntityRecursive = (entity: Entity) => {
+          if (entity.hasComponent(Transform) && entity.hasComponent(Mesh)) {
+              const transform = entity.getComponent(Transform);
+              const mesh = entity.getComponent(Mesh);
 
-          const position = transform.position;
-          const rotation = transform.rotation;
-            
-          const modelMatrix = mat4.create();
-          mat4.translate(modelMatrix, modelMatrix, [position.x.value, position.y.value, position.z.value]);
+              const modelMatrix = transform.worldMatrix.value;
 
-          mat4.rotateX(modelMatrix, modelMatrix, rotation.x.value);
-          mat4.rotateY(modelMatrix, modelMatrix, rotation.y.value);
-          mat4.rotateZ(modelMatrix, modelMatrix, rotation.z.value);
+              const modelViewMatrix = mat4.create();
+              mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
 
-          const modelViewMatrix = mat4.create();
-          mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+              const buffers = this.initBuffers(gl, mesh);
 
-          const buffers = this.initBuffers(gl, mesh);
+              this.setPositionAttribute(gl, buffers, programInfo);
+              this.setColorAttribute(gl, buffers, programInfo);
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
-          this.setPositionAttribute(gl, buffers, programInfo);
-          this.setColorAttribute(gl, buffers, programInfo);
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+              gl.useProgram(programInfo.program);
+              gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+              gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
 
-          gl.useProgram(programInfo.program);
-          gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-          gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
+              const vertexCount = mesh.indices.items.length;
+              const type = gl.UNSIGNED_SHORT;
+              const offset = 0;
+              gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+          }
 
-          const vertexCount = mesh.indices.items.length;
-          const type = gl.UNSIGNED_SHORT;
-          const offset = 0;
-          gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-        });
+          for (const child of entity.children.items ?? []) {
+              drawEntityRecursive(child);
+          }
+      };
+
+      drawEntityRecursive(scene);
     }
 
   private setPositionAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
