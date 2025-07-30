@@ -14,14 +14,15 @@ export class Settings {
         
         autoSaveEnabledButton.addEventListener('click', async () => {
             storage.toggleAutoSave();
-            await storage.saveAllSettings();
+            await storage.savePreferences();
         });
         
         autoSaveIntervalInput.addEventListener('change', async () => {
-            storage.autoSaveIntervalInSeconds = parseInt(autoSaveIntervalInput.value);
-            await storage.saveAllSettings();
+            const interval = parseInt(autoSaveIntervalInput.value);
+            storage.setAutoSaveInterval(interval);
+            await storage.savePreferences();
         });
         
-        autoSaveIntervalInput.value = storage.autoSaveIntervalInSeconds.toString();
+        autoSaveIntervalInput.value = storage.getAutoSaveInterval().toString();
     }
 }

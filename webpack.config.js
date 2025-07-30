@@ -7,12 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default {
-  entry: './src/main.ts',
+  entry: {
+    hub: './src/main-hub.ts',
+    editor: './src/main-editor.ts',
+  },
   output: {
-    filename: 'bundle.js',
+    filename: '[name]-bundle.js',
     path: path.resolve(__dirname, 'dist'),
     publicPath: '',
-    clean: false
+    clean: true,
   },
   resolve: {
     extensions: ['.ts', '.js'],

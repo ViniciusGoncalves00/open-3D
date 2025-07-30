@@ -1,100 +1,123 @@
-import { IAwake } from "../../assets/systems/interfaces/awake";
-import { IFixedUpdate } from "../../assets/systems/interfaces/fixedUpdate";
-import { ILateUpdate } from "../../assets/systems/interfaces/lateUpdate";
-import { IStart } from "../../assets/systems/interfaces/start";
-import { ISystem } from "../../assets/systems/interfaces/system";
-import { IUpdate } from "../../assets/systems/interfaces/update";
+import { ISystem, IAwake, IStart, IFixedUpdate, IUpdate, ILateUpdate } from "../../assets/systems/interfaces/system";
+import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { Entity } from "../api/entity";
-import { EntityManager } from "../api/entity-manager";
+import { Project } from "./project";
 
 import { Time } from "./time";
 import { TimeController } from "./time-controller";
 import { isIAwake, isIFixedUpdate, isILateUpdate, isIStart, isIUpdate } from "./typeguard";
 
+/**
+ * Central class responsible for managing the execution lifecycle of the engine.
+ * 
+ * This includes:
+ * - Controlling simulation time through Time and TimeController.
+ * - Managing and dispatching ECS systems according to their lifecycle phase (awake, start, fixedUpdate, update, lateUpdate).
+ * - Executing the main loop using requestAnimationFrame.
+ * - Backing up and restoring the active scene state when toggling between editor and runtime modes.
+ * - Observing the current project and coordinating updates accordingly.
+ */
+
 export class Engine {
-  private _time: Time;
-  public get time(): Time { return this._time };
+  public readonly time: Time = new Time();
+  public readonly timeController: TimeController = new TimeController();
+  public readonly currentProject: ObservableField<Project>;
+  public backup: Entity | null = null;
 
-  private _timeController: TimeController;
-  public get timeController(): TimeController { return this._timeController };
+  private _systems: ISystem[] = [];
+  private _awakeSystems: IAwake[] = [];
+  private _startSystems: IStart[] = [];
+  private _fixedUpdateSystems: IFixedUpdate[] = [];
+  private _updateSystems: IUpdate[] = [];
+  private _lateUpdateSystems: ILateUpdate[] = [];
+  private _animationFrameId: number | null = null;
 
-  private animationFrameId: number | null = null;
+  public constructor(project: Project) {
+    this.currentProject = new ObservableField(project);
 
-  public entityManager: EntityManager = new EntityManager();
-
-  private systems: ISystem[] = [];
-  private awakeSystems: IAwake[] = [];
-  private startSystems: IStart[] = [];
-  private fixedUpdateSystems: IFixedUpdate[] = [];
-  private updateSystems: IUpdate[] = [];
-  private lateUpdateSystems: ILateUpdate[] = [];
-
-  public constructor() {
-    this._time = new Time();
-    this._timeController = new TimeController();
-
-    this.timeController.isRunning.subscribe((wasStarted => {
-      if(wasStarted) {
-        if(this.animationFrameId) return;
-
-        this.entityManager.saveEntities();
-        this.animationFrameId = requestAnimationFrame(this.loop);
-      }
-      else {
-        if(!this.animationFrameId) return;
-
-        cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-        this.entityManager.restoreEntities();
-      }}
-    ))
-    
-    this.timeController.isPaused.subscribe((wasPaused => {
-      if(wasPaused) {
-        if(!this.animationFrameId) return;
-
-        cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-      }
-      else {
-        if(this.animationFrameId) return;
-
-        this.animationFrameId = requestAnimationFrame(this.loop);
-      }}
-    ))
-  }
-
-  public registerEntity(entity: Entity): void {
-    this.entityManager.addEntity(entity);
+    this.timeController.isRunning.subscribe(wasStarted => this.toggleSceneState(wasStarted));
+    this.timeController.isPaused.subscribe(wasPaused => this.toggleLoopPause(wasPaused));
   }
 
   public registerSystem(system: ISystem) {
-    this.systems.push(system);
+    this._systems.push(system);
 
-    if (isIAwake(system)) this.awakeSystems.push(system);
-    if (isIStart(system)) this.startSystems.push(system);
-    if (isIFixedUpdate(system)) this.fixedUpdateSystems.push(system);
-    if (isIUpdate(system)) this.updateSystems.push(system);
-    if (isILateUpdate(system)) this.lateUpdateSystems.push(system);
+    if (isIAwake(system)) this._awakeSystems.push(system);
+    if (isIStart(system)) this._startSystems.push(system);
+    if (isIFixedUpdate(system)) this._fixedUpdateSystems.push(system);
+    if (isIUpdate(system)) this._updateSystems.push(system);
+    if (isILateUpdate(system)) this._lateUpdateSystems.push(system);
+  }
+
+  private toggleSceneState(value: boolean) {
+    if(value) {
+      if(this._animationFrameId) return;
+
+      this._animationFrameId = requestAnimationFrame(this.loop);
+      this.backup = this.currentProject.value.activeScene.value.clone();
+    }
+    else {
+      if(!this._animationFrameId) return;
+
+      cancelAnimationFrame(this._animationFrameId);
+      this._animationFrameId = null;
+      
+      if(this.backup !== null) this.currentProject.value.activeScene.value.restoreFrom(this.backup);
+    }
+  }
+
+  private toggleLoopPause(value: boolean): void {
+    if(value) {
+      if(!this._animationFrameId) return;
+
+      cancelAnimationFrame(this._animationFrameId);
+      this._animationFrameId = null;
+    }
+    else {
+      if(this._animationFrameId) return;
+
+      this._animationFrameId = requestAnimationFrame(this.loop);
+    }
   }
 
   private loop = () => {
-    this.animationFrameId = requestAnimationFrame(this.loop);
-  
-    this._time.update();
-  
-    const entities = this.entityManager.getEntities();
-  
-    const notAwakedEntities = entities.filter(entity => !entity.isAwaked);
-    this.awakeSystems.forEach(system => system.awake(notAwakedEntities));
-    notAwakedEntities.forEach(entity => entity.isAwaked = true);
-  
-    const notStartedEntities = entities.filter(entity => !entity.isStarted);
-    this.startSystems.forEach(system => system.start(notStartedEntities));
-    notStartedEntities.forEach(entity => entity.isStarted = true);
-  
-    this.fixedUpdateSystems.forEach(system => system.fixedUpdate(entities, this._time.deltaTime));
-    this.updateSystems.forEach(system => system.update(entities, this._time.deltaTime));
-    this.lateUpdateSystems.forEach(system => system.lateUpdate(entities, this._time.deltaTime));
-  };  
+    this._animationFrameId = requestAnimationFrame(this.loop);
+    this.time.update();
+
+    const root = this.currentProject.value?.activeScene.value;
+    if (!root) return;
+
+    const notAwaked: Entity[] = [];
+    const notStarted: Entity[] = [];
+
+    this.collectLifecycleEntities(root, notAwaked, notStarted);
+
+    this._awakeSystems.forEach(system => system.awake(notAwaked));
+    notAwaked.forEach(entity => entity.isAwaked = true);
+
+    this._startSystems.forEach(system => system.start(notStarted));
+    notStarted.forEach(entity => entity.isStarted = true);
+
+    this.updateRecursively(root, (entity) => {
+      this._fixedUpdateSystems.forEach(system => system.fixedUpdate([entity], this.time.deltaTime));
+      this._updateSystems.forEach(system => system.update([entity], this.time.deltaTime));
+      this._lateUpdateSystems.forEach(system => system.lateUpdate([entity], this.time.deltaTime));
+    });
+  };
+
+  private collectLifecycleEntities(entity: Entity, notAwaked: Entity[], notStarted: Entity[]): void {
+    if (!entity.isAwaked) notAwaked.push(entity);
+    if (!entity.isStarted) notStarted.push(entity);
+
+    for (const child of entity.children.items) {
+      this.collectLifecycleEntities(child, notAwaked, notStarted);
+    }
+  }
+
+  private updateRecursively(entity: Entity, callback: (entity: Entity) => void): void {
+    callback(entity);
+    for (const child of entity.children.items) {
+      this.updateRecursively(child, callback);
+    }
+  }
 }

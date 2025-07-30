@@ -1,4 +1,4 @@
-export class Scenes {
+export class Viewports {
   private _editorContainer: HTMLElement;
   private _previewContainer: HTMLElement;
 

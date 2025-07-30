@@ -20,7 +20,7 @@ export class ThreeGEAdapter implements IGraphicEngine {
     
     public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
         this._engine = engine;
-        engine.entityManager.entities.subscribe({
+        engine.currentProject.value?.activeScene.value?.children.subscribe({
           onAdd: (entity) => this.addEntity(entity),
           onRemove: (entity) => this.removeEntity(entity),
         });

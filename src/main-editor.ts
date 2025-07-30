@@ -13,7 +13,7 @@ import { Tree } from './ui/components/assets/tree';
 import { FolderNode } from './common/tree/folder-node';
 import { FileNode } from './common/tree/file-node';
 import { LogType } from './core/api/enum/log-type';
-import { Scenes } from './ui/elements/scenes/scenes';
+import { Viewports } from './ui/elements/viewports/viewports';
 import { IGraphicEngine } from './graphics/IGraphicEngine';
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
 import { Player } from './ui/elements/controls/player';
@@ -22,6 +22,8 @@ import { Storage } from './core/persistence/storage';
 import { Settings } from './ui/elements/settings/settings';
 import { Open3DAdapter } from './graphics/open3DAdapter';
 import { GraphicSettings } from './graphics/graphicSettings';
+import { Project } from './core/engine/project';
+import { SceneManager } from './ui/elements/sceneManager/scenes';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -80,8 +82,8 @@ export class Program {
     private _screen!: Screen;
     public get screen(): Screen { return this._screen; }
 
-    private _scenes!: Scenes;
-    public get scenes(): Scenes { return this._scenes; }
+    private _scenes!: Viewports;
+    public get scenes(): Viewports { return this._scenes; }
 
     private _entityHandler!: EntityHandler;
     private get entityHandler(): EntityHandler { return this._entityHandler; }
@@ -91,6 +93,8 @@ export class Program {
 
     private _settings!: Settings;
     private get settings(): Settings { return this._settings; }
+
+    private _sceneManager!: SceneManager;
     //#endregion
 
     public constructor(devMode: boolean = false) {
@@ -100,17 +104,37 @@ export class Program {
     }
 
     private async initialize(): Promise<void> {
-        this.initializeEngine();
-        this.initializeConsole();
+        await this.initializeStorage();
 
-        this._console.log(LogType.Log, "creating the best interface...")
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get("projectId");
+        const sceneId = params.get("sceneId");
+        
+        if(!projectId || !sceneId) return;
+        
+        const project = await this._storage.loadProjectById(projectId);
+        if(!project) return;
+        project.SetActiveSceneById(sceneId);
+        
+        this.initializeEngine(project);
+        this.initializeScenes();
+        
+        this.save = this.getElementOrFail<HTMLButtonElement>('save')
+        this.save.addEventListener("click", () => this._storage.saveAll(project));
+        
+        this.initializeConsole();
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
-        this._entityHandler = new EntityHandler(this.engine);
-        this.initializeInspector();
+        
+        const scene = this.engine.currentProject.value.activeScene.value;
+        if(!scene) return;
 
-        this._console.log(LogType.Log, "loading your best assets...");
+        this._entityHandler = new EntityHandler(scene);
+        
+        this.initializeHierarchy();
+        this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
+
         this.initializeAssets();
 
         this.initializePlayer();
@@ -123,21 +147,16 @@ export class Program {
         if (this.fpsContainer) this.engine.time.framesPerSecond.subscribe(() => this.fpsContainer.innerHTML = `${this.engine.time.framesPerSecond.value.toString()} FPS`);
         if (this.averageFpsContainer) this.engine.time.averageFramesPerSecond.subscribe(() => this.averageFpsContainer.innerHTML = `${this.engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
 
-        this.initializeHierarchy();
 
-        (window as any).addEntity = () => {
-          this._entityHandler.addEntity();
-        };
-        await this.initializeStorage();
         this.initializeSettings();
 
         this.initializeTEMP();
 
-        this._console.log(LogType.Log, "All right! You can start now!")
+        this._console.log("All right! You can start now!")
     }
 
-    private initializeEngine(): void {
-        this.engine = new Engine();
+    private initializeEngine(project: Project): void {
+        this.engine = new Engine(project);
     }
 
     private initializeGraphicEngine(): void {
@@ -173,15 +192,16 @@ export class Program {
         this.consoleContent = this.getElementOrFail<HTMLElement>('consoleContent');
         this._console = new Console(this.consoleContent);
 
-        const log = LogType.Log;
         this.engine.timeController.isRunning.subscribe((wasStarted => {
-                wasStarted ? this.console.log(log, "Started.") : this.console.log(log, "Stoped.");
-                wasStarted ? this._storage.saveAll() : '';
+                wasStarted ? this.console.log("Started.") : this.console.log("Stoped.");
+                const project = this.engine.currentProject.value;
+                if(!project) return;
+                wasStarted ? this._storage.saveAll(project) : '';
             }
         ))
 
         this.engine.timeController.isPaused.subscribe((wasPaused => {
-                wasPaused ? this.console.log(log, "Paused.") : this.console.log(log, "Unpaused.")
+                wasPaused ? this.console.log("Paused.") : this.console.log("Unpaused.")
             }
         ))
 
@@ -202,18 +222,29 @@ export class Program {
 
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
-        this._hierarchy = new Hierarchy(this.entitiesContainer, entity => this.entityHandler.selectedEntity.value = entity, this._entityHandler);
-        this.engine.entityManager.entities.subscribe({
-            onAdd: (entity) => this._hierarchy.addEntity(entity),
-            onRemove: (entity) => this._hierarchy.removeEntity(entity)
-        })
-    };
+        
+        this._hierarchy = new Hierarchy(
+            this.engine.currentProject.value.activeScene.value,
+            this.entitiesContainer,
+            this.entityHandler
+        );
+
+        const scene = this.engine.currentProject.value?.activeScene.value;
+        if (!scene) return;
+
+        scene.children.subscribe({
+            onAdd: (entity) => this._hierarchy.constructHierarchy(),
+            onRemove: (entity) => this._hierarchy.constructHierarchy()
+        });
+        this._hierarchy.constructHierarchy();
+
+        const newEntity = this.getElementOrFail<HTMLElement>('newEntity');
+        newEntity.addEventListener("click", () => this.entityHandler.addEntity());
+    }
 
     private async initializeStorage(): Promise<void>  {
         this._storage = new Storage(this.engine, this.console);
         await this._storage.init();
-        this.save = this.getElementOrFail<HTMLButtonElement>('save');
-        this.save.addEventListener("click", () => this.storage.saveAll());
     }
 
     private initializeSettings(): void {
@@ -236,9 +267,9 @@ export class Program {
         // })();
     };
 
-    private initializeInspector(): void {
+    private initializeInspector(engine: Engine, handler: EntityHandler, hierarchy: Hierarchy): void {
         this.inspectorContainer = this.getElementOrFail<HTMLElement>('inspectorContainer');
-        this._inspector = new Inspector(this.inspectorContainer, this.engine, this.entityHandler);
+        this._inspector = new Inspector(this.inspectorContainer, engine, handler, hierarchy);
     };
 
     private initializePlayer(): void {
@@ -270,14 +301,31 @@ export class Program {
         this.viewportSceneContainer = this.getElementOrFail<HTMLElement>('viewportSceneContainer');
         this.canvasB = this.getElementOrFail<HTMLCanvasElement>('canvasB');
 
-        this._scenes = new Scenes(this.viewportEditorContainer,  this.viewportSceneContainer);
+        this._scenes = new Viewports(this.viewportEditorContainer,  this.viewportSceneContainer);
         this.engine.timeController.isRunning.subscribe(() => this._scenes.toggleHighlight())
     };
+
+    private initializeScenes(): void {
+        const newScene = this.getElementOrFail<HTMLElement>('newScene');
+        newScene.addEventListener("click", () => {
+            const scene = this.engine.currentProject.value.CreateScene();
+            this.engine.currentProject.value.SetActiveScene(scene);
+            window.location.href = `editor.html?projectId=${this.engine.currentProject.value.id}&sceneId=${scene.id}`;
+        });
+        
+        this.engine.currentProject.value.scenes.subscribe({
+            onAdd: () => this.storage.saveProject(this.engine.currentProject.value),
+            onRemove: () => this.storage.saveProject(this.engine.currentProject.value)
+        });
+        
+        const sceneManagerContainer = this.getElementOrFail<HTMLElement>('sceneManagerContainer');
+        this._sceneManager = new SceneManager(sceneManagerContainer, this.engine.currentProject.value);
+    }
 
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);
         if (!element) {
-            this._console.log(LogType.Error, `failed to load container: '${id}' -> ${element}`);
+            this._console.log(`failed to load container: '${id}' -> ${element}`, LogType.Error);
             throw new Error(`UI element '${id}' not found`);
         }
         return element as T;
@@ -287,17 +335,17 @@ export class Program {
         const assetsJson = localStorage.getItem("assets");
 
         if (assetsJson) {
-            this._console.log(LogType.Log, "loading assets from local storage...");
+            this._console.log("loading assets from local storage...", LogType.Log);
             try {
                 const root = this.deserializeTree(JSON.parse(assetsJson));
-                this._console.log(LogType.Success, "assets loaded successfully.");
+                this._console.log("assets loaded successfully.", LogType.Success);
                 return root;
             } catch (e) {
-                this._console.log(LogType.Warning, "failed to parse local assets. Fetching from remote...");
+                this._console.log("failed to parse local assets. Fetching from remote...", LogType.Warning);
                 return await this.fetchAndLoadAssetsFromRepo();
             }
         } else {
-            this._console.log(LogType.Log, "there are no assets in local storage. Loading from remote...");
+            this._console.log("there are no assets in local storage. Loading from remote...", LogType.Log);
             return await this.fetchAndLoadAssetsFromRepo();
         }
     }
@@ -309,10 +357,10 @@ export class Program {
 
             const root = this.deserializeTree(data);
             localStorage.setItem("assets", JSON.stringify(data));
-            this._console.log(LogType.Success, "assets loaded from remote and saved to localStorage.");
+            this._console.log("assets loaded from remote and saved to localStorage.", LogType.Success);
             return root;
         } catch (error) {
-            this._console.log(LogType.Warning, "failed to fetch assets from remote.");
+            this._console.log("failed to fetch assets from remote.", LogType.Warning);
             console.error(error);
             throw error;
         }

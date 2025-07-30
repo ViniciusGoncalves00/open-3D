@@ -2,7 +2,7 @@ export class ObservableNullableField<T> {
   private _value: T | null;
   private _listeners: Set<(value: T | null) => void> = new Set();
 
-  public constructor(initialValue: T | null) {
+  public constructor(initialValue: T | null = null) {
     this._value = initialValue;
   }
 

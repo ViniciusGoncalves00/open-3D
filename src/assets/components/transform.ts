@@ -9,33 +9,6 @@ import { Entity } from "../../core/api/entity";
 export class Transform extends Component {
   public readonly owner: Entity;
 
-  private _parent: Entity | null = null;
-  public get parent(): Entity | null {
-    return this._parent;
-  }
-
-  public set parent(newParent: Entity | null) {
-    if(newParent?.id === this._parent?.id) return;
-    if(newParent && this.children.includes(newParent)) return;
-
-    if (this._parent) {
-      const transform = this._parent.getComponent(Transform);
-      const index = transform.children.indexOf(this.owner);
-      transform.children.splice(index, 1);
-    }
-    
-    this._parent = newParent;
-
-    if (this._parent) {
-      const transform = this._parent.getComponent(Transform);
-      transform.children.push(this.owner);
-    }
-
-    this.updateWorldMatrix();
-  }
-
-  public readonly children: Entity[] = [];
-
   private readonly _position: Vector3;
   public get position(): Vector3 { return this._position; }
 
@@ -48,14 +21,19 @@ export class Transform extends Component {
   public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
-  constructor(owner: Entity, position?: Vector3, rotation?: Vector3, scale?: Vector3) {
+  constructor(owner: Entity, position: Vector3 = Vector3.zero(), rotation: Vector3 = Vector3.zero(), scale: Vector3 = Vector3.one()) {
     super();
 
     this.owner = owner;
+    this.owner.parent.subscribe(newParent => this.updateLocalMatrix());
+    this.owner.children.subscribe({
+      onAdd: (value) => this.updateLocalMatrix(),
+      onRemove: (value) => this.updateLocalMatrix()
+    });
 
-    this._position = position ?? Vector3.zero();
-    this._rotation = rotation ?? Vector3.zero();
-    this._scale = scale ?? Vector3.one();
+    this._position = position;
+    this._rotation = rotation;
+    this._scale = scale;
 
     this._position.x.subscribe(() => this.updateLocalMatrix());
     this._position.y.subscribe(() => this.updateLocalMatrix());
@@ -86,7 +64,7 @@ export class Transform extends Component {
   }
 
   public updateWorldMatrix(): void {
-    const parentTransform = this._parent?.getComponent(Transform);
+    const parentTransform = this.owner.parent.value?.getComponent(Transform);
     if (parentTransform) {
       const temp = matrix4.create();
       matrix4.multiply(temp, parentTransform.worldMatrix.value, this.localMatrix.value);
@@ -95,17 +73,16 @@ export class Transform extends Component {
       this.worldMatrix.value = matrix4.clone(this.localMatrix.value);
     }
 
-    for (const childEntity of this.children) {
+    for (const childEntity of this.owner.children.items) {
       const childTransform = childEntity.getComponent(Transform);
       childTransform?.updateWorldMatrix();
     }
   }
 
-
   public setWorldMatrix(matrix: matrix4): void {
     this.worldMatrix.value = matrix;
 
-    const inverseParent = this._parent?.getComponent(Transform).worldMatrix.value ?? matrix4.create();
+    const inverseParent = this.owner.parent.value?.getComponent(Transform).worldMatrix.value ?? matrix4.create();
     const inv = matrix4.invert(matrix4.create(), inverseParent);
     if (inv) {
       matrix4.multiply(this.localMatrix.value, inv, matrix);
@@ -161,12 +138,10 @@ export class Transform extends Component {
         y: this._scale.y.value,
         z: this._scale.z.value,
       },
-      parentId: this._parent?.id ?? null
     };
   }
 
   public fromJSON(json: any): void {
-    this._parent = json.parent;
     this.position.set(json.position.x, json.position.y, json.position.z)
     this.rotation.set(json.rotation.x, json.rotation.y, json.rotation.z)
     this.scale.set(json.scale.x, json.scale.y, json.scale.z)
@@ -175,8 +150,8 @@ export class Transform extends Component {
   }
 
   public destroy(): void {
-    this.children.length = 0;
-    this._parent = null;
+    // this.children.length = 0;
+    // this._parent = null;
   }
 }
 

@@ -12,7 +12,7 @@ export class Console{
         this._container = container;
     }
 
-    public log(logType: LogType, message: string) {
+    public log(message: string, logType: LogType = LogType.Log) {
         const log = new Log(Date.now(), logType, message);
         this.logs.add(log)
 

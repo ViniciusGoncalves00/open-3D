@@ -1,6 +1,5 @@
 import { Transform } from "../../assets/components/transform";
 import { Entity } from "../../core/api/entity";
-import { Engine } from '../../core/engine/engine';
 import { ObservableField } from '../../common/patterns/observer/observable-field';
 import { Vector3 } from '../../core/api/vector3';
 import { Mesh } from '../../assets/components/mesh';
@@ -8,14 +7,14 @@ import { ObservableNullableField } from '../../common/patterns/observer/observab
 import { PrefabMesh } from "../../core/api/prefab-mesh";
 
 export class EntityHandler {
-    private _engine: Engine;
+    private _scene: Entity;
 
     private _selectedEntity: ObservableNullableField<Entity> = new ObservableNullableField<Entity>(null);
     public get selectedEntity() : ObservableNullableField<Entity> { return this._selectedEntity; }
     public set selectedEntity(entity: ObservableNullableField<Entity>) { this._selectedEntity = entity; }
 
-    public constructor(engine: Engine) {
-        this._engine = engine;
+    public constructor(scene: Entity) {
+        this._scene = scene;
     }
     
   public addEntity(): void {
@@ -32,11 +31,25 @@ export class EntityHandler {
     const meshComponent = new Mesh("Sphere", float32ArrayToVector3List(cube.vertices), observableIndices);
     entity.addComponent(meshComponent);
 
-    this._engine.entityManager.addEntity(entity);
+    entity.parent = this._scene;
   }
 
   public removeEntity(id: string): void {
-    this._engine.entityManager.removeEntity(id);
+    const entity = this.findEntityById(this._scene, id);
+    if (entity && entity.parent) {
+      entity.parent.value?.children.remove(entity);
+    }
+  }
+
+  private findEntityById(current: Entity, targetId: string): Entity | undefined {
+    if (current.id === targetId) return current;
+
+    for (const child of current.children.items) {
+      const found = this.findEntityById(child, targetId);
+      if (found) return found;
+    }
+
+    return undefined;
   }
 }
 
