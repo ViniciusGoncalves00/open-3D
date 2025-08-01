@@ -41,7 +41,9 @@ export class Builder {
                 <div data-role="body" class="flex-1 p-2 overflow-auto"></div>
             </div>
         `.trim();
-        return template.content.firstElementChild as HTMLElement;
+        const section = template.content.firstElementChild as HTMLElement;
+        this.setupDragAndDrop(section);
+        return section;
     }
 
     public static button(name: string, callback: () => void): HTMLButtonElement {
@@ -53,4 +55,114 @@ export class Builder {
         button.addEventListener("click", callback);
         return button;
     }
+
+    public static setupDragAndDrop(element: HTMLElement, overlaySelector: string = "#drag-n-drop-overlay", dropzoneSelector: string = ".dropzone") {
+        const overlay = document.querySelector(overlaySelector) as HTMLElement;
+        const dropzones = document.querySelectorAll(dropzoneSelector);
+
+        let ghost: HTMLElement | null = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let draggedElement: HTMLElement | null = null;
+
+          const makeDraggable = (element: HTMLElement) => {
+            const titleBar = element.querySelector(".title-bar") as HTMLElement;
+            if (!titleBar) return;
+        
+            titleBar.addEventListener("mousedown", (e: MouseEvent) => {
+              isDragging = true;
+              draggedElement = element;
+              offsetX = e.offsetX;
+              offsetY = e.offsetY;
+            
+              document.body.classList.add("no-scroll");
+              document.documentElement.classList.add("no-scroll");
+            
+              ghost = element.cloneNode(true) as HTMLElement;
+              ghost.id = "ghost";
+              ghost.style.position = "absolute";
+              ghost.style.width = "128px";
+              ghost.style.height = "128px";
+              ghost.style.pointerEvents = "none";
+              ghost.style.opacity = "0.7";
+              ghost.style.zIndex = "1000";
+              ghost.innerText = "Dragging...";
+              document.body.appendChild(ghost);
+            
+              ghost.style.left = `${e.clientX - ghost.offsetWidth / 2}px`;
+              ghost.style.top = `${e.clientY - ghost.offsetHeight / 2}px`;
+            
+              e.stopPropagation();
+            });
+          };
+      
+          document.addEventListener("mousemove", (e: MouseEvent) => {
+            if (!isDragging || !ghost) return;
+        
+            ghost.style.left = `${e.clientX - ghost.offsetWidth / 2}px`;
+            ghost.style.top = `${e.clientY - ghost.offsetHeight / 2}px`;
+        
+            overlay?.classList.add("active");
+        
+            dropzones.forEach(zone => {
+              zone.classList.add("active");
+            
+              const rect = zone.getBoundingClientRect();
+              const inside =
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top &&
+                e.clientY <= rect.bottom;
+            
+              zone.classList.toggle("hovered", inside);
+            });
+          });
+      
+          document.addEventListener("mouseup", (e: MouseEvent) => {
+            if (!isDragging) return;
+            isDragging = false;
+        
+            document.body.classList.remove("no-scroll");
+            document.documentElement.classList.remove("no-scroll");
+        
+            let dropped = false;
+        
+            dropzones.forEach(zone => {
+              const rect = zone.getBoundingClientRect();
+              const inside =
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top &&
+                e.clientY <= rect.bottom;
+            
+              if (inside && draggedElement) {
+                draggedElement.style.position = "relative";
+                draggedElement.style.left = "0px";
+                draggedElement.style.top = "0px";
+                draggedElement.style.zIndex = "auto";
+                draggedElement.style.transform = "none";
+            
+                zone.parentElement?.appendChild(draggedElement);
+                dropped = true;
+              }
+            });
+        
+            if (!dropped && draggedElement) {
+              draggedElement.style.position = "relative";
+              draggedElement.style.left = "0px";
+              draggedElement.style.top = "0px";
+              draggedElement.style.zIndex = "auto";
+              const center = document.getElementById("center");
+              center?.appendChild(draggedElement);
+            }
+        
+            overlay?.classList.remove("active");
+            dropzones.forEach(zone => zone.classList.remove("active", "hovered"));
+            ghost?.remove();
+            ghost = null;
+          });
+
+          makeDraggable(element);
+        }
 }
