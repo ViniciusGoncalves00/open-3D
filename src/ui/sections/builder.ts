@@ -38,7 +38,7 @@ export class Builder {
                 </div>
                 <div data-role="subHeader" class="flex items-center justify-start bg-zinc-600">
                 </div>
-                <div data-role="body" class="flex-1 p-2 overflow-auto"></div>
+                <div data-role="body" class="flex-1 overflow-auto"></div>
             </div>
         `.trim();
         const section = template.content.firstElementChild as HTMLElement;
