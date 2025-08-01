@@ -1,7 +1,7 @@
 import './styles.css';
 import { Storage } from './core/persistence/storage';
 import { Engine } from './core/engine/engine';
-import { Console } from './ui/elements/console/console';
+import { Console } from './ui/sections/console/console';
 import { Theme } from './ui/enums/theme';
 import { Project } from './core/engine/project';
 

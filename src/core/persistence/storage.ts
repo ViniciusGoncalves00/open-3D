@@ -1,4 +1,4 @@
-import { Console } from "../../ui/elements/console/console";
+import { Console } from "../../ui/sections/console/console";
 import { Engine } from "../engine/engine";
 import { Project } from "../engine/project";
 import { Metadata } from "./metadata";

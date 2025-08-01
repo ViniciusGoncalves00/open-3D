@@ -2,28 +2,28 @@ import './styles.css';
 import './ui/styles/time-controller.css';
 
 import { Engine } from './core/engine/engine';
-import { Timescale } from './ui/elements/controls/timescale';
-import { Console } from './ui/elements/console/console';
+import { Timescale } from './ui/sections/controls/timescale';
+import { Console } from './ui/sections/console/console';
 import { RotateSystem } from './assets/systems/rotateSystem';
 import { OrbitSystem } from './assets/systems/orbitSystem';
 import { EntityHandler } from './ui/handlers/entity-handler';
-import { Hierarchy } from './ui/elements/hierarchy/hierarchy';
-import { Inspector } from './ui/elements/inspector/inspector';
+import { Hierarchy } from './ui/sections/hierarchy/hierarchy';
+import { Inspector } from './ui/sections/inspector/inspector';
 import { Tree } from './ui/components/assets/tree';
 import { FolderNode } from './common/tree/folder-node';
 import { FileNode } from './common/tree/file-node';
 import { LogType } from './core/api/enum/log-type';
-import { Viewports } from './ui/elements/viewports/viewports';
+import { Viewports } from './ui/sections/viewports/viewports';
 import { IGraphicEngine } from './graphics/IGraphicEngine';
 import { ThreeGEAdapter } from './graphics/threeGEAdapter';
-import { Player } from './ui/elements/controls/player';
-import { Screen } from './ui/elements/controls/screen';
+import { Player } from './ui/sections/controls/player';
+import { Screen } from './ui/sections/controls/screen';
 import { Storage } from './core/persistence/storage';
-import { Settings } from './ui/elements/settings/settings';
+import { Settings } from './ui/sections/settings/settings';
 import { Open3DAdapter } from './graphics/open3DAdapter';
 import { GraphicSettings } from './graphics/graphicSettings';
 import { Project } from './core/engine/project';
-import { SceneManager } from './ui/elements/sceneManager/scenes';
+import { SceneManager } from './ui/sections/sceneManager/scenes';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -61,8 +61,7 @@ export class Program {
     //#endregion
 
     //#region [HTMLElements]
-    private _console!: Console
-    public get console(): Console { return this._console; }
+    private console!: Console
 
     private _inspector!: Inspector;
     public get inspector(): Inspector { return this._inspector; }
@@ -152,7 +151,7 @@ export class Program {
 
         this.initializeTEMP();
 
-        this._console.log("All right! You can start now!")
+        this.console.log("All right! You can start now!")
     }
 
     private initializeEngine(project: Project): void {
@@ -189,8 +188,7 @@ export class Program {
     };
 
     private initializeConsole(): void {
-        this.consoleContent = this.getElementOrFail<HTMLElement>('consoleContent');
-        this._console = new Console(this.consoleContent);
+        this.console = new Console();
 
         this.engine.timeController.isRunning.subscribe((wasStarted => {
                 wasStarted ? this.console.log("Started.") : this.console.log("Stoped.");
@@ -204,20 +202,6 @@ export class Program {
                 wasPaused ? this.console.log("Paused.") : this.console.log("Unpaused.")
             }
         ))
-
-        const filterAll = this.getElementOrFail<HTMLElement>('filterAll');
-        const filterLog = this.getElementOrFail<HTMLElement>('filterLog');
-        const filterSuccess = this.getElementOrFail<HTMLElement>('filterSuccess');
-        const filterWarning = this.getElementOrFail<HTMLElement>('filterWarning');
-        const filterError = this.getElementOrFail<HTMLElement>('filterError');
-        const filterDebug = this.getElementOrFail<HTMLElement>('filterDebug');
-
-        filterAll.addEventListener("click", () => this._console.filter(null))
-        filterLog.addEventListener("click", () => this._console.filter(LogType.Log))
-        filterSuccess.addEventListener("click", () => this._console.filter(LogType.Success))
-        filterWarning.addEventListener("click", () => this._console.filter(LogType.Warning))
-        filterError.addEventListener("click", () => this._console.filter(LogType.Error))
-        filterDebug.addEventListener("click", () => this._console.filter(LogType.Debug))
     };
 
     private initializeHierarchy(): void {
@@ -325,7 +309,7 @@ export class Program {
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);
         if (!element) {
-            this._console.log(`failed to load container: '${id}' -> ${element}`, LogType.Error);
+            this.console.log(`failed to load container: '${id}' -> ${element}`, LogType.Error);
             throw new Error(`UI element '${id}' not found`);
         }
         return element as T;
@@ -335,17 +319,17 @@ export class Program {
         const assetsJson = localStorage.getItem("assets");
 
         if (assetsJson) {
-            this._console.log("loading assets from local storage...", LogType.Log);
+            this.console.log("loading assets from local storage...", LogType.Log);
             try {
                 const root = this.deserializeTree(JSON.parse(assetsJson));
-                this._console.log("assets loaded successfully.", LogType.Success);
+                this.console.log("assets loaded successfully.", LogType.Success);
                 return root;
             } catch (e) {
-                this._console.log("failed to parse local assets. Fetching from remote...", LogType.Warning);
+                this.console.log("failed to parse local assets. Fetching from remote...", LogType.Warning);
                 return await this.fetchAndLoadAssetsFromRepo();
             }
         } else {
-            this._console.log("there are no assets in local storage. Loading from remote...", LogType.Log);
+            this.console.log("there are no assets in local storage. Loading from remote...", LogType.Log);
             return await this.fetchAndLoadAssetsFromRepo();
         }
     }
@@ -357,10 +341,10 @@ export class Program {
 
             const root = this.deserializeTree(data);
             localStorage.setItem("assets", JSON.stringify(data));
-            this._console.log("assets loaded from remote and saved to localStorage.", LogType.Success);
+            this.console.log("assets loaded from remote and saved to localStorage.", LogType.Success);
             return root;
         } catch (error) {
-            this._console.log("failed to fetch assets from remote.", LogType.Warning);
+            this.console.log("failed to fetch assets from remote.", LogType.Warning);
             console.error(error);
             throw error;
         }
