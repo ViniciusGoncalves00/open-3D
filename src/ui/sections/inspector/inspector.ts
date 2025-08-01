@@ -9,15 +9,21 @@ import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/component";
 import { Engine } from "../../../core/engine/engine";
 import { Hierarchy } from "../hierarchy/hierarchy";
+import { Builder, Icons } from "../builder";
+import { Utils } from "../../utils";
 
 export class Inspector {
-  private _container: HTMLElement;
+  public readonly element: HTMLElement;
+  public readonly body: HTMLElement;
+  
   private _engine: Engine;
   private _entityHandler: EntityHandler;
   private _hierarchy: Hierarchy;
 
-  public constructor(container: HTMLElement, engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
-    this._container = container;
+  public constructor(engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
+    this.element = Builder.section("Inspector", Icons.Info);
+    this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+
     this._engine = engine;
     this._entityHandler = entityHandler;
     this._hierarchy = hierarchy;
@@ -29,24 +35,25 @@ export class Inspector {
           onRemove: (component) => this.update(),
         });
       this.update();
-  });
+    });
+    Utils.getElementOrFail<HTMLDivElement>("Inspector").replaceWith(this.element);
   }
 
   public update() {
-    this._container.replaceChildren();
+    this.body.replaceChildren();
     if (!this._entityHandler.selectedEntity.value) return;
 
     const entityWrapper = this.buildEntity(this._entityHandler.selectedEntity.value)
-    this._container.appendChild(entityWrapper)
+    this.body.appendChild(entityWrapper)
 
     this._entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
       const componentUI = new ComponentUI(this._engine, this._entityHandler, component).container;
-      this._container.appendChild(componentUI);
+      this.body.appendChild(componentUI);
     });
 
     const row = document.createElement('div');
     row.className = 'w-full flex items-center justify-center px-2';
-    this._container.appendChild(row);
+    this.body.appendChild(row);
 
     const items = [
         { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(this._entityHandler.selectedEntity.value))},

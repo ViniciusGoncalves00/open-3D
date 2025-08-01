@@ -141,12 +141,9 @@ export class Program {
         if(!scene) return;
 
         this._entityHandler = new EntityHandler(scene);
-        
-        this.initializeHierarchy();
-        this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
-
+        this._hierarchy = new Hierarchy(this.engine.currentProject.value.activeScene.value, this.entityHandler);
+        this._inspector = new Inspector(this.engine, this.entityHandler, this.hierarchy);
         this._assets = new Assets();
-
         this._player = new Player(this.engine.timeController);
         this._timescale = new Timescale(this.engine.time);
         this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer);
@@ -194,28 +191,6 @@ export class Program {
         this.engine.registerSystem(new OrbitSystem());
     };
 
-    private initializeHierarchy(): void {
-        this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
-        
-        this._hierarchy = new Hierarchy(
-            this.engine.currentProject.value.activeScene.value,
-            this.entitiesContainer,
-            this.entityHandler
-        );
-
-        const scene = this.engine.currentProject.value?.activeScene.value;
-        if (!scene) return;
-
-        scene.children.subscribe({
-            onAdd: (entity) => this._hierarchy.constructHierarchy(),
-            onRemove: (entity) => this._hierarchy.constructHierarchy()
-        });
-        this._hierarchy.constructHierarchy();
-
-        const newEntity = this.getElementOrFail<HTMLElement>('newEntity');
-        newEntity.addEventListener("click", () => this.entityHandler.addEntity());
-    }
-
     private initializeSettings(): void {
         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
         const open = this.getElementOrFail<HTMLButtonElement>("openSettings");
@@ -224,11 +199,6 @@ export class Program {
         const autoSaveIntervalInput = this.getElementOrFail<HTMLInputElement>("autoSaveInterval");
 
         this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
-    };
-
-    private initializeInspector(engine: Engine, handler: EntityHandler, hierarchy: Hierarchy): void {
-        this.inspectorContainer = this.getElementOrFail<HTMLElement>('inspectorContainer');
-        this._inspector = new Inspector(this.inspectorContainer, engine, handler, hierarchy);
     };
 
     private initializeCanvas(): void {

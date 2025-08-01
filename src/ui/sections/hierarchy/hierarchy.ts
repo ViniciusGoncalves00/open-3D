@@ -1,20 +1,40 @@
 import { Entity } from "../../../core/api/entity";
 import { EntityHandler } from "../../handlers/entity-handler";
+import { Utils } from "../../utils";
+import { Builder, Icons } from "../builder";
 
 export class Hierarchy {
+  public readonly element: HTMLElement;
+  public readonly body: HTMLElement;
+  
   private _scene: Entity;
-  private _entitiesContainer: HTMLElement;
   private _entityHandler: EntityHandler;
 
-  public constructor(scene: Entity, entitiesContainer: HTMLElement, entityHandler: EntityHandler) {
+  public constructor(scene: Entity, entityHandler: EntityHandler) {
+    this.element = Builder.section("Hierarchy", Icons.Nested);
+    this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+
     this._scene = scene;
-    this._entitiesContainer = entitiesContainer;
     this._entityHandler = entityHandler;
+
+    scene.children.subscribe({
+      onAdd: (entity) => this.constructHierarchy(),
+      onRemove: (entity) => this.constructHierarchy()
+    });
+
+    const newSceneButton = Builder.button("New Entity", () => entityHandler.addEntity());
+
+    const subHeader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
+    subHeader.appendChild(newSceneButton);
+
+    Utils.getElementOrFail<HTMLDivElement>("Hierarchy").replaceWith(this.element);
+
+    this.constructHierarchy();
   }
 
   public constructHierarchy(): void {
-    this._entitiesContainer.innerHTML = '';
-    this._scene.children.items.forEach(child => this.constructEntity(child, this._entitiesContainer));
+    this.body.innerHTML = '';
+    this._scene.children.items.forEach(child => this.constructEntity(child, this.body));
   }
 
   private constructEntity(entity: Entity, container: HTMLElement): void {
