@@ -23,6 +23,7 @@ export class Inspector {
   public constructor(engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
     this.element = Builder.section("Inspector", Icons.Info);
     this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+    this.body.classList.add("space-y-2")
 
     this._engine = engine;
     this._entityHandler = entityHandler;
