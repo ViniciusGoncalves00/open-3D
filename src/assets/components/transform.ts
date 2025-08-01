@@ -39,9 +39,18 @@ export class Transform extends Component {
     this._position.y.subscribe(() => this.updateLocalMatrix());
     this._position.z.subscribe(() => this.updateLocalMatrix());
 
-    this._rotation.x.subscribe(() => this.updateLocalMatrix());
-    this._rotation.y.subscribe(() => this.updateLocalMatrix());
-    this._rotation.z.subscribe(() => this.updateLocalMatrix());
+    this._rotation.x.subscribe((value) => {
+      this.updateLocalMatrix();
+      this._rotation.x.value = value % 360;
+    });
+    this._rotation.y.subscribe((value) => {
+      this.updateLocalMatrix();
+      this._rotation.y.value = value % 360;
+    });
+    this._rotation.z.subscribe((value) => {
+      this.updateLocalMatrix();
+      this._rotation.z.value = value % 360;
+    });
 
     this._scale.x.subscribe(() => this.updateLocalMatrix());
     this._scale.y.subscribe(() => this.updateLocalMatrix());
