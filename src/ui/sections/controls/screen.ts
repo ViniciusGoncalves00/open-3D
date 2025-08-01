@@ -1,4 +1,5 @@
 import { TimeController } from "../../../core/engine/time-controller";
+import { Utils } from "../../utils";
 
 export class Screen {
     private isFullscreenEnabled: boolean = false;
@@ -6,8 +7,9 @@ export class Screen {
     public constructor(
         timeController: TimeController,
         window: HTMLElement,
-        toggleFullscreenButton: HTMLButtonElement
     ) {
+        const fullScreen = Utils.getElementOrFail<HTMLButtonElement>('fullScreen');
+        
         const originalParent = window.parentElement!;
         const originalNextSibling = window.nextSibling;
 
@@ -19,11 +21,11 @@ export class Screen {
         fullscreenContainer.style.display = "none";
         document.body.appendChild(fullscreenContainer);
 
-        toggleFullscreenButton.addEventListener('click', () => {
+        fullScreen.addEventListener('click', () => {
             this.isFullscreenEnabled = !this.isFullscreenEnabled;
 
-            toggleFullscreenButton.classList.toggle("border", this.isFullscreenEnabled);
-            toggleFullscreenButton.classList.toggle("border-white", this.isFullscreenEnabled);
+            fullScreen.classList.toggle("border", this.isFullscreenEnabled);
+            fullScreen.classList.toggle("border-white", this.isFullscreenEnabled);
 
             if (timeController.isRunning.value) {
                 if (this.isFullscreenEnabled) {

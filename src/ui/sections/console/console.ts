@@ -21,18 +21,18 @@ export class Console{
         const createFilterButton = (label: string, type: LogType | null): void => {
             const button = document.createElement("button");
             button.textContent = label;
-            button.className = "px-4 py-[2px] hover:bg-zinc-500 cursor-pointer";
+            button.className = "px-4 py-[2px] hover:bg-zinc-500 hover:outline hover:outline-white/50 hover:z-50 cursor-pointer";
             button.addEventListener("click", () => this.filter(type));
             subHeader.appendChild(button);
             this.filterButtons.push({ button, type });
         };
 
-        createFilterButton("all",     null);
-        createFilterButton("log",     LogType.Log);
-        createFilterButton("success", LogType.Success);
-        createFilterButton("warning", LogType.Warning);
-        createFilterButton("error",   LogType.Error);
-        createFilterButton("debug",   LogType.Debug);
+        createFilterButton("All",     null);
+        createFilterButton("Log",     LogType.Log);
+        createFilterButton("Success", LogType.Success);
+        createFilterButton("Warning", LogType.Warning);
+        createFilterButton("Error",   LogType.Error);
+        createFilterButton("Debug",   LogType.Debug);
 
         Utils.getElementOrFail<HTMLDivElement>("Console").replaceWith(this.element);
     }
@@ -69,9 +69,11 @@ export class Console{
 
         this.filterButtons.forEach(({ button, type }) => {
             if (type === logType) {
-                button.classList.add("bg-zinc-500");
+                button.classList.add("bg-zinc-700");
+                button.classList.add("inset-shadow-[0_0_2px_rgba(0,0,0,1)]");
             } else {
-                button.classList.remove("bg-zinc-500");
+                button.classList.remove("bg-zinc-700");
+                button.classList.remove("inset-shadow-[0_0_2px_rgba(0,0,0,1)]");
             }
         });
 

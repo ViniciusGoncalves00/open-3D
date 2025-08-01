@@ -49,14 +49,6 @@ export class Program {
     public fpsContainer!: HTMLElement;
     public averageFpsContainer!: HTMLElement;
 
-    public play!: HTMLButtonElement;
-    public stop!: HTMLButtonElement;
-    public pause!: HTMLButtonElement;
-    public speedUp!: HTMLButtonElement;
-    public speedNormal!: HTMLButtonElement;
-    public speedDown!: HTMLButtonElement;
-    public fullScreen!: HTMLButtonElement;
-
     public save!: HTMLButtonElement;
     //#endregion
 
@@ -257,26 +249,16 @@ export class Program {
     };
 
     private initializePlayer(): void {
-        this.play = this.getElementOrFail<HTMLButtonElement>('play');
-        this.stop = this.getElementOrFail<HTMLButtonElement>('stop');
-        this.pause = this.getElementOrFail<HTMLButtonElement>('pause');
-
-        this._player = new Player(this.engine.timeController, this.play, this.stop, this.pause);
+        this._player = new Player(this.engine.timeController);
     };
 
 
     private initializeTimescale(): void {
-        this.speedUp = this.getElementOrFail<HTMLButtonElement>('speedUp');
-        this.speedNormal = this.getElementOrFail<HTMLButtonElement>('speedNormal');
-        this.speedDown = this.getElementOrFail<HTMLButtonElement>('speedDown');
-
-        this._timescale = new Timescale(this.engine.time, this.speedUp, this.speedNormal, this.speedDown);
+        this._timescale = new Timescale(this.engine.time);
     };
 
     private initializeScreen(): void {
-        this.fullScreen = this.getElementOrFail<HTMLButtonElement>('fullScreen');
-
-        this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer, this.fullScreen);
+        this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer);
     };
 
     private initializeCanvas(): void {
