@@ -6,9 +6,11 @@ import { Builder, Icons } from "../builder";
 export class Console{
     public readonly element: HTMLElement;
 
-    private display: HTMLDivElement;
-    private selectedFilter : LogType | null = null;
+    private readonly display: HTMLDivElement;
+    private readonly filterButtons: { button: HTMLButtonElement, type: LogType | null }[] = [];
     private readonly logs: Log[] = [];
+
+    private selectedFilter : LogType | null = null;
 
     public constructor() {
         this.element = Builder.section("Console", Icons.FileText);
@@ -16,13 +18,13 @@ export class Console{
         const subHeader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
         this.display = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
 
-        const createFilterButton = (label: string, type: LogType | null): HTMLButtonElement => {
+        const createFilterButton = (label: string, type: LogType | null): void => {
             const button = document.createElement("button");
             button.textContent = label;
             button.className = "px-4 py-[2px] hover:bg-zinc-500 cursor-pointer";
             button.addEventListener("click", () => this.filter(type));
             subHeader.appendChild(button);
-            return button;
+            this.filterButtons.push({ button, type });
         };
 
         createFilterButton("all",     null);
@@ -64,6 +66,15 @@ export class Console{
 
     public filter(logType: LogType | null): void {
         this.selectedFilter = logType;
+
+        this.filterButtons.forEach(({ button, type }) => {
+            if (type === logType) {
+                button.classList.add("bg-zinc-500");
+            } else {
+                button.classList.remove("bg-zinc-500");
+            }
+        });
+
         const typeText = logType !== null ? `[${LogType[logType]}]` : null;
 
         this.display.childNodes.forEach(child => {
@@ -79,7 +90,7 @@ export class Console{
                 }
             }
         });
-    }   
+    }
 
     private format(log: Log): string {
         const time = new Date(log.time).toLocaleTimeString();
