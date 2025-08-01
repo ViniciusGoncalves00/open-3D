@@ -43,4 +43,14 @@ export class Builder {
         `.trim();
         return template.content.firstElementChild as HTMLElement;
     }
+
+    public static button(name: string, callback: () => void): HTMLButtonElement {
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <button class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">${name}</button>
+        `.trim();
+        const button = template.content.firstElementChild as HTMLButtonElement;
+        button.addEventListener("click", callback);
+        return button;
+    }
 }

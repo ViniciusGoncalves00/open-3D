@@ -6,7 +6,7 @@ import { Builder, Icons } from "../builder";
 export class Console{
     public readonly element: HTMLElement;
 
-    private readonly display: HTMLDivElement;
+    private readonly body: HTMLDivElement;
     private readonly filterButtons: { button: HTMLButtonElement, type: LogType | null }[] = [];
     private readonly logs: Log[] = [];
 
@@ -16,7 +16,7 @@ export class Console{
         this.element = Builder.section("Console", Icons.FileText);
 
         const subHeader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
-        this.display = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+        this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
 
         const createFilterButton = (label: string, type: LogType | null): void => {
             const button = document.createElement("button");
@@ -56,12 +56,12 @@ export class Console{
             logLine.classList.add("hidden");
         }
     
-        this.display.appendChild(logLine);
-        this.display.scrollTop = this.display.scrollHeight;
+        this.body.appendChild(logLine);
+        this.body.scrollTop = this.body.scrollHeight;
     }
     
     public clear(): void {
-        this.display.innerHTML = "";
+        this.body.innerHTML = "";
     }
 
     public filter(logType: LogType | null): void {
@@ -79,7 +79,7 @@ export class Console{
 
         const typeText = logType !== null ? `[${LogType[logType]}]` : null;
 
-        this.display.childNodes.forEach(child => {
+        this.body.childNodes.forEach(child => {
             if (!(child instanceof HTMLElement)) return;
 
             if (!typeText) {

@@ -24,6 +24,7 @@ import { Open3DAdapter } from './graphics/open3DAdapter';
 import { GraphicSettings } from './graphics/graphicSettings';
 import { Project } from './core/engine/project';
 import { SceneManager } from './ui/sections/sceneManager/scenes';
+import { Assets } from './ui/sections/assets/assets';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -58,8 +59,8 @@ export class Program {
     private _inspector!: Inspector;
     public get inspector(): Inspector { return this._inspector; }
 
-    private _tree!: Tree;
-    public get tree(): Tree { return this._tree; }
+    private _assets!: Assets;
+    public get assets(): Assets { return this._assets; }
 
     private _hierarchy!: Hierarchy;
     public get hierarchy(): Hierarchy { return this._hierarchy; }
@@ -95,7 +96,8 @@ export class Program {
     }
 
     private async initialize(): Promise<void> {
-        await this.initializeStorage();
+        this._storage = new Storage(this.engine, this.console);
+        await this._storage.init();
 
         const params = new URLSearchParams(window.location.search);
         const projectId = params.get("projectId");
@@ -107,13 +109,30 @@ export class Program {
         if(!project) return;
         project.SetActiveSceneById(sceneId);
         
-        this.initializeEngine(project);
-        this.initializeScenes();
+        this.engine = new Engine(project);
+        this.engine.currentProject.value.scenes.subscribe({
+            onAdd: () => this.storage.saveProject(this.engine.currentProject.value),
+            onRemove: () => this.storage.saveProject(this.engine.currentProject.value)
+        });
+
+        this._sceneManager = new SceneManager(this.engine.currentProject.value);
         
         this.save = this.getElementOrFail<HTMLButtonElement>('save')
         this.save.addEventListener("click", () => this._storage.saveAll(project));
         
-        this.initializeConsole();
+        this.console = new Console();
+        this.engine.timeController.isRunning.subscribe((wasStarted => {
+                wasStarted ? this.console.log("Started.") : this.console.log("Stoped.");
+                const project = this.engine.currentProject.value;
+                if(!project) return;
+                wasStarted ? this._storage.saveAll(project) : '';
+            }
+        ))
+
+        this.engine.timeController.isPaused.subscribe((wasPaused => {
+                wasPaused ? this.console.log("Paused.") : this.console.log("Unpaused.")
+            }
+        ))
 
         this.initializeCanvas();        
         this.initializeGraphicEngine();
@@ -126,11 +145,11 @@ export class Program {
         this.initializeHierarchy();
         this.initializeInspector(this.engine, this.entityHandler, this.hierarchy);
 
-        this.initializeAssets();
+        this._assets = new Assets();
 
-        this.initializePlayer();
-        this.initializeTimescale();
-        this.initializeScreen();
+        this._player = new Player(this.engine.timeController);
+        this._timescale = new Timescale(this.engine.time);
+        this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer);
 
         this.fpsContainer = this.getElementOrFail<HTMLElement>('fpsContainer');
         this.averageFpsContainer = this.getElementOrFail<HTMLElement>('averageFpsContainer');
@@ -144,10 +163,6 @@ export class Program {
         this.initializeTEMP();
 
         this.console.log("All right! You can start now!")
-    }
-
-    private initializeEngine(project: Project): void {
-        this.engine = new Engine(project);
     }
 
     private initializeGraphicEngine(): void {
@@ -179,23 +194,6 @@ export class Program {
         this.engine.registerSystem(new OrbitSystem());
     };
 
-    private initializeConsole(): void {
-        this.console = new Console();
-
-        this.engine.timeController.isRunning.subscribe((wasStarted => {
-                wasStarted ? this.console.log("Started.") : this.console.log("Stoped.");
-                const project = this.engine.currentProject.value;
-                if(!project) return;
-                wasStarted ? this._storage.saveAll(project) : '';
-            }
-        ))
-
-        this.engine.timeController.isPaused.subscribe((wasPaused => {
-                wasPaused ? this.console.log("Paused.") : this.console.log("Unpaused.")
-            }
-        ))
-    };
-
     private initializeHierarchy(): void {
         this.entitiesContainer = this.getElementOrFail<HTMLElement>('entitiesContainer');
         
@@ -218,11 +216,6 @@ export class Program {
         newEntity.addEventListener("click", () => this.entityHandler.addEntity());
     }
 
-    private async initializeStorage(): Promise<void>  {
-        this._storage = new Storage(this.engine, this.console);
-        await this._storage.init();
-    }
-
     private initializeSettings(): void {
         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
         const open = this.getElementOrFail<HTMLButtonElement>("openSettings");
@@ -233,32 +226,9 @@ export class Program {
         this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
     };
 
-    private initializeAssets(): void {
-        this.assetsContainer = this.getElementOrFail<HTMLElement>('assetsContainer');
-        this._tree = new Tree(this.assetsContainer);
-
-        // (async () => {
-        //     const rootNode = await this.loadAssets();
-        //     this._tree.addChild(rootNode);
-        // })();
-    };
-
     private initializeInspector(engine: Engine, handler: EntityHandler, hierarchy: Hierarchy): void {
         this.inspectorContainer = this.getElementOrFail<HTMLElement>('inspectorContainer');
         this._inspector = new Inspector(this.inspectorContainer, engine, handler, hierarchy);
-    };
-
-    private initializePlayer(): void {
-        this._player = new Player(this.engine.timeController);
-    };
-
-
-    private initializeTimescale(): void {
-        this._timescale = new Timescale(this.engine.time);
-    };
-
-    private initializeScreen(): void {
-        this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer);
     };
 
     private initializeCanvas(): void {
@@ -270,23 +240,6 @@ export class Program {
         this._scenes = new Viewports(this.viewportEditorContainer,  this.viewportSceneContainer);
         this.engine.timeController.isRunning.subscribe(() => this._scenes.toggleHighlight())
     };
-
-    private initializeScenes(): void {
-        const newScene = this.getElementOrFail<HTMLElement>('newScene');
-        newScene.addEventListener("click", () => {
-            const scene = this.engine.currentProject.value.CreateScene();
-            this.engine.currentProject.value.SetActiveScene(scene);
-            window.location.href = `editor.html?projectId=${this.engine.currentProject.value.id}&sceneId=${scene.id}`;
-        });
-        
-        this.engine.currentProject.value.scenes.subscribe({
-            onAdd: () => this.storage.saveProject(this.engine.currentProject.value),
-            onRemove: () => this.storage.saveProject(this.engine.currentProject.value)
-        });
-        
-        const sceneManagerContainer = this.getElementOrFail<HTMLElement>('sceneManagerContainer');
-        this._sceneManager = new SceneManager(sceneManagerContainer, this.engine.currentProject.value);
-    }
 
     private getElementOrFail<T extends HTMLElement>(id: string): T {
         const element = document.getElementById(id);

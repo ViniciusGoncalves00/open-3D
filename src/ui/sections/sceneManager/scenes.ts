@@ -1,25 +1,41 @@
 import { Entity } from "../../../core/api/entity";
 import { Project } from "../../../core/engine/project";
+import { Utils } from "../../utils";
+import { Builder, Icons } from "../builder";
 
 export class SceneManager {
-  private _container: HTMLElement;
-  private _project: Project;
+  public readonly element: HTMLElement;
 
-  public constructor(container: HTMLElement, project: Project) {
-    this._container = container;
-    this._project = project;
+  private project: Project;
 
-    this._project.scenes.subscribe({
-        onAdd: () => this.build(),
-        onRemove: () => this.build()
+  public constructor(project: Project) {
+    this.element = Builder.section("SceneManager", Icons.Box);
+
+    this.project = project;
+    
+    const newSceneButton = Builder.button("New Scene", () => {
+        const scene = this.project.CreateScene();
+        this.project.SetActiveScene(scene);
+        window.location.href = `editor.html?projectId=${this.project.id}&sceneId=${scene.id}`;
+    }) as HTMLButtonElement;
+    
+    const subheader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
+    subheader.appendChild(newSceneButton);
+
+    const body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+    this.project.scenes.subscribe({
+        onAdd: () => this.build(body),
+        onRemove: () => this.build(body)
     });
 
-    this.build();
+    this.build(body);
+
+    Utils.getElementOrFail<HTMLDivElement>("SceneManager").replaceWith(this.element);
   }
 
-  private build(): void {
-    this._container.innerHTML = ''
-    this._project.scenes.items.forEach(child => this.buildItem(child, this._container));
+  private build(container: HTMLElement): void {
+    container.innerHTML = ''
+    this.project.scenes.items.forEach(child => this.buildItem(child, container));
   }
 
   private buildItem(scene: Entity, container: HTMLElement): void {
@@ -28,7 +44,7 @@ export class SceneManager {
     
     const leftContainer = document.createElement("div");
     leftContainer.classList.add("h-full", "w-full", "flex", "items-center", "space-x-2");
-    if(this._project.activeScene.value.id !== scene.id) leftContainer.addEventListener("click", () => window.location.href = `editor.html?projectId=${this._project.id}&sceneId=${scene.id}`);
+    if(this.project.activeScene.value.id !== scene.id) leftContainer.addEventListener("click", () => window.location.href = `editor.html?projectId=${this.project.id}&sceneId=${scene.id}`);
   
     const boxIcon = document.createElement("i");
     boxIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-box");
@@ -42,10 +58,10 @@ export class SceneManager {
     leftContainer.appendChild(nameParagraph);
     row.appendChild(leftContainer);
        
-    if(this._project.activeScene.value.id !== scene.id) {
+    if(this.project.activeScene.value.id !== scene.id) {
         const trashIcon = document.createElement("i");
         trashIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-trash", "cursor-pointer");
-        trashIcon.addEventListener("click", () => this._project.DestroySceneById(scene.id));
+        trashIcon.addEventListener("click", () => this.project.DestroySceneById(scene.id));
         row.appendChild(trashIcon);
     }
 
