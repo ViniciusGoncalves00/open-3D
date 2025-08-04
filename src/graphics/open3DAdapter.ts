@@ -2,9 +2,10 @@ import { IGraphicEngine } from "./IGraphicEngine";
 import { Entity } from '../core/api/entity';
 import { Engine } from '../core/engine/engine';
 import { GraphicSettings } from "./graphicSettings";
-import { mat4, vec3 } from "gl-matrix";
+import { glMatrix, mat3, mat4, vec3, vec4 } from "gl-matrix";
 import { Mesh } from "../assets/components/mesh";
 import { Transform } from "../assets/components/transform";
+import { ObservableVector3 } from "../core/api/ObservableVector3";
 
 export class Open3DAdapter implements IGraphicEngine {
     private _engine: Engine | null = null;
@@ -152,7 +153,7 @@ export class Open3DAdapter implements IGraphicEngine {
         return shader;
     }
 
-    private initBuffers(gl: WebGLRenderingContext, mesh: Mesh) {
+    private initBuffers(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
       const vectors = mesh.vertices.items;
       let vertices: number[] = [];
       vectors.forEach(vector => vertices.push(vector.x.value, vector.y.value, vector.z.value))
@@ -163,7 +164,7 @@ export class Open3DAdapter implements IGraphicEngine {
       
       const verticesBuffer = this.initVerticesBuffer(gl, vertices);
       const indexBuffer = this.initIndexBuffer(gl, indices);
-      const colorBuffer = this.initColorBuffer(gl, mesh);
+      const colorBuffer = this.initColorBuffer(gl, transform, mesh);
 
       return {
         position: verticesBuffer,
@@ -214,7 +215,7 @@ export class Open3DAdapter implements IGraphicEngine {
               const modelViewMatrix = mat4.create();
               mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
 
-              const buffers = this.initBuffers(gl, mesh);
+              const buffers = this.initBuffers(gl, modelMatrix, mesh);
 
               this.setPositionAttribute(gl, buffers, programInfo);
               this.setColorAttribute(gl, buffers, programInfo);
@@ -256,26 +257,83 @@ export class Open3DAdapter implements IGraphicEngine {
       gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
 
-  private initColorBuffer(gl: WebGLRenderingContext, mesh: Mesh) {
-    const vertices = mesh.vertices.items;
-    const numVertices = vertices.length;
+    private computeTriangleNormal(p0: ArrayLike<number>, p1: ArrayLike<number>, p2: ArrayLike<number>): [number, number, number] {
+        const u = [
+            p1[0] - p0[0],
+            p1[1] - p0[1],
+            p1[2] - p0[2]
+        ];
+        const v = [
+            p2[0] - p0[0],
+            p2[1] - p0[1],
+            p2[2] - p0[2]
+        ];
 
-    const colors: number[] = [];
+        const nx = u[1] * v[2] - u[2] * v[1];
+        const ny = u[2] * v[0] - u[0] * v[2];
+        const nz = u[0] * v[1] - u[1] * v[0];
 
-    for (let i = 0; i < numVertices; i++) {
-      const t = i / numVertices;
-      const r = t % 2 == 0 ? 0 : t / 3;
-      const g = t % 2 == 0 ? 0 : t / 3;
-      const b = t % 2 == 0 ? 0 : t;
-      colors.push(r, g, b, 1.0);
+        const length = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+        return [nx / length, ny / length, nz / length];
     }
 
-    const colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    private transformVertexToWorld(localPosition: number[], transform: mat4): vec3 {
+        const local = vec4.fromValues(localPosition[0], localPosition[1], localPosition[2], 1.0);
+        const world = vec4.create();
+        vec4.transformMat4(world, local, transform);
+        return vec3.fromValues(world[0], world[1], world[2]);
+    }
 
-    return colorBuffer;
-  }
+    private initColorBuffer(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
+        const vertices = mesh.vertices.items;
+        const numVertices = vertices.length;
+
+        const normals: vec3[] = vertices.map(() => vec3.fromValues(0, 0, 0));
+
+        for (let i = 0; i < mesh.indices.items.length; i += 3) {
+            const i0 = mesh.indices.items[i + 0].value;
+            const i1 = mesh.indices.items[i + 1].value;
+            const i2 = mesh.indices.items[i + 2].value;
+
+            const p0 = this.transformVertexToWorld(vertices[i0].getValues(), transform);
+            const p1 = this.transformVertexToWorld(vertices[i1].getValues(), transform);
+            const p2 = this.transformVertexToWorld(vertices[i2].getValues(), transform);
+
+            const [nx, ny, nz] = this.computeTriangleNormal(p0, p1, p2);
+
+            normals[i0][0] = nx; normals[i0][1] = ny; normals[i0][2] = nz;
+            normals[i1][0] = nx; normals[i1][1] = ny; normals[i1][2] = nz;
+            normals[i2][0] = nx; normals[i2][1] = ny; normals[i2][2] = nz;
+        }
+
+        const colors: number[] = [];
+        const sunDirection = vec3.fromValues(-1, -1, 0);
+        vec3.normalize(sunDirection, sunDirection);
+        const globalIlluminationIntensity = 0.1;
+
+        for (let i = 0; i < numVertices; i++) {
+          const t = i / numVertices;
+          // const r = t % 2 == 0 ? 0 : t / 3;
+          // const g = t % 2 == 0 ? 0 : t / 3;
+          // const b = t % 2 == 0 ? 0 : t;
+          const normal = normals[i]
+          const dot = vec3.dot(sunDirection, normal);
+          const intensity = Math.max(0, dot);
+          let r = intensity * t % 2 == 0 ? 0 : t / 3;
+          let g = intensity * t % 2 == 0 ? 0 : t / 3;
+          let b = intensity * t % 2 == 0 ? 0 : t;
+          r = Math.min(r + globalIlluminationIntensity, 1);
+          g = Math.min(g + globalIlluminationIntensity, 1);
+          b = Math.min(b + globalIlluminationIntensity, 1);
+          colors.push(r, g, b, 1.0);
+        }
+
+        const colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+        return colorBuffer;
+    }
 
   private setColorAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
     const numComponents = 4;

@@ -1,6 +1,6 @@
 import { ObservableField } from "../../common/patterns/observer/observable-field";
 
-export class Vector3 {
+export class ObservableVector3 {
   private readonly _x: ObservableField<number>;
   public get x(): ObservableField<number> { return this._x; }
 
@@ -16,12 +16,16 @@ export class Vector3 {
     this._z =  new ObservableField<number>(z);
   }
 
-  public static zero(): Vector3 {
-    return new Vector3(0, 0, 0);
+  public static zero(): ObservableVector3 {
+    return new ObservableVector3(0, 0, 0);
   }
 
-  public static one(): Vector3 {
-    return new Vector3(1, 1, 1);
+  public static one(): ObservableVector3 {
+    return new ObservableVector3(1, 1, 1);
+  }
+
+  public getValues(): [number, number, number] {
+    return [this._x.value, this._y.value, this._z.value];
   }
 
   public set(x: number, y: number, z: number): void {
@@ -30,7 +34,7 @@ export class Vector3 {
     this._z.value = z;
   }
 
-  public setFromVector(vector: Vector3): void {
+  public setFromVector(vector: ObservableVector3): void {
     this._x.value = vector.x.value;
     this._y.value = vector.y.value;
     this._z.value = vector.z.value;
@@ -40,33 +44,33 @@ export class Vector3 {
     this[axis].value = value;
   }
 
-  public add(vector: Vector3): Vector3 {
-    return new Vector3(
+  public add(vector: ObservableVector3): ObservableVector3 {
+    return new ObservableVector3(
       this._x.value + vector.x.value,
       this._y.value + vector.y.value,
       this._z.value + vector.z.value);
   }
 
-  public subtract(vector: Vector3): Vector3 {
-    return new Vector3(
+  public subtract(vector: ObservableVector3): ObservableVector3 {
+    return new ObservableVector3(
       this._x.value - vector.x.value,
       this._y.value - vector.y.value,
       this._z.value - vector.z.value);
   }
 
-  public multiplyScalar(scalar: number): Vector3 {
-    return new Vector3(
+  public multiplyScalar(scalar: number): ObservableVector3 {
+    return new ObservableVector3(
       this._x.value * scalar,
       this._y.value * scalar,
       this._z.value * scalar);
   }
 
-  public dot(vector: Vector3): number {
+  public dot(vector: ObservableVector3): number {
     return this._x.value * vector.x.value + this._y.value * vector.y.value + this._z.value * vector.z.value;
   }
 
-  public cross(v: Vector3): Vector3 {
-    return new Vector3(
+  public cross(v: ObservableVector3): ObservableVector3 {
+    return new ObservableVector3(
       this._y.value * v.z.value - this._z.value * v.y.value,
       this._z.value * v.x.value - this._x.value * v.z.value,
       this._x.value * v.y.value - this._y.value * v.x.value);
@@ -76,16 +80,16 @@ export class Vector3 {
     return Math.sqrt(this._x.value ** 2 + this._y.value ** 2 + this._z.value ** 2);
   }
 
-  public normalize(): Vector3 {
+  public normalize(): ObservableVector3 {
     const len = this.length();
-    return len === 0 ? new Vector3(0, 0, 0) : this.multiplyScalar(1 / len);
+    return len === 0 ? new ObservableVector3(0, 0, 0) : this.multiplyScalar(1 / len);
   }
 
-  public clone(): Vector3 {
-    return new Vector3(this._x.value, this._y.value, this._z.value);
+  public clone(): ObservableVector3 {
+    return new ObservableVector3(this._x.value, this._y.value, this._z.value);
   }
 
-  public rotateAround(axis: Vector3, angle: number): Vector3 {
+  public rotateAround(axis: ObservableVector3, angle: number): ObservableVector3 {
     const u = axis.normalize();
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);

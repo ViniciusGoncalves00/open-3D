@@ -1,6 +1,6 @@
 import { Component } from "../../../assets/components/component";
 import { Mesh } from "../../../assets/components/mesh";
-import { Vector3 } from "../../../core/api/vector3";
+import { ObservableVector3 } from "../../../core/api/ObservableVector3";
 import { ObservableField } from "../../../common/patterns/observer/observable-field";
 import { EntityHandler } from "../../handlers/entity-handler";
 import { PropertyBuilder } from "./component-builder";
@@ -105,11 +105,11 @@ export class ComponentUI {
             if(property instanceof ObservableList) {
                 fieldContentColumn.classList.add("space-y-1", "flex-col")
                 
-                if(property.items[0] instanceof Vector3) PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn)
+                if(property.items[0] instanceof ObservableVector3) PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn)
                 else if(typeof property.items[0].value === 'number') PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
             }
             else {
-                if(property instanceof Vector3) PropertyBuilder.buildVector3Property(property, fieldContentColumn);
+                if(property instanceof ObservableVector3) PropertyBuilder.buildVector3Property(property, fieldContentColumn);
                 else if (property instanceof ObservableField) {
                     const value = property.value;
                 

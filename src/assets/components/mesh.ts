@@ -1,21 +1,21 @@
 import { ObservableField } from "../../common/patterns/observer/observable-field";
 import { ObservableList } from "../../common/patterns/observer/observable-list";
-import { Vector3 } from "../../core/api/vector3";
+import { ObservableVector3 } from "../../core/api/ObservableVector3";
 import { Component } from "./component";
 
 export class Mesh extends Component {
   private readonly _name: ObservableField<string>;
   public get name(): ObservableField<string> { return this._name; }
 
-  private readonly _vertices: ObservableList<Vector3>;
-  public get vertices(): ObservableList<Vector3> { return this._vertices; }
+  private readonly _vertices: ObservableList<ObservableVector3>;
+  public get vertices(): ObservableList<ObservableVector3> { return this._vertices; }
     
   private readonly _indices: ObservableList<ObservableField<number>>;
   public get indices(): ObservableList<ObservableField<number>> { return this._indices; }
 
-  constructor(
+  public constructor(
     name = "name",
-    vertices = [new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 0)],
+    vertices: ObservableVector3[] = [new ObservableVector3(0, 0, 0), new ObservableVector3(0, 0, 1), new ObservableVector3(1, 0, 0)],
     indices: ObservableField<number>[] = [new ObservableField(0), new ObservableField(1), new ObservableField(2)]
   ) {
     super();
@@ -63,7 +63,7 @@ export class Mesh extends Component {
 
     this._vertices.clear();
     for (const v of json.vertices) {
-      this._vertices.add(new Vector3(v.x, v.y, v.z));
+      this._vertices.add(new ObservableVector3(v.x, v.y, v.z));
     }
 
     this._indices.clear();

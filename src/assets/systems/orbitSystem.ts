@@ -1,7 +1,7 @@
 import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
 import { Entity } from "../../core/api/entity";
-import { Vector3 } from "../../core/api/vector3";
+import { ObservableVector3 } from "../../core/api/ObservableVector3";
 import { Orbit } from "../components/orbit";
 
 export class OrbitSystem implements ISystem, IUpdate {
@@ -18,7 +18,7 @@ export class OrbitSystem implements ISystem, IUpdate {
           orbit.angle.value += orbit.speed.value * deltaTime;
           orbit.angle.value %= Math.PI * 2;
   
-          const initial = new Vector3(orbit.distance.value, 0, 0);
+          const initial = new ObservableVector3(orbit.distance.value, 0, 0);
   
           const rotated = initial.rotateAround(orbit.axis.normalize(), orbit.angle.value);
           const position = orbit.center.add(rotated);

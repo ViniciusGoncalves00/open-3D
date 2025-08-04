@@ -1,10 +1,10 @@
 import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { Vector3 } from "../../core/api/vector3";
+import { ObservableVector3 } from "../../core/api/ObservableVector3";
 import { Component } from "./component";
 
 export class Orbit extends Component {
-  private readonly _center: Vector3;
-  public get center(): Vector3 { return this._center; }
+  private readonly _center: ObservableVector3;
+  public get center(): ObservableVector3 { return this._center; }
 
   private readonly _distance: ObservableField<number>;
   public get distance(): ObservableField<number> { return this._distance; }
@@ -12,17 +12,17 @@ export class Orbit extends Component {
   private readonly _speed: ObservableField<number>;
   public get speed(): ObservableField<number> { return this._speed; }
 
-  private readonly _axis: Vector3;
-  public get axis(): Vector3 { return this._axis; }
+  private readonly _axis: ObservableVector3;
+  public get axis(): ObservableVector3 { return this._axis; }
 
   public readonly _angle: ObservableField<number> = new ObservableField<number>(0);
   public get angle(): ObservableField<number> { return this._angle; }
 
   constructor(
-    center: Vector3 = new Vector3(0, 0, 0),
+    center: ObservableVector3 = new ObservableVector3(0, 0, 0),
     distance: ObservableField<number> = new ObservableField<number>(1),
     speed: ObservableField<number> = new ObservableField<number>(1),
-    axis: Vector3 = new Vector3(0, 1, 0)
+    axis: ObservableVector3 = new ObservableVector3(0, 1, 0)
   ) {
     super();
     this._center = center;

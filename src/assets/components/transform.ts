@@ -1,5 +1,5 @@
 import { Component } from "./component";
-import { Vector3 } from "../../core/api/vector3";
+import { ObservableVector3 } from "../../core/api/ObservableVector3";
 import { mat4 as matrix4 } from "gl-matrix";
 import { vec3 as vector3 } from "gl-matrix";
 import { quat as quaternion } from "gl-matrix";
@@ -9,19 +9,19 @@ import { Entity } from "../../core/api/entity";
 export class Transform extends Component {
   public readonly owner: Entity;
 
-  private readonly _position: Vector3;
-  public get position(): Vector3 { return this._position; }
+  private readonly _position: ObservableVector3;
+  public get position(): ObservableVector3 { return this._position; }
 
-  private readonly _rotation: Vector3;
-  public get rotation(): Vector3 { return this._rotation; }
+  private readonly _rotation: ObservableVector3;
+  public get rotation(): ObservableVector3 { return this._rotation; }
 
-  private readonly _scale: Vector3;
-  public get scale(): Vector3 { return this._scale; }
+  private readonly _scale: ObservableVector3;
+  public get scale(): ObservableVector3 { return this._scale; }
 
   public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
-  constructor(owner: Entity, position: Vector3 = Vector3.zero(), rotation: Vector3 = Vector3.zero(), scale: Vector3 = Vector3.one()) {
+  constructor(owner: Entity, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
     super();
 
     this.owner = owner;

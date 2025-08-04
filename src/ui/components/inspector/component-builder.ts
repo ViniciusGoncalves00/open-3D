@@ -1,7 +1,7 @@
 import { Mesh } from "../../../assets/components/mesh";
 import { ObservableField } from "../../../common/patterns/observer/observable-field";
 import { ObservableList } from "../../../common/patterns/observer/observable-list";
-import { Vector3 } from "../../../core/api/vector3";
+import { ObservableVector3 } from "../../../core/api/ObservableVector3";
 import { FieldBuilder } from "../field-builder";
 
 export class PropertyBuilder {
@@ -15,7 +15,7 @@ export class PropertyBuilder {
         field.appendChild(input);
     }
 
-    public static buildVector3Property(property: Vector3, field: HTMLElement): void {
+    public static buildVector3Property(property: ObservableVector3, field: HTMLElement): void {
         const inputs: HTMLInputElement[] = []
         field.classList.add('gap-1');
 
@@ -39,11 +39,11 @@ export class PropertyBuilder {
         field.appendChild(input);
     }
 
-    public static buildArrayVector3Property(list: ObservableList<Vector3>, field: HTMLElement): void {
+    public static buildArrayVector3Property(list: ObservableList<ObservableVector3>, field: HTMLElement): void {
     const render = () => {
         field.innerHTML = "";
 
-        list.items.forEach((vector: Vector3, index: number) => {
+        list.items.forEach((vector: ObservableVector3, index: number) => {
             const vectorWrapper = document.createElement('div');
             vectorWrapper.className = 'w-full flex gap-1';
         

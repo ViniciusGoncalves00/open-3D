@@ -1,13 +1,16 @@
 import { mesh } from "./types";
+import { ObservableVector3 } from "./ObservableVector3";
+import { vec3 } from "gl-matrix";
 
 export class PrefabMesh {
-    public static quad(): mesh {
-        const vertices = new Float32Array( [
-            -0.5, 0.0, -0.5,
-             0.5, 0.0, -0.5,
-            -0.5, 0.0,  0.5,
-             0.5, 0.0,  0.5,
-        ] );
+    public static quad(size: number = 1): mesh {
+        const value = 0.5 * size;
+        const vertices = new Float32Array([
+            -value, 0.0, -value,
+            value, 0.0, -value,
+            -value, 0.0,  value,
+            value, 0.0,  value,
+        ]);
 
         const indices = new Uint16Array([
             0, 1, 2,
@@ -17,25 +20,26 @@ export class PrefabMesh {
         return { vertices, indices };
     }
 
-    public static cube(): mesh {
+    public static cube(size: number = 1): mesh {
+        const value = 0.5 * size;
         const vertices = new Float32Array( [
             // Front face
-            -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+            -value, -value, value, value, -value, value, value, value, value, -value, value, value,
                 
             // Back face
-            -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
+            -value, -value, -value, -value, value, -value, value, value, -value, value, -value, -value,
                 
             // Top face
-            -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+            -value, value, -value, -value, value, value, value, value, value, value, value, -value,
                 
             // Bottom face
-            -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
+            -value, -value, -value, value, -value, -value, value, -value, value, -value, -value, value,
                 
             // Right face
-            1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+            value, -value, -value, value, value, -value, value, value, value, value, -value, value,
                 
             // Left face
-            -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+            -value, -value, -value, -value, -value, value, -value, value, value, -value, value, -value,
         ] );
 
         const indices =  new Uint16Array([
@@ -48,5 +52,43 @@ export class PrefabMesh {
         ]);
 
         return { vertices, indices };
+    }
+
+    public static sphere(radius = 1, latitudeBands = 12, longitudeBands = 12): mesh {
+        const vertices: number[] = [];
+        const indices: number[] = [];
+        
+        for (let lat = 0; lat <= latitudeBands; lat++) {
+          const theta = (lat * Math.PI) / latitudeBands;
+          const sinTheta = Math.sin(theta);
+          const cosTheta = Math.cos(theta);
+
+          for (let lon = 0; lon <= longitudeBands; lon++) {
+            const phi = (lon * 2 * Math.PI) / longitudeBands;
+            const sinPhi = Math.sin(phi);
+            const cosPhi = Math.cos(phi);
+        
+            const x = cosPhi * sinTheta;
+            const y = cosTheta;
+            const z = sinPhi * sinTheta;
+        
+            vertices.push(radius * x, radius * y, radius * z);
+          }
+        }
+  
+        for (let lat = 0; lat < latitudeBands; lat++) {
+          for (let lon = 0; lon < longitudeBands; lon++) {
+            const first = lat * (longitudeBands + 1) + lon;
+            const second = first + longitudeBands + 1;
+        
+            indices.push(first, second, first + 1);
+            indices.push(second, second + 1, first + 1);
+          }
+        }
+
+        return {
+          vertices: new Float32Array(vertices),
+          indices: new Uint16Array(indices),
+        };
     }
 }
