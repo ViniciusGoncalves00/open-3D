@@ -1,5 +1,5 @@
 import { ISystem, IAwake, IStart, IFixedUpdate, IUpdate, ILateUpdate } from "../../assets/systems/interfaces/system";
-import { ObservableField } from "../../common/patterns/observer/observable-field";
+import { ObservableField } from "../../common/observer/observable-field";
 import { Entity } from "../api/entity";
 import { Project } from "./project";
 

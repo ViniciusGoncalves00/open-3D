@@ -1,12 +1,13 @@
-import { Component } from "../../assets/components/component";
+import { Component } from "../../assets/components/abstract/component";
+import { DirectionalLight } from "../../assets/components/directional-light";
 import { Mesh } from "../../assets/components/mesh";
 import { Orbit } from "../../assets/components/orbit";
 import { Rotate } from "../../assets/components/rotate";
 import { Transform } from "../../assets/components/transform";
-import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { ObservableList } from "../../common/patterns/observer/observable-list";
-import { ObservableMap } from "../../common/patterns/observer/observable-map";
-import { ObservableNullableField } from "../../common/patterns/observer/observable-nullable-field";
+import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableList } from "../../common/observer/observable-list";
+import { ObservableMap } from "../../common/observer/observable-map";
+import { ObservableNullableField } from "../../common/observer/observable-nullable-field";
 
 export class Entity {
   private readonly _id: `${string}-${string}-${string}-${string}-${string}`;
@@ -119,6 +120,7 @@ export class Entity {
       'Mesh': Mesh,
       'Rotate': Rotate,
       'Orbit': Orbit,
+      'DirectionalLight': DirectionalLight,
     };
   
     for (const compJson of json.components) {

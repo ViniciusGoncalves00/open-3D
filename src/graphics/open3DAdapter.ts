@@ -5,7 +5,8 @@ import { GraphicSettings } from "./graphicSettings";
 import { glMatrix, mat3, mat4, vec3, vec4 } from "gl-matrix";
 import { Mesh } from "../assets/components/mesh";
 import { Transform } from "../assets/components/transform";
-import { ObservableVector3 } from "../core/api/ObservableVector3";
+import { ObservableVector3 } from "../common/observer/observable-vector3";
+import { DirectionalLight } from "../assets/components/directional-light";
 
 export class Open3DAdapter implements IGraphicEngine {
     private _engine: Engine | null = null;
@@ -13,6 +14,8 @@ export class Open3DAdapter implements IGraphicEngine {
 
     private rendererA: WebGLRenderingContext | null = null;
     private rendererB: WebGLRenderingContext | null = null;
+
+    private directionalLights: DirectionalLight[] = [];
     
     public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
       this._engine = engine;
@@ -205,6 +208,20 @@ export class Open3DAdapter implements IGraphicEngine {
         mat4.translate(viewMatrix, viewMatrix, cameraPosition);
         mat4.lookAt(viewMatrix, cameraPosition, [0, 0, 0], [0, 1, 0]);
 
+        this.directionalLights = [];
+        const getDirectionalLights = (entity: Entity) => {
+          if (entity.hasComponent(DirectionalLight)) {
+            const directionalLight = entity.getComponent(DirectionalLight);
+            this.directionalLights.push(directionalLight);
+          }
+
+          for (const child of entity.children.items ?? []) {
+              getDirectionalLights(child);
+          }
+        }
+
+        getDirectionalLights(scene);
+
         const drawEntityRecursive = (entity: Entity) => {
           if (entity.hasComponent(Transform) && entity.hasComponent(Mesh)) {
               const transform = entity.getComponent(Transform);
@@ -307,7 +324,9 @@ export class Open3DAdapter implements IGraphicEngine {
         }
 
         const colors: number[] = [];
-        const sunDirection = vec3.fromValues(-1, -1, 0);
+        const directionalLight = this.directionalLights.find((light) => light !== undefined);
+        const sunDirection = vec3.fromValues(directionalLight!.direction.x.value, directionalLight!.direction.y.value, directionalLight!.direction.z.value);
+        // const sunDirection = vec3.fromValues(1, 1, 1);
         vec3.normalize(sunDirection, sunDirection);
         const globalIlluminationIntensity = 0.1;
 

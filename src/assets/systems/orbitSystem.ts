@@ -1,7 +1,7 @@
 import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
 import { Entity } from "../../core/api/entity";
-import { ObservableVector3 } from "../../core/api/ObservableVector3";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
 import { Orbit } from "../components/orbit";
 
 export class OrbitSystem implements ISystem, IUpdate {

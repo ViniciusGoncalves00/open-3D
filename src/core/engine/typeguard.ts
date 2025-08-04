@@ -1,4 +1,4 @@
-import { Component } from "../../assets/components/component";
+import { Component } from "../../assets/components/abstract/component";
 import { ISystem, IAwake, IStart, IFixedUpdate, IUpdate, ILateUpdate } from "../../assets/systems/interfaces/system";
 
 export function isIAwake(system: ISystem): system is IAwake {

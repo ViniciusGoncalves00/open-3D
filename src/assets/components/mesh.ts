@@ -1,7 +1,7 @@
-import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { ObservableList } from "../../common/patterns/observer/observable-list";
-import { ObservableVector3 } from "../../core/api/ObservableVector3";
-import { Component } from "./component";
+import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableList } from "../../common/observer/observable-list";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
+import { Component } from "./abstract/component";
 
 export class Mesh extends Component {
   private readonly _name: ObservableField<string>;

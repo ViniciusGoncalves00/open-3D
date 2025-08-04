@@ -1,5 +1,5 @@
 import { mesh } from "./types";
-import { ObservableVector3 } from "./ObservableVector3";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
 import { vec3 } from "gl-matrix";
 
 export class PrefabMesh {

@@ -1,6 +1,6 @@
-import { Component } from "./component";
-import { ObservableVector3 } from "../../core/api/ObservableVector3";
-import { ObservableField } from "../../common/patterns/observer/observable-field";
+import { Component } from "./abstract/component";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
+import { ObservableField } from "../../common/observer/observable-field";
 
 export class Rotate extends Component {
   private readonly _axis: ObservableVector3;

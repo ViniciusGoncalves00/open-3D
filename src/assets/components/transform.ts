@@ -1,9 +1,9 @@
-import { Component } from "./component";
-import { ObservableVector3 } from "../../core/api/ObservableVector3";
+import { Component } from "./abstract/component";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
 import { mat4 as matrix4 } from "gl-matrix";
 import { vec3 as vector3 } from "gl-matrix";
 import { quat as quaternion } from "gl-matrix";
-import { ObservableMatrix4 } from "../../common/patterns/observer/observable-matrix4";
+import { ObservableMatrix4 } from "../../common/observer/observable-matrix4";
 import { Entity } from "../../core/api/entity";
 
 export class Transform extends Component {

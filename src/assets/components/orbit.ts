@@ -1,6 +1,6 @@
-import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { ObservableVector3 } from "../../core/api/ObservableVector3";
-import { Component } from "./component";
+import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableVector3 } from "../../common/observer/observable-vector3";
+import { Component } from "./abstract/component";
 
 export class Orbit extends Component {
   private readonly _center: ObservableVector3;

@@ -1,8 +1,8 @@
 import './styles.css';
-import { Storage } from './core/persistence/storage';
+import { Storage } from './database/storage';
 import { Engine } from './core/engine/engine';
-import { Console } from './ui/sections/console/console';
-import { Theme } from './ui/enums/theme';
+import { Console } from './ui/windows/console/console';
+import { Theme } from './ui/others/enums';
 import { Project } from './core/engine/project';
 
 window.addEventListener('DOMContentLoaded', () => {

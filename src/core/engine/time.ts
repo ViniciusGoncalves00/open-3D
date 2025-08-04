@@ -1,4 +1,4 @@
-import { ObservableField } from "../../common/patterns/observer/observable-field";
+import { ObservableField } from "../../common/observer/observable-field";
 
 export class Time {
     

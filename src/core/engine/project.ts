@@ -1,5 +1,5 @@
-import { ObservableField } from "../../common/patterns/observer/observable-field";
-import { ObservableList } from "../../common/patterns/observer/observable-list";
+import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableList } from "../../common/observer/observable-list";
 import { Entity } from "../api/entity";
 
 export class Project {
