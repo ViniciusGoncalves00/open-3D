@@ -6,11 +6,8 @@ import { Component } from "./component";
 * Abstract base class for lights.
 */
 export abstract class Light extends Component {
-    private readonly _color: Color;
-    public get color(): Color { return this._color; };
-
-    private readonly _intensity: ObservableField<number>;
-    public get intensity(): ObservableField<number> { return this._intensity };
+    public readonly color: Color;
+    public readonly intensity: ObservableField<number>;
 
     /**
     * @param color Light color (default: "1, 1, 1, 1")
@@ -19,7 +16,7 @@ export abstract class Light extends Component {
     public constructor(color: Color = Color.from01(1, 1, 1, 1), intensity: number = 1.0) {
         super();
 
-        this._color = color;
-        this._intensity = new ObservableField(intensity);
+        this.color = color;
+        this.intensity = new ObservableField(intensity);
     }
 }

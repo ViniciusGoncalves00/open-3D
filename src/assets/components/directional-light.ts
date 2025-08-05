@@ -18,7 +18,7 @@ export class DirectionalLight extends Light {
             this.intensity.value,
             this._direction.clone()
         );
-        cloned.enabled = this.enabled;
+        cloned.enabled.value = this.enabled.value;
         return cloned;
     }
 
@@ -34,13 +34,13 @@ export class DirectionalLight extends Light {
             component.direction.y.value,
             component.direction.z.value
         );
-        this.enabled = component.enabled;
+        this.enabled.value = component.enabled.value;
     }
 
     public toJSON() {
         return {
             type: "DirectionalLight",
-            enabled: this.enabled,
+            enabled: this.enabled.value,
             color: {
                 r: this.color.r.value,
                 g: this.color.g.value,
@@ -57,7 +57,7 @@ export class DirectionalLight extends Light {
     }
 
     public fromJSON(json: any): void {
-        this.enabled = json.enabled ?? true;
+        this.enabled.value = json.enabled ?? true;
 
         this.color.r.value = json.color.r;
         this.color.g.value = json.color.g;

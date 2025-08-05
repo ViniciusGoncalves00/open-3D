@@ -3,20 +3,11 @@ import { ObservableVector3 } from "../../common/observer/observable-vector3";
 import { Component } from "./abstract/component";
 
 export class Orbit extends Component {
-  private readonly _center: ObservableVector3;
-  public get center(): ObservableVector3 { return this._center; }
-
-  private readonly _distance: ObservableField<number>;
-  public get distance(): ObservableField<number> { return this._distance; }
-
-  private readonly _speed: ObservableField<number>;
-  public get speed(): ObservableField<number> { return this._speed; }
-
-  private readonly _axis: ObservableVector3;
-  public get axis(): ObservableVector3 { return this._axis; }
-
-  public readonly _angle: ObservableField<number> = new ObservableField<number>(0);
-  public get angle(): ObservableField<number> { return this._angle; }
+  public readonly center: ObservableVector3;
+  public readonly distance: ObservableField<number>;
+  public readonly speed: ObservableField<number>;
+  public readonly axis: ObservableVector3;
+  public readonly angle: ObservableField<number> = new ObservableField<number>(0);
 
   constructor(
     center: ObservableVector3 = new ObservableVector3(0, 0, 0),
@@ -25,58 +16,58 @@ export class Orbit extends Component {
     axis: ObservableVector3 = new ObservableVector3(0, 1, 0)
   ) {
     super();
-    this._center = center;
-    this._distance = distance;
-    this._speed = speed;
-    this._axis = axis;
+    this.center = center;
+    this.distance = distance;
+    this.speed = speed;
+    this.axis = axis;
   }
 
   public clone(): Orbit {
     const clone = new Orbit(
-      this._center.clone(),
-      this._distance,
-      this._speed,
-      this._axis.clone()
+      this.center.clone(),
+      this.distance,
+      this.speed,
+      this.axis.clone()
     );
     clone.angle.value = this.angle.value;
-    clone.enabled = this.enabled;
+    clone.enabled.value = this.enabled.value;
     return clone;
   }
 
   public copyFrom(orbit: Orbit): void {
-      this._center.set(orbit.center.x.value, orbit.center.y.value, orbit.center.z.value);
-      this._axis.set(orbit.axis.x.value, orbit.axis.y.value, orbit.axis.z.value);
-      this._distance.value = orbit.distance.value;
-      this._speed.value = orbit.speed.value;
+      this.center.set(orbit.center.x.value, orbit.center.y.value, orbit.center.z.value);
+      this.axis.set(orbit.axis.x.value, orbit.axis.y.value, orbit.axis.z.value);
+      this.distance.value = orbit.distance.value;
+      this.speed.value = orbit.speed.value;
   }
 
   public toJSON() {
     return {
-      enabled: this.enabled,
-      distance: this._distance.value,
-      speed: this._speed.value,
-      angle: this._angle.value,
+      enabled: this.enabled.value,
+      distance: this.distance.value,
+      speed: this.speed.value,
+      angle: this.angle.value,
       center: {
-        x: this._center.x.value,
-        y: this._center.y.value,
-        z: this._center.z.value,
+        x: this.center.x.value,
+        y: this.center.y.value,
+        z: this.center.z.value,
       },
       axis: {
-        x: this._axis.x.value,
-        y: this._axis.y.value,
-        z: this._axis.z.value,
+        x: this.axis.x.value,
+        y: this.axis.y.value,
+        z: this.axis.z.value,
       },
     }
   }
 
   public fromJSON(json: any): void {
-    this.enabled = json.enabled ?? true;
+    this.enabled.value = json.enabled ?? true;
 
-    this._distance.value = json.distance;
-    this._speed.value = json.speed;
-    this._angle.value = json.angle;
-    this._center.set(json.center.x, json.center.y, json.center.z)
-    this._axis.set(json.axis.x, json.axis.y, json.axis.z)
+    this.distance.value = json.distance;
+    this.speed.value = json.speed;
+    this.angle.value = json.angle;
+    this.center.set(json.center.x, json.center.y, json.center.z)
+    this.axis.set(json.axis.x, json.axis.y, json.axis.z)
   }
   
   public destroy(): void {}

@@ -4,17 +4,10 @@ import { ObservableField } from "../../../common/observer/observable-field";
 * Class for represent colors.
 */
 export class Color {
-    private readonly _r: ObservableField<number>;
-    public get r(): ObservableField<number> { return this._r; }
-
-    private readonly _g: ObservableField<number>;
-    public get g(): ObservableField<number> { return this._g; }
-
-    private readonly _b: ObservableField<number>;
-    public get b(): ObservableField<number> { return this._b; }
-    
-    private readonly _a: ObservableField<number>;
-    public get a(): ObservableField<number> { return this._a; }
+    public readonly r: ObservableField<number>;
+    public readonly g: ObservableField<number>;
+    public readonly b: ObservableField<number>;
+    public readonly a: ObservableField<number>;
     
     /**
     * Responsive class to represent colors.
@@ -28,10 +21,10 @@ export class Color {
     * @param a Alpha channel
     */
     private constructor(r: number, g: number, b: number, a: number) {
-        this._r = new ObservableField(r);
-        this._g = new ObservableField(g);
-        this._b = new ObservableField(b);
-        this._a = new ObservableField(a);
+        this.r = new ObservableField(r);
+        this.g = new ObservableField(g);
+        this.b = new ObservableField(b);
+        this.a = new ObservableField(a);
     }
 
     public static create(): Color {

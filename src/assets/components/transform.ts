@@ -9,14 +9,9 @@ import { Entity } from "../../core/api/entity";
 export class Transform extends Component {
   public readonly owner: Entity;
 
-  private readonly _position: ObservableVector3;
-  public get position(): ObservableVector3 { return this._position; }
-
-  private readonly _rotation: ObservableVector3;
-  public get rotation(): ObservableVector3 { return this._rotation; }
-
-  private readonly _scale: ObservableVector3;
-  public get scale(): ObservableVector3 { return this._scale; }
+  public readonly position: ObservableVector3;
+  public readonly rotation: ObservableVector3;
+  public readonly scale: ObservableVector3;
 
   public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
@@ -31,38 +26,38 @@ export class Transform extends Component {
       onRemove: (value) => this.updateLocalMatrix()
     });
 
-    this._position = position;
-    this._rotation = rotation;
-    this._scale = scale;
+    this.position = position;
+    this.rotation = rotation;
+    this.scale = scale;
 
-    this._position.x.subscribe(() => this.updateLocalMatrix());
-    this._position.y.subscribe(() => this.updateLocalMatrix());
-    this._position.z.subscribe(() => this.updateLocalMatrix());
+    this.position.x.subscribe(() => this.updateLocalMatrix());
+    this.position.y.subscribe(() => this.updateLocalMatrix());
+    this.position.z.subscribe(() => this.updateLocalMatrix());
 
-    this._rotation.x.subscribe((value) => {
+    this.rotation.x.subscribe((value) => {
       this.updateLocalMatrix();
-      this._rotation.x.value = value % 360;
+      this.rotation.x.value = value % 360;
     });
-    this._rotation.y.subscribe((value) => {
+    this.rotation.y.subscribe((value) => {
       this.updateLocalMatrix();
-      this._rotation.y.value = value % 360;
+      this.rotation.y.value = value % 360;
     });
-    this._rotation.z.subscribe((value) => {
+    this.rotation.z.subscribe((value) => {
       this.updateLocalMatrix();
-      this._rotation.z.value = value % 360;
+      this.rotation.z.value = value % 360;
     });
 
-    this._scale.x.subscribe(() => this.updateLocalMatrix());
-    this._scale.y.subscribe(() => this.updateLocalMatrix());
-    this._scale.z.subscribe(() => this.updateLocalMatrix());
+    this.scale.x.subscribe(() => this.updateLocalMatrix());
+    this.scale.y.subscribe(() => this.updateLocalMatrix());
+    this.scale.z.subscribe(() => this.updateLocalMatrix());
 
     this.updateLocalMatrix();
   }
 
   public updateLocalMatrix(): void {
-    const translation = vector3.fromValues(this._position.x.value, this._position.y.value, this._position.z.value);
-    const rotation = vector3.fromValues(this._rotation.x.value, this._rotation.y.value, this._rotation.z.value);
-    const scale = vector3.fromValues(this._scale.x.value, this._scale.y.value, this._scale.z.value);
+    const translation = vector3.fromValues(this.position.x.value, this.position.y.value, this.position.z.value);
+    const rotation = vector3.fromValues(this.rotation.x.value, this.rotation.y.value, this.rotation.z.value);
+    const scale = vector3.fromValues(this.scale.x.value, this.scale.y.value, this.scale.z.value);
     
     const q = quaternion.create();
     quaternion.fromEuler(q, rotation[0], rotation[1], rotation[2]);
@@ -107,45 +102,45 @@ export class Transform extends Component {
     const euler = vector3.create();
     quatToEulerXYZ?.(euler, r);
 
-    this._position.set(t[0], t[1], t[2]);
-    this._rotation.set(euler[0], euler[1], euler[2]);
-    this._scale.set(s[0], s[1], s[2]);
+    this.position.set(t[0], t[1], t[2]);
+    this.rotation.set(euler[0], euler[1], euler[2]);
+    this.scale.set(s[0], s[1], s[2]);
   }
 
   public clone(): Transform {
     const clone = new Transform(
       this.owner,
-      this._position.clone(),
-      this._rotation.clone(),
-      this._scale.clone()
+      this.position.clone(),
+      this.rotation.clone(),
+      this.scale.clone()
     );
-    clone.enabled = this.enabled;
+    clone.enabled.value = this.enabled.value;
     return clone;
   }
 
   public copyFrom(transform: Transform): void {
-    this._position.setFromVector(transform.position);
-    this._rotation.setFromVector(transform.rotation);
-    this._scale.setFromVector(transform.scale);
+    this.position.setFromVector(transform.position);
+    this.rotation.setFromVector(transform.rotation);
+    this.scale.setFromVector(transform.scale);
   }
 
   public toJSON() {
     return {
-      enabled: this.enabled,
+      enabled: this.enabled.value,
       position: {
-        x: this._position.x.value,
-        y: this._position.y.value,
-        z: this._position.z.value,
+        x: this.position.x.value,
+        y: this.position.y.value,
+        z: this.position.z.value,
       },
       rotation: {
-        x: this._rotation.x.value,
-        y: this._rotation.y.value,
-        z: this._rotation.z.value,
+        x: this.rotation.x.value,
+        y: this.rotation.y.value,
+        z: this.rotation.z.value,
       },
       scale: {
-        x: this._scale.x.value,
-        y: this._scale.y.value,
-        z: this._scale.z.value,
+        x: this.scale.x.value,
+        y: this.scale.y.value,
+        z: this.scale.z.value,
       },
     };
   }
@@ -155,7 +150,7 @@ export class Transform extends Component {
     this.rotation.set(json.rotation.x, json.rotation.y, json.rotation.z)
     this.scale.set(json.scale.x, json.scale.y, json.scale.z)
 
-    this.enabled = json.enabled ?? true;
+    this.enabled.value = json.enabled ?? true;
   }
 
   public destroy(): void {

@@ -1,5 +1,7 @@
+import { ObservableField } from "../../../common/observer/observable-field";
+
 export abstract class Component {
-    public enabled: boolean = true;
+    public readonly enabled: ObservableField<boolean> = new ObservableField(true);
     public abstract clone(): Component;
     public abstract copyFrom(component: Component): void;
     public abstract toJSON(): any;
