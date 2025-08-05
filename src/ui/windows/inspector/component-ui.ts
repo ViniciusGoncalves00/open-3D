@@ -10,6 +10,7 @@ import { Dropdown, DropdownItem } from "../components/dropdown";
 import { Engine } from "../../../core/engine/engine";
 import { Entity } from "../../../core/api/entity";
 import { getInspectableProperties } from "../../../common/reflection/reflection";
+import { Color } from "../../../assets/components/abstract/color";
 
 export class ComponentUI {
     private _engine: Engine;
@@ -72,98 +73,94 @@ export class ComponentUI {
     }
 
     private buildBodyElement(component: Component): HTMLElement {
-        const componentBody = document.createElement('div');
-        componentBody.className = 'w-full flex-none flex flex-col p-2 space-y-1';
-
-        if(component instanceof Mesh) {
-            const row = document.createElement('div');
-            row.className = 'w-full flex items-start justify-center';
-            componentBody.appendChild(row);
-
-            PropertyBuilder.buildMeshProperty(row);
-        }
-
         const propertyNames = getInspectableProperties(component);
+        const template = document.createElement('template');
 
-
-for (const propertyName of propertyNames) {
-    const row = document.createElement('div');
-    row.className = 'w-full flex items-start justify-center max-h-64 overflow-auto';
-    componentBody.appendChild(row);
-
-    const fieldNameColumn = document.createElement('div');
-    fieldNameColumn.className = 'w-1/4 h-full font-medium text-sm';
-    fieldNameColumn.textContent = propertyName;
-    row.appendChild(fieldNameColumn);
-
-    const fieldContentColumn = document.createElement('div');
-    fieldContentColumn.className = 'w-3/4 flex';
-    row.appendChild(fieldContentColumn);
-
-    let property = (component as any)[propertyName];
-
-    if (property instanceof ObservableList) {
-        fieldContentColumn.classList.add("space-y-1", "flex-col");
-
-        if (property.items[0] instanceof ObservableVector3)
-            PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn);
-        else if (typeof property.items[0].value === 'number')
-            PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
-    }
-    else {
-        if (property instanceof ObservableVector3)
-            PropertyBuilder.buildVector3Property(property, fieldContentColumn);
-        else if (property instanceof ObservableField) {
-            const value = property.value;
-
-            if (typeof value === 'number')
-                PropertyBuilder.buildNumberProperty(property, fieldContentColumn);
-            else if (typeof value === 'string')
-                PropertyBuilder.buildStringProperty(property, fieldContentColumn);
+        let fieldsHTML = '';
+        for (const propertyName of propertyNames) {
+            fieldsHTML += `
+                <div class="w-full flex items-start justify-center max-h-64 overflow-auto">
+                    <div class="w-1/4 h-full font-medium text-sm">${propertyName}</div>
+                    <div class="w-3/4 flex" data-property="${propertyName}"></div>
+                </div>
+            `;
         }
-        else if (propertyName === "parent") {
-            const entitiesRepresentation: DropdownItem[] = [];
 
-            entitiesRepresentation.push({
-                label: "None",
-                action: () => (component as any)[propertyName] = null,
-            });
+        template.innerHTML = `
+            <div class="w-full flex-none flex flex-col p-2 space-y-1">
+                ${fieldsHTML}
+            </div>
+        `.trim();
 
-            const scene = this._engine.currentProject.value?.activeScene.value;
-            if (!scene) continue;
+        for (const propertyName of propertyNames) {
+            const property = (component as any)[propertyName];
+            const fieldContentColumn = template.content.querySelector(`[data-property="${propertyName}"]`) as HTMLElement | null;
+            if (!fieldContentColumn) continue;
 
-            const selectedId = this._entityHandler.selectedEntity.value?.id;
+            if (propertyName === "parent") {
+                const entitiesRepresentation: DropdownItem[] = [];
 
-            const appendEntitiesRecursively = (entity: Entity, depth: number = 0): void => {
-                if (entity.id === selectedId) return;
-
-                const transform = entity.getComponent(Transform);
-                if (!transform) return;
-
-                const indent = "  ".repeat(depth);
                 entitiesRepresentation.push({
-                    label: `${indent}${entity.name.value}`,
-                    action: () => (component as any)[propertyName] = entity,
+                    label: "None",
+                    action: () => (component as any)[propertyName] = null,
                 });
 
-                for (const child of entity.children.items) {
-                    appendEntitiesRecursively(child, depth + 1);
-                }
-            };
+                const scene = this._engine.currentProject.value?.activeScene.value;
+                if (!scene) continue;
 
-            for (const rootEntity of scene.children.items) {
-                appendEntitiesRecursively(rootEntity);
+                const selectedId = this._entityHandler.selectedEntity.value?.id;
+
+                const appendEntitiesRecursively = (entity: Entity, depth: number = 0): void => {
+                    if (entity.id === selectedId) return;
+                    const transform = entity.getComponent(Transform);
+                    if (!transform) return;
+
+                    const indent = "  ".repeat(depth);
+                    entitiesRepresentation.push({
+                        label: `${indent}${entity.name.value}`,
+                        action: () => (component as any)[propertyName] = entity,
+                    });
+
+                    for (const child of entity.children.items) {
+                        appendEntitiesRecursively(child, depth + 1);
+                    }
+                };
+
+                for (const rootEntity of scene.children.items) {
+                    appendEntitiesRecursively(rootEntity);
+                }
+
+                const initialValue = property ? property.name.value : "None";
+                const dropdown = new Dropdown(entitiesRepresentation, initialValue);
+                fieldContentColumn.appendChild(dropdown.getElement());
+                continue;
             }
 
-            const initialValue = property ? property.name.value : "None";
-
-            const dropdown = new Dropdown(entitiesRepresentation, initialValue);
-            fieldContentColumn.appendChild(dropdown.getElement());
+            const value = property?.value;
+            if (property instanceof ObservableVector3) {
+                PropertyBuilder.buildVector3Property(property, fieldContentColumn);
+            } else if (property instanceof ObservableField) {
+                if (typeof value === 'number') {
+                    PropertyBuilder.buildNumberProperty(property, fieldContentColumn);
+                } else if (typeof value === 'string') {
+                    PropertyBuilder.buildStringProperty(property, fieldContentColumn);
+                }
+            } else if (property instanceof Color) {
+                fieldContentColumn.classList.add("space-x-1");
+                PropertyBuilder.buildNumberProperty(property.r, fieldContentColumn);
+                PropertyBuilder.buildNumberProperty(property.g, fieldContentColumn);
+                PropertyBuilder.buildNumberProperty(property.b, fieldContentColumn);
+                PropertyBuilder.buildNumberProperty(property.a, fieldContentColumn);
+            } else if (property instanceof ObservableList) {
+                fieldContentColumn.classList.add("space-y-1", "flex-col");
+                if (property.items[0] instanceof ObservableVector3) {
+                    PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn);
+                } else if (typeof property.items[0]?.value === 'number') {
+                    PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
+                }
+            }
         }
-    }
-}
 
-
-        return componentBody;
+        return template.content.firstElementChild as HTMLElement;
     }
 }
