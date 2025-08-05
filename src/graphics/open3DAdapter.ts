@@ -331,16 +331,12 @@ export class Open3DAdapter implements IGraphicEngine {
         const globalIlluminationIntensity = 0.1;
 
         for (let i = 0; i < numVertices; i++) {
-          const t = i / numVertices;
-          // const r = t % 2 == 0 ? 0 : t / 3;
-          // const g = t % 2 == 0 ? 0 : t / 3;
-          // const b = t % 2 == 0 ? 0 : t;
           const normal = normals[i]
           const dot = vec3.dot(sunDirection, normal);
-          const intensity = Math.max(0, dot);
-          let r = intensity * t % 2 == 0 ? 0 : t / 3;
-          let g = intensity * t % 2 == 0 ? 0 : t / 3;
-          let b = intensity * t % 2 == 0 ? 0 : t;
+          const intensity = Math.max(0, dot) * directionalLight!.intensity.value;
+          let r = intensity * directionalLight!.color.r.value;
+          let g = intensity * directionalLight!.color.g.value;
+          let b = intensity * directionalLight!.color.b.value;
           r = Math.min(r + globalIlluminationIntensity, 1);
           g = Math.min(g + globalIlluminationIntensity, 1);
           b = Math.min(b + globalIlluminationIntensity, 1);
