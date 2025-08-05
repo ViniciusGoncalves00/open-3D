@@ -3,20 +3,19 @@ import { Color } from "./abstract/color";
 import { Light } from "./abstract/light";
 
 export class DirectionalLight extends Light {
-    private readonly _direction: ObservableVector3;
-    public get direction(): ObservableVector3 { return this._direction; }
+    public readonly direction: ObservableVector3;
 
     public constructor(color: Color = Color.from01(1, 1, 1, 1), intensity: number = 1.0, direction: ObservableVector3 = new ObservableVector3(0, -1, 0)) {
         super(color, intensity);
 
-        this._direction = direction;
+        this.direction = direction;
     }
 
      public clone(): DirectionalLight {
         const cloned = new DirectionalLight(
             Color.from01(this.color.r.value, this.color.g.value, this.color.b.value, this.color.a.value),
             this.intensity.value,
-            this._direction.clone()
+            this.direction.clone()
         );
         cloned.enabled.value = this.enabled.value;
         return cloned;
@@ -29,7 +28,7 @@ export class DirectionalLight extends Light {
         this.color.a.value = component.color.a.value;
 
         this.intensity.value = component.intensity.value;
-        this._direction.set(
+        this.direction.set(
             component.direction.x.value,
             component.direction.y.value,
             component.direction.z.value
