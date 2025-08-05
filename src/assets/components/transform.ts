@@ -5,16 +5,17 @@ import { vec3 as vector3 } from "gl-matrix";
 import { quat as quaternion } from "gl-matrix";
 import { ObservableMatrix4 } from "../../common/observer/observable-matrix4";
 import { Entity } from "../../core/api/entity";
+import { HideInInspector } from "../../common/reflection/reflection";
 
 export class Transform extends Component {
-  public readonly owner: Entity;
+  @HideInInspector public readonly owner: Entity;
 
   public readonly position: ObservableVector3;
   public readonly rotation: ObservableVector3;
   public readonly scale: ObservableVector3;
-
-  public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
-  public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
+  
+  @HideInInspector public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
+  @HideInInspector public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
   constructor(owner: Entity, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
     super();
