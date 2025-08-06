@@ -55,6 +55,8 @@ export class ComponentUI {
             toggleIcon.classList.toggle('bi-caret-right-fill', isHidden);
         });
 
+        toggle.click();
+
         const title = document.createElement('p');
         head.appendChild(title);
         title.textContent = component.constructor.name;
