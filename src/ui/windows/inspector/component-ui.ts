@@ -154,9 +154,9 @@ export class ComponentUI {
             } else if (property instanceof ObservableList) {
                 fieldContentColumn.classList.add("space-y-1", "flex-col");
                 if (property.items[0] instanceof ObservableVector3) {
-                    PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn);
+                    // PropertyBuilder.buildArrayVector3Property(property, fieldContentColumn);
                 } else if (typeof property.items[0]?.value === 'number') {
-                    PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
+                    // PropertyBuilder.buildArrayNumberProperty(property, fieldContentColumn);
                 }
             }
         }
