@@ -1,3 +1,4 @@
+import { Color } from "../../../assets/components/abstract/color";
 import { Mesh } from "../../../assets/components/mesh";
 import { ObservableField } from "../../../common/observer/observable-field";
 import { Dropdown } from "./dropdown";
@@ -38,6 +39,38 @@ export class FieldBuilder {
         // };
 
         field.value = observablefield.value.toString();
+        return field;
+    }
+
+    public static buildRGBField(color: Color): HTMLElement {
+        const field = document.createElement("input");
+        field.type = "color";
+        field.className = "w-full rounded";
+        field.value = Color.toHex(color);
+
+        color.r.subscribe(() => field.value = Color.toHex(color));
+        color.g.subscribe(() => field.value = Color.toHex(color));
+        color.b.subscribe(() => field.value = Color.toHex(color));
+
+        field.oninput = () => {
+            color.fromHex(field.value);
+        };
+
+        return field;
+    }
+
+    public static buildBooleanField(observablefield: ObservableField<boolean>): HTMLElement {
+        const field = document.createElement("input");
+        field.type = "checkbox";
+        field.checked = observablefield.value;
+        field.className = "";
+
+        observablefield.subscribe(checked => field.checked = checked);
+
+        field.oninput = () => {
+            observablefield.value = field.checked;
+        }
+
         return field;
     }
 

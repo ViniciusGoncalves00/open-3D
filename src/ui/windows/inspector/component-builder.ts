@@ -1,4 +1,4 @@
-import { Mesh } from "../../../assets/components/mesh";
+import { Color } from "../../../assets/components/abstract/color";
 import { ObservableField } from "../../../common/observer/observable-field";
 import { ObservableList } from "../../../common/observer/observable-list";
 import { ObservableVector3 } from "../../../common/observer/observable-vector3";
@@ -12,6 +12,18 @@ export class PropertyBuilder {
 
     public static buildStringProperty(property: ObservableField<string>, field: HTMLElement): void {
         const input = FieldBuilder.buildStringField(property)
+        field.appendChild(input);
+    }
+
+    public static buildColorProperty(property: Color, field: HTMLElement): void {
+        const rgb = FieldBuilder.buildRGBField(property);
+        const opacity = FieldBuilder.buildNumberField(property.a);
+        field.appendChild(rgb);
+        field.appendChild(opacity);
+    }
+
+    public static buildBooleanProperty(property: ObservableField<boolean>, field: HTMLElement): void {
+        const input = FieldBuilder.buildBooleanField(property)
         field.appendChild(input);
     }
 

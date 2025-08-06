@@ -144,13 +144,11 @@ export class ComponentUI {
                     PropertyBuilder.buildNumberProperty(property, fieldContentColumn);
                 } else if (typeof value === 'string') {
                     PropertyBuilder.buildStringProperty(property, fieldContentColumn);
+                }   else if (typeof value === 'boolean') {
+                    PropertyBuilder.buildBooleanProperty(property, fieldContentColumn);
                 }
             } else if (property instanceof Color) {
-                fieldContentColumn.classList.add("space-x-1");
-                PropertyBuilder.buildNumberProperty(property.r, fieldContentColumn);
-                PropertyBuilder.buildNumberProperty(property.g, fieldContentColumn);
-                PropertyBuilder.buildNumberProperty(property.b, fieldContentColumn);
-                PropertyBuilder.buildNumberProperty(property.a, fieldContentColumn);
+                PropertyBuilder.buildColorProperty(property, fieldContentColumn);
             } else if (property instanceof ObservableList) {
                 fieldContentColumn.classList.add("space-y-1", "flex-col");
                 if (property.items[0] instanceof ObservableVector3) {
