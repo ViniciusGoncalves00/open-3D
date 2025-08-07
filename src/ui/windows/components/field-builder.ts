@@ -8,7 +8,7 @@ export class FieldBuilder {
         const field = document.createElement("input");
         field.type = "number";
         field.step = "1";
-        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded";
+        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded focus:outline-none no-spinner";
 
         observablefield.subscribe(value => field.value = value.toString());
 
@@ -45,7 +45,7 @@ export class FieldBuilder {
     public static buildRGBField(color: Color): HTMLElement {
         const field = document.createElement("input");
         field.type = "color";
-        field.className = "w-full rounded";
+        field.className = "w-full";
         field.value = Color.toHex(color);
 
         color.r.subscribe(() => field.value = Color.toHex(color));

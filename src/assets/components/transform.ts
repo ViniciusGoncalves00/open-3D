@@ -4,8 +4,8 @@ import { mat4 as matrix4 } from "gl-matrix";
 import { vec3 as vector3 } from "gl-matrix";
 import { quat as quaternion } from "gl-matrix";
 import { ObservableMatrix4 } from "../../common/observer/observable-matrix4";
-import { Entity } from "../../core/api/entity";
 import { HideInInspector } from "../../common/reflection/reflection";
+import type { Entity } from "../../core/api/entity";
 
 export class Transform extends Component {
   @HideInInspector public readonly owner: Entity;
@@ -21,10 +21,10 @@ export class Transform extends Component {
     super();
 
     this.owner = owner;
-    this.owner.parent.subscribe(newParent => this.updateLocalMatrix());
+    this.owner.parent.subscribe(() => this.updateLocalMatrix());
     this.owner.children.subscribe({
-      onAdd: (value) => this.updateLocalMatrix(),
-      onRemove: (value) => this.updateLocalMatrix()
+      onAdd: () => this.updateLocalMatrix(),
+      onRemove: () => this.updateLocalMatrix()
     });
 
     this.position = position;

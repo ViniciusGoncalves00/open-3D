@@ -16,8 +16,15 @@ export class PropertyBuilder {
     }
 
     public static buildColorProperty(property: Color, field: HTMLElement): void {
+        field.classList.add("space-x-1")
         const rgb = FieldBuilder.buildRGBField(property);
+        rgb.classList.replace("w-full", "w-4/5");
         const opacity = FieldBuilder.buildNumberField(property.a);
+        opacity.classList.replace("w-full", "w-1/5");
+        opacity.classList.add("text-center");
+        opacity.min = "0";
+        opacity.step = "0.1";
+        opacity.max = "1";
         field.appendChild(rgb);
         field.appendChild(opacity);
     }
@@ -41,6 +48,31 @@ export class PropertyBuilder {
             axisName.className = 'w-6 flex-none text-center';
 
             const input = FieldBuilder.buildNumberField(property[axis])
+            input.min = "-1";
+            input.step = "0.1";
+            input.max = "1";
+            field.appendChild(input);
+            inputs.push(input)
+        }
+    }
+
+    public static buildNormalizedVector3Property(property: ObservableVector3, field: HTMLElement): void {
+        const inputs: HTMLInputElement[] = []
+        field.classList.add('gap-1');
+
+        for (const axis of ['x', 'y', 'z'] as const) {
+            const axisWrapper = document.createElement('div');
+            axisWrapper.className = "w-1/3 flex";
+
+            const axisName = document.createElement('div');
+            axisWrapper.appendChild(axisName);
+            axisName.textContent = axis;
+            axisName.className = 'w-6 flex-none text-center';
+
+            const input = FieldBuilder.buildNumberField(property[axis])
+            input.min = "-1";
+            input.step = "0.1";
+            input.max = "1";
             field.appendChild(input);
             inputs.push(input)
         }
@@ -77,6 +109,9 @@ export class PropertyBuilder {
                 axisWrapper.appendChild(axisName);
             
                 const input = FieldBuilder.buildNumberField(vector[axis]);
+                input.min = "-1";
+                input.step = "0.1";
+                input.max = "1";
                 axisWrapper.appendChild(input);
             
                 vectorRow.appendChild(axisWrapper);
