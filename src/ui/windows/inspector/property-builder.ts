@@ -3,6 +3,7 @@ import { ObservableField } from "../../../common/observer/observable-field";
 import { ObservableList } from "../../../common/observer/observable-list";
 import { ObservableVector3 } from "../../../common/observer/observable-vector3";
 import { FieldBuilder } from "../components/field-builder";
+import { InputOptions } from "./options";
 
 export class PropertyBuilder {
     public static buildNumberProperty(property: ObservableField<number>, field: HTMLElement): void {
@@ -34,24 +35,44 @@ export class PropertyBuilder {
         field.appendChild(input);
     }
 
-    public static buildVector3Property(property: ObservableVector3, field: HTMLElement): void {
+    public static buildVector3Property(property: ObservableVector3, field: HTMLElement, options?: InputOptions): void {
         const inputs: HTMLInputElement[] = []
         field.classList.add('gap-1');
 
         for (const axis of ['x', 'y', 'z'] as const) {
             const axisWrapper = document.createElement('div');
-            axisWrapper.className = "w-1/3 flex";
+            axisWrapper.className = "w-1/3 px-1.5 py-0.5 space-x-1 text-xs flex items-center outline outline-zinc-500";
 
+            // const input = FieldBuilder.buildNumberField(property[axis])
+
+            const observablefield = property[axis];
+            const input = document.createElement("input");
+            input.type = "number";
+            input.step = "1";
+            input.className = "w-full focus:outline no-spinner";
+
+            observablefield.subscribe(value => input.value = value.toString());
+
+            field.oninput = () => {
+              const value = parseFloat(input.value);
+              if (!isNaN(value)) {
+                observablefield.value = value;
+              }
+            };
+
+            input.value = observablefield.value.toString();
+
+            input.min = options?.min || (-Infinity).toString();
+            input.step = options?.step || "any";
+            input.max = options?.max || (Infinity).toString();
+            axisWrapper.appendChild(input);
+            
             const axisName = document.createElement('div');
+            axisName.textContent = axis.toUpperCase();
+            axisName.className = 'flex-none flex items-center';
             axisWrapper.appendChild(axisName);
-            axisName.textContent = axis;
-            axisName.className = 'w-6 flex-none text-center';
 
-            const input = FieldBuilder.buildNumberField(property[axis])
-            input.min = "-1";
-            input.step = "0.1";
-            input.max = "1";
-            field.appendChild(input);
+            field.appendChild(axisWrapper);
             inputs.push(input)
         }
     }

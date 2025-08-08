@@ -27,7 +27,7 @@ export class FieldBuilder {
         const field = document.createElement("input");
         field.type = "text";
         field.step = "0.1";
-        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded";
+        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded truncate";
 
         observablefield.subscribe((value: any) => field.value = value.toString());
 
@@ -42,7 +42,7 @@ export class FieldBuilder {
         return field;
     }
 
-    public static buildRGBField(color: Color): HTMLElement {
+    public static buildRGBField(color: Color): HTMLInputElement {
         const field = document.createElement("input");
         field.type = "color";
         field.className = "w-full";
@@ -59,7 +59,7 @@ export class FieldBuilder {
         return field;
     }
 
-    public static buildBooleanField(observablefield: ObservableField<boolean>): HTMLElement {
+    public static buildBooleanField(observablefield: ObservableField<boolean>): HTMLInputElement {
         const field = document.createElement("input");
         field.type = "checkbox";
         field.checked = observablefield.value;

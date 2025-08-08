@@ -116,7 +116,7 @@ export class Inspector {
     row_id.appendChild(labelColumn);
     
     const inputColumn = document.createElement('div');
-    inputColumn.className = 'w-3/4 flex';
+    inputColumn.className = 'w-3/4 flex truncate';
     inputColumn.textContent = entity.id;
     row_id.appendChild(inputColumn);
 

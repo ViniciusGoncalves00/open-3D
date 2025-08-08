@@ -31,7 +31,7 @@ export class Builder {
     public static section(title: string, icon: Icons): HTMLElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id="${title}" class="tab-body max-h-full flex flex-col">
+            <div id="${title}" class="bg-zinc-800 text-white min-w-80 w-full max-w-full min-h-32 h-full max-h-full flex flex-col text-sm">
                 <div data-role="header" class="title-bar tab-title cursor-grab">
                     <i class="${icon}"></i>
                     <p>${title}</p>

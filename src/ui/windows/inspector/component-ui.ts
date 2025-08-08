@@ -3,7 +3,7 @@ import { Mesh } from "../../../assets/components/mesh";
 import { ObservableVector3 } from "../../../common/observer/observable-vector3";
 import { ObservableField } from "../../../common/observer/observable-field";
 import { EntityHandler } from "../../others/entity-handler";
-import { PropertyBuilder } from "./component-builder";
+import { PropertyBuilder } from "./property-builder";
 import { ObservableList } from "../../../common/observer/observable-list";
 import { Transform } from "../../../assets/components/transform";
 import { Dropdown, DropdownItem } from "../components/dropdown";
@@ -82,7 +82,7 @@ export class ComponentUI {
         for (const propertyName of propertyNames) {
             fieldsHTML += `
                 <div class="w-full flex items-start justify-center max-h-64 overflow-auto">
-                    <div class="w-1/4 h-full font-medium text-sm">${propertyName}</div>
+                    <div class="w-1/4 h-full font-medium text-sm truncate">${propertyName}</div>
                     <div class="w-3/4 flex" data-property="${propertyName}"></div>
                 </div>
             `;
