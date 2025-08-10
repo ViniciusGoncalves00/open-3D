@@ -16,12 +16,18 @@ export class Open3DAdapter implements IGraphicEngine {
     private rendererB: WebGLRenderingContext | null = null;
 
     private directionalLights: DirectionalLight[] = [];
+
+    private gridBuffers: {
+  position: WebGLBuffer | null;
+  color: WebGLBuffer | null;
+  vertexCount: number;
+} | null = null;
     
     public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
       this._engine = engine;
 
-      this.rendererA = canvasA.getContext("webgl");
-      this.rendererB = canvasB.getContext("webgl");
+      this.rendererA = canvasA.getContext("webgl", { antialias: true });
+      this.rendererB = canvasB.getContext("webgl", { antialias: true });
 
       if (this.rendererA === null || this.rendererB === null) {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -111,9 +117,54 @@ export class Open3DAdapter implements IGraphicEngine {
       this.rendererA?.clearColor(color.r, color.g, color.b, color.a)
       this.rendererB?.clearColor(color.r, color.g, color.b, color.a)
     }
-    public setGridHelper(color: { r: number; g: number; b: number; }): void {
-        // throw new Error("Method not implemented.");
-    }
+    public setGridHelper(color: { r: number; g: number; b: number }): void {
+  if (!this.rendererA) return;
+
+  const gl = this.rendererA;
+
+  // Parâmetros da grade
+  const size = 10;  // 10 linhas para cada lado do centro
+  const step = 1;   // espaçamento entre linhas
+
+  const vertices: number[] = [];
+  const colors: number[] = [];
+
+  const halfSize = size * step * 0.5;
+
+  // Linhas paralelas ao eixo X (varia Z)
+  for (let i = -size; i <= size; i++) {
+    // Linha no plano XZ, z=i*step
+    vertices.push(-halfSize, 0, i * step);
+    vertices.push(halfSize, 0, i * step);
+
+    // cor para duas extremidades da linha
+    colors.push(color.r, color.g, color.b, 1);
+    colors.push(color.r, color.g, color.b, 1);
+  }
+
+  // Linhas paralelas ao eixo Z (varia X)
+  for (let i = -size; i <= size; i++) {
+    vertices.push(i * step, 0, -halfSize);
+    vertices.push(i * step, 0, halfSize);
+
+    colors.push(color.r, color.g, color.b, 1);
+    colors.push(color.r, color.g, color.b, 1);
+  }
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+  this.gridBuffers = {
+    position: positionBuffer,
+    color: colorBuffer,
+    vertexCount: vertices.length / 3,
+  };
+}
     public setAxisHelper(color: { r: number; g: number; b: number; }): void {
         // throw new Error("Method not implemented.");
     }
@@ -254,6 +305,44 @@ export class Open3DAdapter implements IGraphicEngine {
       };
 
       drawEntityRecursive(scene);
+
+      if (this.gridBuffers && gl) {
+  gl.useProgram(programInfo.program);
+
+  // ModelView matrix para grid = viewMatrix * identidade (grade no mundo)
+  const modelMatrix = mat4.create();
+  const modelViewMatrix = mat4.create();
+  mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+
+  gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+  gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
+
+  // Configura atributos de posição e cor
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.gridBuffers.position);
+  gl.vertexAttribPointer(
+    programInfo.attribLocations.vertexPosition,
+    3,
+    gl.FLOAT,
+    false,
+    0,
+    0
+  );
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.gridBuffers.color);
+  gl.vertexAttribPointer(
+    programInfo.attribLocations.vertexColor,
+    4,
+    gl.FLOAT,
+    false,
+    0,
+    0
+  );
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+
+  gl.drawArrays(gl.LINES, 0, this.gridBuffers.vertexCount);
+}
+
     }
 
   private setPositionAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
@@ -325,6 +414,7 @@ export class Open3DAdapter implements IGraphicEngine {
 
         const colors: number[] = [];
         const directionalLight = this.directionalLights.find((light) => light !== undefined);
+        if(!directionalLight) return;
         const sunDirection = vec3.fromValues(directionalLight!.direction.x.value, directionalLight!.direction.y.value, directionalLight!.direction.z.value);
         // const sunDirection = vec3.fromValues(1, 1, 1);
         vec3.normalize(sunDirection, sunDirection);

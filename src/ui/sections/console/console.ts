@@ -1,29 +1,24 @@
 import { LogType } from "../../../core/api/enum/log-type";
 import { Log } from "../../../core/api/log";
 import { Utils } from "../../others/utils";
+import { Section } from "../base";
 import { Builder, Icons } from "../builder";
 
-export class Console{
-    public readonly element: HTMLElement;
-
-    private readonly body: HTMLDivElement;
+export class Console extends Section{
     private readonly filterButtons: { button: HTMLButtonElement, type: LogType | null }[] = [];
     private readonly logs: Log[] = [];
 
     private selectedFilter : LogType | null = null;
 
     public constructor() {
-        this.element = Builder.section("Console", Icons.FileText);
-
-        const subHeader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
-        this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
+        super("Console", Icons.FileText);
 
         const createFilterButton = (label: string, type: LogType | null): void => {
             const button = document.createElement("button");
             button.textContent = label;
             button.className = "px-4 py-[2px] hover:bg-zinc-500 hover:outline hover:outline-white/50 hover:z-50 cursor-pointer";
             button.addEventListener("click", () => this.filter(type));
-            subHeader.appendChild(button);
+            this.subHeader.appendChild(button);
             this.filterButtons.push({ button, type });
         };
 
@@ -33,8 +28,6 @@ export class Console{
         createFilterButton("Warning", LogType.Warning);
         createFilterButton("Error",   LogType.Error);
         createFilterButton("Debug",   LogType.Debug);
-
-        Utils.getElementOrFail<HTMLDivElement>("Console").replaceWith(this.element);
     }
 
     public log(message: string, logType: LogType = LogType.Log) {
@@ -56,12 +49,12 @@ export class Console{
             logLine.classList.add("hidden");
         }
     
-        this.body.appendChild(logLine);
-        this.body.scrollTop = this.body.scrollHeight;
+        this.sectionBody.appendChild(logLine);
+        this.sectionBody.scrollTop = this.sectionBody.scrollHeight;
     }
     
     public clear(): void {
-        this.body.innerHTML = "";
+        this.sectionBody.innerHTML = "";
     }
 
     public filter(logType: LogType | null): void {
@@ -79,7 +72,7 @@ export class Console{
 
         const typeText = logType !== null ? `[${LogType[logType]}]` : null;
 
-        this.body.childNodes.forEach(child => {
+        this.sectionBody.childNodes.forEach(child => {
             if (!(child instanceof HTMLElement)) return;
 
             if (!typeText) {

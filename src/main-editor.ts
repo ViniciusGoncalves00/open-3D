@@ -78,30 +78,31 @@ export class Program {
         });
 
         const sceneManager = new SceneManager(engine.currentProject.value);
-        sceneManager.assign(this.leftDetails, this.leftButtons);
         
         // const save = Utils.getElementOrFail<HTMLButtonElement>('save')
         // save.addEventListener("click", () => storage.saveAll(project));
         
-        // const console = new Console();
-        // engine.timeController.isRunning.subscribe((wasStarted => {
-        //         wasStarted ? console.log("Started.") : console.log("Stoped.");
-        //         const project = engine.currentProject.value;
-        //         if(!project) return;
-        //         wasStarted ? storage.saveAll(project) : '';
-        //     }
-        // ))
+        const console = new Console();
 
-        // engine.timeController.isPaused.subscribe((wasPaused => {
-        //         wasPaused ? console.log("Paused.") : console.log("Unpaused.")
-        //     }
-        // ))
+        engine.timeController.isRunning.subscribe((wasStarted => {
+                wasStarted ? console.log("Started.") : console.log("Stoped.");
+                const project = engine.currentProject.value;
+                if(!project) return;
+                wasStarted ? storage.saveAll(project) : '';
+            }
+        ))
+
+        engine.timeController.isPaused.subscribe((wasPaused => {
+                wasPaused ? console.log("Paused.") : console.log("Unpaused.")
+            }
+        ))
 
         const viewport = Utils.getElementOrFail<HTMLElement>('viewport');
         const canvasA = document.createElement("canvas");
+        canvasA.classList = "w-full h-full";
         viewport.appendChild(canvasA);
-        viewport.classList.toggle("hidden")
         const canvasB = document.createElement("canvas");
+        canvasB.classList = "w-full h-full hidden";
         viewport.appendChild(canvasB);
 
         const viewports = new Viewports(canvasA,  canvasB);
@@ -123,8 +124,8 @@ export class Program {
         // observerB.observe(canvasB);
 
         // graphicEngine.setFog({r: 0.02, g: 0.02, b: 0.02}, 0, 100);
-        // graphicEngine.setBackground(GraphicSettings.backgroundColor);
-        // graphicEngine.setGridHelper({r: 0.1, g: 0.1, b: 0.1});
+        graphicEngine.setBackground(GraphicSettings.backgroundColor);
+        graphicEngine.setGridHelper({r: 0.1, g: 0.1, b: 0.1});
 
         graphicEngine.startRender();
 
@@ -133,13 +134,10 @@ export class Program {
 
         const entityHandler = new EntityHandler(scene);
         const hierarchy = new Hierarchy(scene, entityHandler);
-        hierarchy.assign(this.leftDetails, this.leftButtons);
 
         const inspector = new Inspector(engine, entityHandler, hierarchy);
-        inspector.assign(this.rightDetails, this.rightButtons);
         const assets = new Assets();
-        assets.assign(this.leftDetails, this.leftButtons);
-        
+
         const player = new Player(engine.timeController);
         const timescale = new Timescale(engine.time);
         const screen = new Screen(engine.timeController, viewport);
@@ -158,6 +156,14 @@ export class Program {
 //         const autoSaveIntervalInput = this.getElementOrFail<HTMLInputElement>("autoSaveInterval");
 
 //         this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
+
+        hierarchy.assign(this.leftDetails, this.leftButtons);
+        assets.assign(this.leftDetails, this.leftButtons);
+        sceneManager.assign(this.leftDetails, this.leftButtons);
+        
+        inspector.assign(this.rightDetails, this.rightButtons);
+        console.assign(this.rightDetails, this.rightButtons);
+
 
         engine.registerSystem(new RotateSystem());
         engine.registerSystem(new OrbitSystem());

@@ -10,48 +10,48 @@
     </head>
     <body>
         <div class="w-full h-full flex flex-col">
-            <header class="w-full h-8 flex-none">header</header>
-            <main class="relative w-full h-full">
+            <header class="w-full h-8 flex-none outline outline-gray-05"></header>
+            <main class="relative w-full h-[calc(100%-64px)]">
                 <div id="viewport" class="absolute w-full h-full"></div>
                 <div id="overlay" class="relative w-full h-full flex p-2 space-x-2 z-50">
-                    <section id="left" class="w-96 h-full flex">
-                        <div id="leftButtons" class="w-16"></div>
-                        <div id="leftDetails" class="w-full"></div>
+                    <section id="left" class="bg-gray-07 w-96 h-full flex-none flex outline outline-gray-05">
+                        <div id="leftButtons" class="w-16 flex-none"></div>
+                        <div id="leftDetails" class="w-full max-h-full flex flex-col overflow-y-auto"></div>
                     </section>
                     <section id="center" class="w-full h-full flex flex-col">
                         <div id="centerTop" class="w-full h-8 flex justify-center space-x-2">
-                            <div id="player-controls" class="flex space-x-[2px]">
-                                <button id="play" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-square cursor-pointer">
+                            <div id="player-controls" class="flex outline outline-gray-05">
+                                <button id="play" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
                                         <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
                                     </svg>
                                 </button>
-                                <button id="pause" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-square cursor-pointer">
+                                <button id="pause" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
                                         <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5"/>
                                     </svg>
                                 </button>
-                                <button id="stop" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-square cursor-pointer">
+                                <button id="stop" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-stop" viewBox="0 0 16 16">
                                         <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/>
                                     </svg>
                                 </button>
                             </div>
                             
-                            <div id="timescale-controls" class="flex space-x-[2px]">
-                                <button id="speedDown" class="btn btn--time-controller">
+                            <div id="timescale-controls" class="flex outline outline-gray-05">
+                                <button id="speedDown" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <p>0.5x</p>
                                 </button>
-                                <button id="speedNormal" class="btn btn--time-controller">
+                                <button id="speedNormal" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <p>1.0x</p>
                                 </button>
-                                <button id="speedUp" class="btn btn--time-controller">
+                                <button id="speedUp" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <p>2.0x</p>
                                 </button>
                             </div>
                         
-                            <div id="screen-controls" class="flex space-x-[2px]">
-                                <button id="fullScreen" class="btn btn--time-controller">
+                            <div id="screen-controls" class="flex outline outline-gray-05">
+                                <button id="fullScreen" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <i class="bi bi-fullscreen"></i>
                                 </button>
                             </div>
@@ -75,13 +75,13 @@
                             </div> -->
                         </div>
                     </section>
-                    <section id="right" class="w-96 h-full flex">
-                        <div id="rightDetails" class="w-full"></div>
-                        <div id="rightButtons" class="w-16"></div>
+                    <section id="right" class="bg-gray-07 w-96 h-full flex-none flex outline outline-gray-05">
+                        <div id="rightDetails" class="w-full max-h-full flex flex-col overflow-y-auto"></div>
+                        <div id="rightButtons" class="w-16 flex-none "></div>
                     </section>
                 </div>
             </main>
-            <footer class="w-full h-8 flex-none">footer</footer>
+            <footer class="w-full h-8 flex-none outline outline-gray-05"></footer>
         </div>
     </body>
 </html>

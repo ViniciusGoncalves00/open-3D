@@ -31,12 +31,12 @@ export class Builder {
     public static section(title: string, icon: Icons): HTMLDivElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id="${title}" class="bg-zinc-800 text-white w-full min-h-64 max-h-full flex flex-col text-sm">
+            <div id="${title}" class="bg-zinc-800 text-white max-w-full min-h-64 max-h-full flex flex-col text-sm">
                 <div data-role="header" class="title-bar tab-title cursor-grab">
                     <i class="${icon}"></i>
                     <p>${title}</p>
                 </div>
-                <div data-role="subHeader" class="flex items-center justify-start bg-zinc-600">
+                <div data-role="subHeader" class="flex-wrap flex items-center justify-start overflow-hidden bg-zinc-600">
                 </div>
                 <div data-role="body" class="flex-1 overflow-auto"></div>
             </div>

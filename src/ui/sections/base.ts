@@ -9,7 +9,7 @@ export class Section {
     protected subHeader: HTMLDivElement;
     protected sectionBody: HTMLDivElement;
 
-    private visible: boolean = false;
+    private visible: boolean = true;
 
     public constructor(name: string, icon: Icons) {
         this.button = Builder.sectionButton(icon, () => this.toggle());
