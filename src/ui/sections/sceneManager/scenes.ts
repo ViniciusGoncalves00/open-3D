@@ -1,15 +1,13 @@
+import { Section } from "../base";
 import { Entity } from "../../../core/api/entity";
 import { Project } from "../../../core/engine/project";
-import { Utils } from "../../others/utils";
 import { Builder, Icons } from "../builder";
 
-export class SceneManager {
-  public readonly element: HTMLElement;
-
+export class SceneManager extends Section {
   private project: Project;
 
   public constructor(project: Project) {
-    this.element = Builder.section("SceneManager", Icons.Box);
+    super("SceneManager", Icons.Box);
 
     this.project = project;
     
@@ -19,18 +17,14 @@ export class SceneManager {
         window.location.href = `editor.html?projectId=${this.project.id}&sceneId=${scene.id}`;
     }) as HTMLButtonElement;
     
-    const subheader = this.element.querySelector('[data-role="subHeader"]') as HTMLDivElement;
-    subheader.appendChild(newSceneButton);
+    this.subHeader.appendChild(newSceneButton);
 
-    const body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
     this.project.scenes.subscribe({
-        onAdd: () => this.build(body),
-        onRemove: () => this.build(body)
+        onAdd: () => this.build(this.sectionBody),
+        onRemove: () => this.build(this.sectionBody)
     });
 
-    this.build(body);
-
-    Utils.getElementOrFail<HTMLDivElement>("SceneManager").replaceWith(this.element);
+    this.build(this.sectionBody);
   }
 
   private build(container: HTMLElement): void {

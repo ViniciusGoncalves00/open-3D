@@ -28,10 +28,10 @@ export enum Icons {
 }
 
 export class Builder {
-    public static section(title: string, icon: Icons): HTMLElement {
+    public static section(title: string, icon: Icons): HTMLDivElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id="${title}" class="bg-zinc-800 text-white min-w-80 w-full max-w-full min-h-32 h-full max-h-full flex flex-col text-sm">
+            <div id="${title}" class="bg-zinc-800 text-white w-full min-h-64 max-h-full flex flex-col text-sm">
                 <div data-role="header" class="title-bar tab-title cursor-grab">
                     <i class="${icon}"></i>
                     <p>${title}</p>
@@ -41,9 +41,19 @@ export class Builder {
                 <div data-role="body" class="flex-1 overflow-auto"></div>
             </div>
         `.trim();
-        const section = template.content.firstElementChild as HTMLElement;
+        const section = template.content.firstElementChild as HTMLDivElement;
         this.setupDragAndDrop(section);
         return section;
+    }
+
+    public static sectionButton(icon: Icons, callback: () => void): HTMLButtonElement {
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary aspect-square w-full cursor-pointer ${icon}"></button>
+        `.trim();
+        const button = template.content.firstElementChild as HTMLButtonElement;
+        button.addEventListener("click", callback);
+        return button;
     }
 
     public static button(name: string, callback: () => void): HTMLButtonElement {
