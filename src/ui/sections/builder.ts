@@ -3,6 +3,7 @@ export enum Icons {
     ArrowRight = "bi-caret-right-fill",
     Box = "bi bi-box",
     Braces = "bi bi-braces",
+    Close = "bi bi-x",
     Dice3 = "bi bi-dice-3",
     Download = "bi bi-download",
     FileText = "bi bi-file-text",
@@ -28,20 +29,24 @@ export enum Icons {
 }
 
 export class Builder {
-    public static section(title: string, icon: Icons): HTMLDivElement {
+    public static section(title: string, icon: Icons, closeCallback: () => void): HTMLDivElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id="${title}" class="bg-zinc-800 text-white max-w-full min-h-64 max-h-full flex flex-col text-sm">
-                <div data-role="header" class="title-bar tab-title cursor-grab">
-                    <i class="${icon}"></i>
-                    <p>${title}</p>
+            <div id="${title}" class="text-text-primary w-84 min-h-64 max-h-full flex flex-col text-sm outline outline-gray-01">
+                <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center space-x-2 outline outline-gray-01 z-20 select-none">
+                    <i class="h-full aspect-square flex items-center justify-center ${icon}"></i>
+                    <p class="w-full">${title}</p>
+                    <button data-role="close" class="h-full aspect-square cursor-pointer hover:bg-gray-08 ${Icons.Close}"></button>
                 </div>
-                <div data-role="subHeader" class="flex-wrap flex items-center justify-start overflow-hidden bg-zinc-600">
+                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01">
                 </div>
-                <div data-role="body" class="flex-1 overflow-auto"></div>
+                <div data-role="body" class="bg-gray-08 flex-1 overflow-auto"></div>
             </div>
         `.trim();
         const section = template.content.firstElementChild as HTMLDivElement;
+        const closeButton = section.querySelector('[data-role="close"]') as HTMLButtonElement;
+        closeButton.addEventListener("click", closeCallback);
+
         this.setupDragAndDrop(section);
         return section;
     }
@@ -59,7 +64,7 @@ export class Builder {
     public static button(name: string, callback: () => void): HTMLButtonElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <button class="bg-zinc-700 hover:bg-zinc-600 text-white w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">${name}</button>
+            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full h-6 flex items-center justify-center px-2 cursor-pointer truncate">${name}</button>
         `.trim();
         const button = template.content.firstElementChild as HTMLButtonElement;
         button.addEventListener("click", callback);

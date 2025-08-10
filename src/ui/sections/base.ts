@@ -1,6 +1,6 @@
 import { Builder, Icons } from "./builder";
 
-export class Section {
+export abstract class Section {
     private sectionContainer: HTMLElement | null = null;
     private buttonContainer: HTMLElement | null = null;
 
@@ -13,7 +13,7 @@ export class Section {
 
     public constructor(name: string, icon: Icons) {
         this.button = Builder.sectionButton(icon, () => this.toggle());
-        this.section = Builder.section(name, icon);
+        this.section = Builder.section(name, icon, () => this.toggle());
 
         this.subHeader = this.section.querySelector('[data-role="subHeader"]') as HTMLDivElement;
         this.sectionBody = this.section.querySelector('[data-role="body"]') as HTMLDivElement;
