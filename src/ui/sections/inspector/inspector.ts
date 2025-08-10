@@ -1,3 +1,4 @@
+import { Section } from "../base";
 import { Orbit } from "../../../assets/components/orbit";
 import { Rotate } from "../../../assets/components/rotate";
 import { Transform } from "../../../assets/components/transform";
@@ -9,22 +10,18 @@ import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/abstract/component";
 import { Engine } from "../../../core/engine/engine";
 import { Hierarchy } from "../hierarchy/hierarchy";
-import { Builder, Icons } from "../builder";
-import { Utils } from "../../others/utils";
+import { Icons } from "../builder";
 import { DirectionalLight } from "../../../assets/components/directional-light";
 
-export class Inspector {
-  public readonly element: HTMLElement;
-  public readonly body: HTMLElement;
-  
+export class Inspector extends Section {
   private _engine: Engine;
   private _entityHandler: EntityHandler;
   private _hierarchy: Hierarchy;
 
   public constructor(engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
-    this.element = Builder.section("Inspector", Icons.Info);
-    this.body = this.element.querySelector('[data-role="body"]') as HTMLDivElement;
-    this.body.classList.add("space-y-2")
+    super("Inspector", Icons.Info);
+
+    this.sectionBody.classList.add("space-y-2");
 
     this._engine = engine;
     this._entityHandler = entityHandler;
@@ -38,24 +35,23 @@ export class Inspector {
         });
       this.update();
     });
-    Utils.getElementOrFail<HTMLDivElement>("Inspector").replaceWith(this.element);
   }
 
   public update() {
-    this.body.replaceChildren();
+    this.sectionBody.replaceChildren();
     if (!this._entityHandler.selectedEntity.value) return;
 
     const entityWrapper = this.buildEntity(this._entityHandler.selectedEntity.value)
-    this.body.appendChild(entityWrapper)
+    this.sectionBody.appendChild(entityWrapper)
 
     this._entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
       const componentUI = new ComponentUI(this._engine, this._entityHandler, component).container;
-      this.body.appendChild(componentUI);
+      this.sectionBody.appendChild(componentUI);
     });
 
     const row = document.createElement('div');
     row.className = 'w-full flex items-center justify-center px-2';
-    this.body.appendChild(row);
+    this.sectionBody.appendChild(row);
 
     const items = [
         { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(this._entityHandler.selectedEntity.value))},

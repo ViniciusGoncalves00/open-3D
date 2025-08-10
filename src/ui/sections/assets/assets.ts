@@ -1,11 +1,8 @@
-import { Utils } from "../../others/utils";
-import { Builder, Icons } from "../builder";
+import { Section } from "../base";
+import { Icons } from "../builder";
 
-export class Assets{
-    public readonly element: HTMLElement;
-
+export class Assets extends Section{
     public constructor() {
-        this.element = Builder.section("Assets", Icons.Box);
-        Utils.getElementOrFail<HTMLDivElement>("Assets").replaceWith(this.element);
+        super("Assets", Icons.Box);
     }
 }

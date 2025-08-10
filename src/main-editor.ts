@@ -1,3 +1,5 @@
+import { OrbitSystem } from './assets/systems/orbitSystem';
+import { RotateSystem } from './assets/systems/rotateSystem';
 import { Engine } from './core/engine/engine';
 import { Storage } from './database/storage';
 import { GraphicSettings } from './graphics/graphicSettings';
@@ -5,9 +7,14 @@ import { Open3DAdapter } from './graphics/open3DAdapter';
 import './styles.css';
 import { EntityHandler } from './ui/others/entity-handler';
 import { Utils } from './ui/others/utils';
+import { Assets } from './ui/sections/assets/assets';
 import { Icons } from './ui/sections/builder';
 import { Console } from './ui/sections/console/console';
+import { Player } from './ui/sections/controls/player';
+import { Screen } from './ui/sections/controls/screen';
+import { Timescale } from './ui/sections/controls/timescale';
 import { Hierarchy } from './ui/sections/hierarchy/hierarchy';
+import { Inspector } from './ui/sections/inspector/inspector';
 import { SceneManager } from './ui/sections/sceneManager/scenes';
 import { Viewports } from './ui/sections/viewports/viewports';
 import './ui/styles/time-controller.css';
@@ -70,7 +77,8 @@ export class Program {
             onRemove: () => storage.saveProject(engine.currentProject.value)
         });
 
-        const sceneManager = new SceneManager(engine.currentProject.value).assign(this.leftDetails, this.leftButtons);
+        const sceneManager = new SceneManager(engine.currentProject.value);
+        sceneManager.assign(this.leftDetails, this.leftButtons);
         
         // const save = Utils.getElementOrFail<HTMLButtonElement>('save')
         // save.addEventListener("click", () => storage.saveAll(project));
@@ -124,13 +132,17 @@ export class Program {
         if(!scene) return;
 
         const entityHandler = new EntityHandler(scene);
-        const hierarchy = new Hierarchy(scene, entityHandler).assign(this.leftDetails, this.leftButtons);
+        const hierarchy = new Hierarchy(scene, entityHandler);
+        hierarchy.assign(this.leftDetails, this.leftButtons);
 
-        //         this._inspector = new Inspector(this.engine, this.entityHandler, this.hierarchy);
-//         this._assets = new Assets();
-//         this._player = new Player(this.engine.timeController);
-//         this._timescale = new Timescale(this.engine.time);
-//         this._screen = new Screen(this.engine.timeController, this.viewportSceneContainer);
+        const inspector = new Inspector(engine, entityHandler, hierarchy);
+        inspector.assign(this.rightDetails, this.rightButtons);
+        const assets = new Assets();
+        assets.assign(this.leftDetails, this.leftButtons);
+        
+        const player = new Player(engine.timeController);
+        const timescale = new Timescale(engine.time);
+        const screen = new Screen(engine.timeController, viewport);
 
 //         this.fpsContainer = this.getElementOrFail<HTMLElement>('fpsContainer');
 //         this.averageFpsContainer = this.getElementOrFail<HTMLElement>('averageFpsContainer');
@@ -139,9 +151,16 @@ export class Program {
 //         if (this.averageFpsContainer) this.engine.time.averageFramesPerSecond.subscribe(() => this.averageFpsContainer.innerHTML = `${this.engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
 
 
-//         this.initializeSettings();
+        //         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
+//         const open = this.getElementOrFail<HTMLButtonElement>("openSettings");
+//         const close = this.getElementOrFail<HTMLButtonElement>("closeSettings");
+//         const autoSaveEnabledButton = this.getElementOrFail<HTMLButtonElement>("autoSaveEnabled");
+//         const autoSaveIntervalInput = this.getElementOrFail<HTMLInputElement>("autoSaveInterval");
 
-//         this.initializeTEMP();
+//         this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
+
+        engine.registerSystem(new RotateSystem());
+        engine.registerSystem(new OrbitSystem());
 
 //         this.console.log("All right! You can start now!")
     }
