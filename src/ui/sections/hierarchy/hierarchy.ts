@@ -8,7 +8,7 @@ export class Hierarchy extends Section {
     private _entityHandler: EntityHandler;
 
     public constructor(scene: Entity, entityHandler: EntityHandler) {
-        super("Hierarchy", Icons.Nested);
+        super(Hierarchy.name, Icons.Nested);
 
         this._scene = scene;
         this._entityHandler = entityHandler;
