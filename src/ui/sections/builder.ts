@@ -1,3 +1,5 @@
+import { ObservableField } from "../../common/observer/observable-field";
+
 export enum Icons {
     ArrowDown = "bi-caret-down-fill",
     ArrowRight = "bi-caret-right-fill",
@@ -69,13 +71,15 @@ export class Builder {
         return section;
     }
 
-    public static sectionButton(icon: Icons, callback: () => void): HTMLButtonElement {
+    public static sectionButton(icon: Icons, highLightCondition: ObservableField<boolean>, callback: () => void): HTMLButtonElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer ${icon}"></button>
+            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer text-xs hover:text-sm ${icon}"></button>
         `.trim();
         const button = template.content.firstElementChild as HTMLButtonElement;
         button.addEventListener("click", callback);
+        button.classList.toggle("bg-gray-09");
+        highLightCondition.subscribe(() => button.classList.toggle("bg-gray-09"))
         return button;
     }
 

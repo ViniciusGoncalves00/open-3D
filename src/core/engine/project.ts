@@ -1,3 +1,5 @@
+import { DirectionalLight } from "../../assets/components/directional-light";
+import { Transform } from "../../assets/components/transform";
 import { ObservableField } from "../../common/observer/observable-field";
 import { ObservableList } from "../../common/observer/observable-list";
 import { Entity } from "../api/entity";
@@ -68,6 +70,12 @@ export class Project {
         scene.name.value = name;
 
         this.scenes.add(scene);
+
+        const light = new Entity(crypto.randomUUID());
+        light.name.value = "Directional Light";
+        light.addComponent(new DirectionalLight());
+        scene.children.add(light);
+
         return scene;
     }
 

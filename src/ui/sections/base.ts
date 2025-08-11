@@ -1,3 +1,4 @@
+import { ObservableField } from "../../common/observer/observable-field";
 import { Builder, Icons } from "./builder";
 
 export abstract class Section {
@@ -9,11 +10,11 @@ export abstract class Section {
     protected subHeader: HTMLDivElement;
     protected sectionBody: HTMLDivElement;
 
-    private visible: boolean = true;
-    private pinned: boolean = false;
+    private visible: ObservableField<boolean> = new ObservableField(true);
+    private pinned: ObservableField<boolean> = new ObservableField(false);
 
     public constructor(name: string, icon: Icons) {
-        this.button = Builder.sectionButton(icon, () => this.toggle());
+        this.button = Builder.sectionButton(icon, this.visible, () => this.toggle());
         this.section = Builder.section(name, icon, () => this.toggle(), () => this.pin());
 
         this.subHeader = this.section.querySelector('[data-role="subHeader"]') as HTMLDivElement;
@@ -21,18 +22,18 @@ export abstract class Section {
     }
 
     public toggle(): void {
-        if(this.pinned) return;
-        
-        this.visible = !this.visible;
-        this.visible ? this.sectionContainer?.appendChild(this.section) : this.sectionContainer?.removeChild(this.section);
+        if(this.pinned.value) return;
+
+        this.visible.value = !this.visible.value;
+        this.visible.value ? this.sectionContainer?.appendChild(this.section) : this.sectionContainer?.removeChild(this.section);
     }
 
     public pin(): void {
-        this.pinned = !this.pinned;
+        this.pinned.value = !this.pinned.value;
     }
 
     public assign(sectionContainer: HTMLElement, buttonContainer: HTMLElement): void {
-        if(this.pinned) return;
+        if(this.pinned.value) return;
 
         this.buttonContainer?.removeChild(this.button);
         this.sectionContainer?.removeChild(this.section);
@@ -41,6 +42,6 @@ export abstract class Section {
         this.buttonContainer = buttonContainer;
 
         this.buttonContainer.appendChild(this.button);
-        if(this.visible) this.sectionContainer?.appendChild(this.section);
+        if(this.visible.value) this.sectionContainer?.appendChild(this.section);
     }
 }
