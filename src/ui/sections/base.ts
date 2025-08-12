@@ -14,7 +14,7 @@ export abstract class Section {
     private pinned: ObservableField<boolean> = new ObservableField(false);
 
     public constructor(name: string, icon: Icons) {
-        this.button = Builder.sectionButton(icon, this.visible, () => this.toggle());
+        this.button = Builder.sectionButton(icon, () => this.toggle(), this.visible);
         this.section = Builder.section(name, icon, () => this.toggle(), () => this.pin());
 
         this.subHeader = this.section.querySelector('[data-role="subHeader"]') as HTMLDivElement;

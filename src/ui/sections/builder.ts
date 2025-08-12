@@ -71,15 +71,23 @@ export class Builder {
         return section;
     }
 
-    public static sectionButton(icon: Icons, highLightCondition: ObservableField<boolean>, callback: () => void): HTMLButtonElement {
+    public static sectionButton(icon: Icons, callback: () => void, highLightCondition?: ObservableField<boolean>): HTMLButtonElement {
         const template = document.createElement('template');
         template.innerHTML = `
             <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer text-xs hover:text-sm ${icon}"></button>
         `.trim();
         const button = template.content.firstElementChild as HTMLButtonElement;
         button.addEventListener("click", callback);
-        button.classList.toggle("bg-gray-09");
-        highLightCondition.subscribe(() => button.classList.toggle("bg-gray-09"))
+        if(highLightCondition?.value) {
+            button.classList.toggle("bg-gray-09");
+            button.classList.toggle("border");
+            button.classList.toggle("border-gray-01");
+        } 
+        highLightCondition?.subscribe(() => {
+            button.classList.toggle("bg-gray-09");
+            button.classList.toggle("border");
+            button.classList.toggle("border-gray-01");
+        })
         return button;
     }
 

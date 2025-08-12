@@ -159,10 +159,11 @@ export class Program {
 
         hierarchy.assign(this.leftDetails, this.leftButtons);
         assets.assign(this.leftDetails, this.leftButtons);
+        assets.toggle();
         sceneManager.assign(this.leftDetails, this.leftButtons);
+        console.assign(this.leftDetails, this.leftButtons);
         
         inspector.assign(this.rightDetails, this.rightButtons);
-        console.assign(this.rightDetails, this.rightButtons);
 
 
         engine.registerSystem(new RotateSystem());
