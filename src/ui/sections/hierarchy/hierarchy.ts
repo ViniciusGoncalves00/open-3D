@@ -26,10 +26,10 @@ export class Hierarchy extends Section {
 
     public constructHierarchy(): void {
         this.sectionBody.innerHTML = '';
-        this._scene.children.items.forEach(child => this.constructEntity(child));
+        this._scene.children.items.forEach(child => this.constructEntity(child, this.sectionBody));
     }
 
-    private constructEntity(entity: Entity): void {
+    private constructEntity(entity: Entity, container: HTMLElement): void {
         const wrapper = document.createElement("div");
         wrapper.id = entity.id;
         wrapper.classList.add("w-full", "flex", "flex-col");
@@ -87,8 +87,8 @@ export class Hierarchy extends Section {
         wrapper.appendChild(head);
         wrapper.appendChild(body);
 
-        this.sectionBody.appendChild(wrapper);
+        container.appendChild(wrapper);
 
-        entity.children.items.forEach(entity => this.constructEntity(entity));
+        entity.children.items.forEach(entity => this.constructEntity(entity, body));
     }
 }
