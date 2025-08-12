@@ -8,7 +8,8 @@ import './styles.css';
 import { EntityHandler } from './ui/others/entity-handler';
 import { Utils } from './ui/others/utils';
 import { Assets } from './ui/sections/assets/assets';
-import { Icons } from './ui/sections/builder';
+import { Section } from './ui/sections/base';
+import { Builder, Icons } from './ui/sections/builder';
 import { Console } from './ui/sections/console/console';
 import { Player } from './ui/sections/controls/player';
 import { Screen } from './ui/sections/controls/screen';
@@ -16,6 +17,7 @@ import { Timescale } from './ui/sections/controls/timescale';
 import { Hierarchy } from './ui/sections/hierarchy/hierarchy';
 import { Inspector } from './ui/sections/inspector/inspector';
 import { SceneManager } from './ui/sections/sceneManager/scenes';
+import { Settings } from './ui/sections/settings/settings';
 import { Viewports } from './ui/sections/viewports/viewports';
 import './ui/styles/time-controller.css';
 
@@ -58,19 +60,23 @@ export class Program {
     }
 
     private async initialize(): Promise<void> {
+        //initialize database
         const storage = new Storage();
         await storage.init();
 
+        //get params from url
         const params = new URLSearchParams(window.location.search);
         const projectId = params.get("projectId");
         const sceneId = params.get("sceneId");
         
         if(!projectId || !sceneId) return;
         
+        //get params from url
         const project = await storage.loadProjectById(projectId);
         if(!project) return;
         project.SetActiveSceneById(sceneId);
         
+        //set engine
         const engine = new Engine(project);
         engine.currentProject.value.scenes.subscribe({
             onAdd: () => storage.saveProject(engine.currentProject.value),
@@ -78,9 +84,6 @@ export class Program {
         });
 
         const sceneManager = new SceneManager(engine.currentProject.value);
-        
-        // const save = Utils.getElementOrFail<HTMLButtonElement>('save')
-        // save.addEventListener("click", () => storage.saveAll(project));
         
         const console = new Console();
 
@@ -142,11 +145,11 @@ export class Program {
         const timescale = new Timescale(engine.time);
         const screen = new Screen(engine.timeController, viewport);
 
-//         this.fpsContainer = this.getElementOrFail<HTMLElement>('fpsContainer');
-//         this.averageFpsContainer = this.getElementOrFail<HTMLElement>('averageFpsContainer');
+        const fpsContainer = Utils.getElementOrFail<HTMLElement>('fpsContainer');
+        const averageFpsContainer = Utils.getElementOrFail<HTMLElement>('averageFpsContainer');
 
-//         if (this.fpsContainer) this.engine.time.framesPerSecond.subscribe(() => this.fpsContainer.innerHTML = `${this.engine.time.framesPerSecond.value.toString()} FPS`);
-//         if (this.averageFpsContainer) this.engine.time.averageFramesPerSecond.subscribe(() => this.averageFpsContainer.innerHTML = `${this.engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
+        if (fpsContainer) engine.time.framesPerSecond.subscribe(() => fpsContainer.innerHTML = `${engine.time.framesPerSecond.value.toString()} FPS`);
+        if (averageFpsContainer) engine.time.averageFramesPerSecond.subscribe(() => averageFpsContainer.innerHTML = `${engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
 
 
         //         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
@@ -155,16 +158,40 @@ export class Program {
 //         const autoSaveEnabledButton = this.getElementOrFail<HTMLButtonElement>("autoSaveEnabled");
 //         const autoSaveIntervalInput = this.getElementOrFail<HTMLInputElement>("autoSaveInterval");
 
-//         this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
+        // this._settings = new Settings(window, open, close, this._storage, autoSaveEnabledButton, autoSaveIntervalInput);
 
-        hierarchy.assign(this.leftDetails, this.leftButtons);
-        assets.assign(this.leftDetails, this.leftButtons);
+        const groupStartLeft = document.createElement("div");
+        this.leftButtons.appendChild(groupStartLeft);
+
+        const groupEndLeft = document.createElement("div");
+        this.leftButtons.appendChild(groupEndLeft);
+
+        const groupStartRight = document.createElement("div");
+        this.rightButtons.appendChild(groupStartRight);
+
+        const groupEndRight = document.createElement("div");
+        this.rightButtons.appendChild(groupEndRight);
+
+        hierarchy.assign(this.leftDetails, groupStartLeft);
+        assets.assign(this.leftDetails, groupStartLeft);
         assets.toggle();
-        sceneManager.assign(this.leftDetails, this.leftButtons);
-        console.assign(this.leftDetails, this.leftButtons);
+        sceneManager.assign(this.leftDetails, groupStartLeft);
+        console.assign(this.leftDetails, groupStartLeft);
         
-        inspector.assign(this.rightDetails, this.rightButtons);
+        inspector.assign(this.rightDetails, groupStartRight);
 
+        const settings = Builder.sectionButton(Icons.Gear, () => '');
+        groupEndLeft.appendChild(settings);
+
+        const save = Builder.sectionButton(Icons.Floppy, () => storage.saveAll(project));
+        groupEndLeft.appendChild(save);
+
+        const linkedIn = Builder.sectionButton(Icons.LinkedIn, () => window.open("https://www.linkedin.com/in/viniciusgonçalves00/", "_blank"));
+        const github = Builder.sectionButton(Icons.Github, () => window.open("https://github.com/ViniciusGoncalves00", "_blank"));
+        const repository = Builder.sectionButton(Icons.Dice3, () => window.open("https://github.com/ViniciusGoncalves00/open-3D", "_blank"));
+        groupEndRight.appendChild(linkedIn);
+        groupEndRight.appendChild(github);
+        groupEndRight.appendChild(repository);
 
         engine.registerSystem(new RotateSystem());
         engine.registerSystem(new OrbitSystem());

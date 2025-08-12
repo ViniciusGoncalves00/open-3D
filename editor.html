@@ -10,16 +10,25 @@
     </head>
     <body>
         <div class="w-full h-full flex flex-col">
-            <header class="w-full h-8 flex-none outline outline-gray-01"></header>
+            <header class="bg-gray-07 w-full h-8 flex-none outline outline-gray-01"></header>
             <main class="relative w-full h-[calc(100%-64px)]">
                 <div id="viewport" class="absolute w-full h-full"></div>
                 <div id="overlay" class="relative w-full h-full flex p-2 space-x-2 z-50">
                     <section id="left" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01">
-                        <div id="leftButtons" class="w-12 flex-none outline outline-gray-01 z-20"></div>
+                        <div id="leftButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
                         <div id="leftDetails" class="max-h-full flex flex-col overflow-y-auto z-10"></div>
                     </section>
                     <section id="center" class="w-full h-full flex flex-col">
-                        <div id="centerTop" class="w-full h-8 flex justify-center space-x-2">
+                        <div id="centerTop" class="w-full h-8 flex justify-between space-x-2">
+                            <div id="fps-controls" class="flex outline outline-gray-01">
+                                <div class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[3/1] cursor-pointer flex items-center justify-center">
+                                  <p id="averageFpsContainer"></p>
+                                </div>
+                                <div class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[3/1] cursor-pointer flex items-center justify-center">
+                                  <p id="fpsContainer"></p>
+                                </div>
+                            </div>
+
                             <div id="player-controls" class="flex outline outline-gray-01">
                                 <button id="play" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
@@ -48,9 +57,6 @@
                                 <button id="speedUp" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <p>2.0x</p>
                                 </button>
-                            </div>
-                        
-                            <div id="screen-controls" class="flex outline outline-gray-01">
                                 <button id="fullScreen" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center">
                                     <i class="bi bi-fullscreen"></i>
                                 </button>
@@ -58,30 +64,41 @@
                         </div>
                         <div id="centerMid" class="w-full h-full"></div>
                         <div id="centerBot" class="w-full h-8 flex justify-center space-x-2">
-                            <!-- <div class="flex">
-                                <div class="h-full aspect-square flex items-center justify-center">A</div>
-                                <div class="h-full aspect-square flex items-center justify-center">B</div>
-                                <div class="h-full aspect-square flex items-center justify-center">C</div>
-                            </div> -->
-                            <!-- <div class="flex">
-                                <div class="h-full aspect-square flex items-center justify-center">A</div>
-                                <div class="h-full aspect-square flex items-center justify-center">B</div>
-                                <div class="h-full aspect-square flex items-center justify-center">C</div>
-                            </div> -->
-                            <!-- <div class="flex">
-                                <div class="h-full aspect-square flex items-center justify-center">A</div>
-                                <div class="h-full aspect-square flex items-center justify-center">B</div>
-                                <div class="h-full aspect-square flex items-center justify-center">C</div>
+                            <!-- <div id="camera-controls" class="flex outline outline-gray-01">
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">top</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">bot</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">left</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">right</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">front</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">back</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">perspective</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">orthographic</div>
+                                </button>
                             </div> -->
                         </div>
                     </section>
                     <section id="right" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01">
                         <div id="rightDetails" class="max-h-full flex flex-col overflow-y-auto z-10"></div>
-                        <div id="rightButtons" class="w-12 flex-none outline outline-gray-01 z-20 shadow-[-2px_0px_1px_rgba(1,1,1,0.1)]"></div>
+                        <div id="rightButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
                     </section>
                 </div>
             </main>
-            <footer class="w-full h-8 flex-none outline outline-gray-01"></footer>
+            <footer class="bg-gray-07 w-full h-8 flex-none outline outline-gray-01"></footer>
         </div>
     </body>
 </html>

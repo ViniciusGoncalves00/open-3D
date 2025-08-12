@@ -74,7 +74,7 @@ export class Builder {
     public static sectionButton(icon: Icons, callback: () => void, highLightCondition?: ObservableField<boolean>): HTMLButtonElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer text-xs hover:text-sm ${icon}"></button>
+            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer text-sm hover:text-base ${icon}"></button>
         `.trim();
         const button = template.content.firstElementChild as HTMLButtonElement;
         button.addEventListener("click", callback);
