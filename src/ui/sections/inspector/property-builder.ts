@@ -43,24 +43,10 @@ export class PropertyBuilder {
             const axisWrapper = document.createElement('div');
             axisWrapper.className = "w-1/3 px-1.5 py-0.5 space-x-1 text-xs flex items-center outline outline-zinc-500";
 
-            // const input = FieldBuilder.buildNumberField(property[axis])
-
-            const observablefield = property[axis];
-            const input = document.createElement("input");
+            const input = FieldBuilder.buildNumberField(property[axis])
             input.type = "number";
             input.step = "1";
             input.className = "w-full focus:outline no-spinner";
-
-            observablefield.subscribe(value => input.value = value.toString());
-
-            field.oninput = () => {
-              const value = parseFloat(input.value);
-              if (!isNaN(value)) {
-                observablefield.value = value;
-              }
-            };
-
-            input.value = observablefield.value.toString();
 
             input.min = options?.min || (-Infinity).toString();
             input.step = options?.step || "any";

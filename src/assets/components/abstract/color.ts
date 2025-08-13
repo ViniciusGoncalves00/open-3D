@@ -45,7 +45,6 @@ export class Color {
     public fromHex(hex: string): void {
         const parsed = hex.replace(/^#/, "");
         const bigint = parseInt(parsed, 16);
-        console.log(bigint)
 
         const r = (bigint >> 16) & 255;
         const g = (bigint >> 8) & 255;
@@ -59,7 +58,6 @@ export class Color {
     public static fromHex(hex: string, alpha: number = 1): Color {
         const parsed = hex.replace(/^#/, "");
         const bigint = parseInt(parsed, 16);
-        console.log(bigint)
 
         const r = (bigint >> 16) & 255;
         const g = (bigint >> 8) & 255;

@@ -306,43 +306,6 @@ export class Open3DAdapter implements IGraphicEngine {
 
       drawEntityRecursive(scene);
 
-      if (this.gridBuffers && gl) {
-  gl.useProgram(programInfo.program);
-
-  // ModelView matrix para grid = viewMatrix * identidade (grade no mundo)
-  const modelMatrix = mat4.create();
-  const modelViewMatrix = mat4.create();
-  mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
-
-  gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-  gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
-
-  // Configura atributos de posição e cor
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.gridBuffers.position);
-  gl.vertexAttribPointer(
-    programInfo.attribLocations.vertexPosition,
-    3,
-    gl.FLOAT,
-    false,
-    0,
-    0
-  );
-  gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.gridBuffers.color);
-  gl.vertexAttribPointer(
-    programInfo.attribLocations.vertexColor,
-    4,
-    gl.FLOAT,
-    false,
-    0,
-    0
-  );
-  gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-
-  gl.drawArrays(gl.LINES, 0, this.gridBuffers.vertexCount);
-}
-
     }
 
   private setPositionAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
