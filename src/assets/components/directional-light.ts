@@ -21,25 +21,25 @@ export class DirectionalLight extends Light {
         return cloned;
     }
 
-    public copyFrom(component: DirectionalLight): void {
-        this.color.r.value = component.color.r.value;
-        this.color.g.value = component.color.g.value;
-        this.color.b.value = component.color.b.value;
-        this.color.a.value = component.color.a.value;
+    public override copyFrom(directionalLight: DirectionalLight): void {
+        super.copyFrom(directionalLight);
 
-        this.intensity.value = component.intensity.value;
+        this.color.r.value = directionalLight.color.r.value;
+        this.color.g.value = directionalLight.color.g.value;
+        this.color.b.value = directionalLight.color.b.value;
+        this.color.a.value = directionalLight.color.a.value;
+
+        this.intensity.value = directionalLight.intensity.value;
         this.direction.set(
-            component.direction.x.value,
-            component.direction.y.value,
-            component.direction.z.value
+            directionalLight.direction.x.value,
+            directionalLight.direction.y.value,
+            directionalLight.direction.z.value
         );
-        this.enabled.value = component.enabled.value;
     }
 
-    public toJSON() {
+    public override toJSON() {
         return {
-            type: "DirectionalLight",
-            enabled: this.enabled.value,
+            ...super.toJSON(),
             color: {
                 r: this.color.r.value,
                 g: this.color.g.value,
@@ -55,8 +55,8 @@ export class DirectionalLight extends Light {
         };
     }
 
-    public fromJSON(json: any): void {
-        this.enabled.value = json.enabled ?? true;
+    public override fromJSON(json: any): void {
+        super.fromJSON(json),
 
         this.color.r.value = json.color.r;
         this.color.g.value = json.color.g;

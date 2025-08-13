@@ -54,7 +54,7 @@ export class Inspector extends Section {
     this.sectionBody.appendChild(row);
 
     const items = [
-        { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(this._entityHandler.selectedEntity.value))},
+        { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(true, this._entityHandler.selectedEntity.value))},
         { label: "Rotate", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Rotate())},
         { label: "Orbit", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Orbit())},
         { label: "Mesh", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Mesh())},

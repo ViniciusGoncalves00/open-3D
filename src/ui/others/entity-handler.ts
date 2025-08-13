@@ -19,7 +19,7 @@ export class EntityHandler {
     
   public addEntity(): void {
     const entity = new Entity(crypto.randomUUID());
-    entity.addComponent(new Transform(entity));
+    entity.addComponent(new Transform(true, entity));
 
     const cube = PrefabMesh.sphere();
     const observableIndices: ObservableField<number>[] = []

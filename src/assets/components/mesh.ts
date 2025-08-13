@@ -30,18 +30,19 @@ export class Mesh extends Component {
     return clone;
   }
 
-  public copyFrom(mesh: Mesh): void {
+  public override copyFrom(mesh: Mesh): void {
+    super.copyFrom(mesh);
+
     this.name.value = mesh.name.value;
     this.vertices.clear();
     mesh.vertices.items.forEach(item => this.vertices.add(item));
     this.indices.clear();
     mesh.indices.items.forEach(item => this.indices.add(item));
-    this.enabled.value = mesh.enabled.value;
   }
 
-  public toJSON() {
+  public override toJSON() {
     return {
-      enabled: this.enabled,
+      ...super.toJSON(),
       name: this.name.value,
       vertices: this.vertices.items.map(v => ({
         x: v.x.value,
@@ -52,7 +53,9 @@ export class Mesh extends Component {
     };
   }
 
-  public fromJSON(json: any): void {
+  public override fromJSON(json: any): void {
+    super.fromJSON(json),
+
     this.enabled.value = json.enabled;
     this.name.value = json.name;
 

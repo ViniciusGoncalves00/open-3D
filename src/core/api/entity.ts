@@ -125,7 +125,7 @@ export class Entity {
   
     for (const compJson of json.components) {
       if(compJson.type === "Transform") {
-        const transform = new Transform(entity);
+        const transform = new Transform(true, entity);
         if (transform.fromJSON) {
           transform.fromJSON(compJson.data);
           entity.addComponent(transform);

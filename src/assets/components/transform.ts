@@ -17,8 +17,8 @@ export class Transform extends Component {
   @HideInInspector public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   @HideInInspector public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
-  constructor(owner: Entity, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
-    super();
+  constructor(enabled: boolean = true, owner: Entity, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
+    super(enabled);
 
     this.owner = owner;
     this.owner.parent.subscribe(() => this.updateLocalMatrix());
@@ -110,24 +110,26 @@ export class Transform extends Component {
 
   public clone(): Transform {
     const clone = new Transform(
+      this.enabled.value,
       this.owner,
       this.position.clone(),
       this.rotation.clone(),
       this.scale.clone()
     );
-    clone.enabled.value = this.enabled.value;
     return clone;
   }
 
-  public copyFrom(transform: Transform): void {
+  public override copyFrom(transform: Transform): void {
+    super.copyFrom(transform);
+
     this.position.setFromVector(transform.position);
     this.rotation.setFromVector(transform.rotation);
     this.scale.setFromVector(transform.scale);
   }
 
-  public toJSON() {
+  public override toJSON() {
     return {
-      enabled: this.enabled.value,
+      ...super.toJSON(),
       position: {
         x: this.position.x.value,
         y: this.position.y.value,
@@ -146,12 +148,12 @@ export class Transform extends Component {
     };
   }
 
-  public fromJSON(json: any): void {
+  public override fromJSON(json: any): void {
+    super.fromJSON(json),
+
     this.position.set(json.position.x, json.position.y, json.position.z)
     this.rotation.set(json.rotation.x, json.rotation.y, json.rotation.z)
     this.scale.set(json.scale.x, json.scale.y, json.scale.z)
-
-    this.enabled.value = json.enabled ?? true;
   }
 
   public destroy(): void {
