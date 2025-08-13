@@ -118,52 +118,52 @@ export class Open3DAdapter implements IGraphicEngine {
       this.rendererB?.clearColor(color.r, color.g, color.b, color.a)
     }
     public setGridHelper(color: { r: number; g: number; b: number }): void {
-  if (!this.rendererA) return;
+  // if (!this.rendererA) return;
 
-  const gl = this.rendererA;
+  // const gl = this.rendererA;
 
-  // Parâmetros da grade
-  const size = 10;  // 10 linhas para cada lado do centro
-  const step = 1;   // espaçamento entre linhas
+  // // Parâmetros da grade
+  // const size = 10;  // 10 linhas para cada lado do centro
+  // const step = 1;   // espaçamento entre linhas
 
-  const vertices: number[] = [];
-  const colors: number[] = [];
+  // const vertices: number[] = [];
+  // const colors: number[] = [];
 
-  const halfSize = size * step * 0.5;
+  // const halfSize = size * step * 0.5;
 
-  // Linhas paralelas ao eixo X (varia Z)
-  for (let i = -size; i <= size; i++) {
-    // Linha no plano XZ, z=i*step
-    vertices.push(-halfSize, 0, i * step);
-    vertices.push(halfSize, 0, i * step);
+  // // Linhas paralelas ao eixo X (varia Z)
+  // for (let i = -size; i <= size; i++) {
+  //   // Linha no plano XZ, z=i*step
+  //   vertices.push(-halfSize, 0, i * step);
+  //   vertices.push(halfSize, 0, i * step);
 
-    // cor para duas extremidades da linha
-    colors.push(color.r, color.g, color.b, 1);
-    colors.push(color.r, color.g, color.b, 1);
-  }
+  //   // cor para duas extremidades da linha
+  //   colors.push(color.r, color.g, color.b, 1);
+  //   colors.push(color.r, color.g, color.b, 1);
+  // }
 
-  // Linhas paralelas ao eixo Z (varia X)
-  for (let i = -size; i <= size; i++) {
-    vertices.push(i * step, 0, -halfSize);
-    vertices.push(i * step, 0, halfSize);
+  // // Linhas paralelas ao eixo Z (varia X)
+  // for (let i = -size; i <= size; i++) {
+  //   vertices.push(i * step, 0, -halfSize);
+  //   vertices.push(i * step, 0, halfSize);
 
-    colors.push(color.r, color.g, color.b, 1);
-    colors.push(color.r, color.g, color.b, 1);
-  }
+  //   colors.push(color.r, color.g, color.b, 1);
+  //   colors.push(color.r, color.g, color.b, 1);
+  // }
 
-  const positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  // const positionBuffer = gl.createBuffer();
+  // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+  // const colorBuffer = gl.createBuffer();
+  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
-  this.gridBuffers = {
-    position: positionBuffer,
-    color: colorBuffer,
-    vertexCount: vertices.length / 3,
-  };
+  // this.gridBuffers = {
+  //   position: positionBuffer,
+  //   color: colorBuffer,
+  //   vertexCount: vertices.length / 3,
+  // };
 }
     public setAxisHelper(color: { r: number; g: number; b: number; }): void {
         // throw new Error("Method not implemented.");
