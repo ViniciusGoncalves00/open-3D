@@ -26,69 +26,101 @@ export class Hierarchy extends Section {
 
     public constructHierarchy(): void {
         this.sectionBody.innerHTML = '';
-        this._scene.children.items.forEach(child => this.constructEntity(child, this.sectionBody));
+
+        const length = this._scene.children.items.length;
+        for (let i = 0; i < length; i++) {
+            const child = this._scene.children.items[i];
+            const isLast = i === length - 1;
+            this.constructEntity(child, 0, isLast);
+        }
     }
 
-    private constructEntity(entity: Entity, container: HTMLElement): void {
-        const wrapper = document.createElement("div");
-        wrapper.id = entity.id;
-        wrapper.classList.add("w-full", "flex", "flex-col");
+    private constructEntity(entity: Entity, depth: number, isLast: boolean): void {
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <div id=${entity.id} class="w-full h-6 flex items-center justify-between text-xs opacity-80 hover:opacity-100 hover:bg-gray-07">
+                <span role="offset"></span>
+                <button role="opened" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.SquareMinus}"></button>
+                <button role="closed" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer hidden ${Icons.SquarePlus}"></button>
+                <button role="main" class="w-full truncate flex items-center justify-start text-sm cursor-pointer">${entity.name.value}</button>
+                <button role="remove" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.Trash}"></button>
+            </div>
+        `
 
-        const head = document.createElement("div");
-        head.classList.add("w-full", "h-6", "flex", "items-center", "justify-between", "pr-2", "opacity-70", "hover:opacity-100");
-        head.addEventListener("click", () => this._entityHandler.selectedEntity.value = entity);
+        const offset = template.content.querySelector(`[role="offset"]`) as HTMLButtonElement;
+        const opened = template.content.querySelector(`[role="opened"]`) as HTMLButtonElement;
+        const closed = template.content.querySelector(`[role="closed"]`) as HTMLButtonElement;
+        const main = template.content.querySelector(`[role="main"]`) as HTMLButtonElement;
+        const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
 
-        const body = document.createElement("div");
-        body.classList.add("w-full", "flex", "flex-col");
-        body.style.paddingLeft = `24px`;
+        offset.style.width = `${depth * 24}px`;
+
+        let isVisible = true;
+
+        const toggleChildrenVisibility = () => {
+            isVisible = !isVisible;
+            this.setChildrenVisibility(entity, isVisible);
         
-        const leftContainer = document.createElement("div");
-        leftContainer.classList.add("h-full", "w-full", "flex", "items-center", "space-x-2");
-        
-        const caretDown = document.createElement("div");
-        caretDown.classList.add("h-full", "bi", "bi-caret-down-fill");
-        caretDown.addEventListener("click", () => {
-          Array.from(body.children).forEach(element => element.classList.toggle("hidden"));
-          caretDown.classList.toggle("hidden");
-          caretRight.classList.toggle("hidden");
-        })
+            opened.classList.toggle("hidden", !isVisible);
+            closed.classList.toggle("hidden", isVisible);
+        };
 
-        const caretRight = document.createElement("div");
-        caretRight.classList.add("h-full", "bi", "bi-caret-right-fill", "hidden");
-        caretRight.addEventListener("click", () => {
-          Array.from(body.children).forEach(element => element.classList.toggle("hidden"));
-          caretRight.classList.toggle("hidden");
-          caretDown.classList.toggle("hidden");
-        })
-    
-        const boxIcon = document.createElement("i");
-        boxIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-box");
-    
-        const nameParagraph = document.createElement("p");
-        nameParagraph.classList.add("w-full", "whitespace-nowrap", "overflow-ellipsis");
-        nameParagraph.textContent = entity.name.value;
-        entity.name.subscribe((name) => nameParagraph.textContent = name);
-    
-        leftContainer.appendChild(caretDown);
-        leftContainer.appendChild(caretRight);
-        leftContainer.appendChild(boxIcon);
-        leftContainer.appendChild(nameParagraph);
+        opened.addEventListener("click", toggleChildrenVisibility.bind(this));
+        closed.addEventListener("click", toggleChildrenVisibility.bind(this));
 
-        const trashIcon = document.createElement("i");
-        trashIcon.classList.add("h-full", "flex", "items-center", "justify-center", "bi", "bi-trash", "cursor-pointer");
-        trashIcon.addEventListener("click", () => {
+        main.addEventListener("click", () => {
+            if(this._entityHandler.selectedEntity.value == entity) {
+                this._entityHandler.selectedEntity.value = null;
+            }
+            else {
+                this._entityHandler.selectedEntity.value = entity;
+            }
+        })
+        entity.name.subscribe((name) => main.textContent = name);
+
+        remove.addEventListener("click", () => {
           this._entityHandler.removeEntity(entity.id);
           this.constructHierarchy();
         });
-    
-        head.appendChild(leftContainer);
-        head.appendChild(trashIcon);
 
-        wrapper.appendChild(head);
-        wrapper.appendChild(body);
+        const element = template.content.firstElementChild as HTMLElement;
+        this.sectionBody.appendChild(element);
 
-        container.appendChild(wrapper);
+        depth += 1;
+        const length = entity.children.items.length;
 
-        entity.children.items.forEach(entity => this.constructEntity(entity, body));
+        for (let i = 0; i < length; i++) {
+            const child = entity.children.items[i];
+            const isLast = i === length - 1;
+            this.constructEntity(child, depth, isLast);
+        }
+    }
+
+    private setChildrenVisibility(entity: Entity, visible: boolean) {
+        const entityChildIds = new Set(this.collectAllChildIds(entity));
+
+        Array.from(this.sectionBody.children).forEach(element => {
+            if (entityChildIds.has(element.id)) {
+                if (visible) {
+                    element.classList.remove("hidden");
+                } else {
+                    element.classList.add("hidden");
+                }
+            }
+        })
+    }
+
+    private collectAllChildIds(entity: Entity): Set<string> {
+        const ids = new Set<string>();
+
+        function walk(e: Entity) {
+            e.children.items.forEach(child => {
+                ids.add(child.id);
+                walk(child);
+            });
+        }
+
+        walk(entity);
+        return ids;
     }
 }

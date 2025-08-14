@@ -4,7 +4,7 @@ import { Rotate } from "../../../assets/components/rotate";
 import { Transform } from "../../../assets/components/transform";
 import { Entity } from "../../../core/api/entity";
 import { Dropdown, DropdownItem } from "../components/dropdown";
-import { ComponentUI } from "./component-ui";
+import { ComponentUI } from "./component";
 import { EntityHandler } from "../../others/entity-handler";
 import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/abstract/component";
@@ -38,14 +38,15 @@ export class Inspector extends Section {
   }
 
   public update() {
-    this.sectionBody.replaceChildren();
+    this.sectionBody.innerHTML = "";
+    
     if (!this._entityHandler.selectedEntity.value) return;
 
     const entityWrapper = this.buildEntity(this._entityHandler.selectedEntity.value)
     this.sectionBody.appendChild(entityWrapper)
 
     this._entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
-      const componentUI = new ComponentUI(this._engine, this._entityHandler, component).container;
+      const componentUI = new ComponentUI(this._engine.currentProject.value.activeScene.value, this._entityHandler.selectedEntity.value as Entity, component).container;
       this.sectionBody.appendChild(componentUI);
     });
 

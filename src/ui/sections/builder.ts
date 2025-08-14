@@ -25,6 +25,7 @@ export enum Icons {
     Play = "bi bi-play",
     Square = "bi bi-square",
     SquareCheck = "bi bi-check-square",
+    SquareMinus = "bi bi-dash-square",
     SquarePlus = "bi bi-plus-square",
     Stop = "bi bi-stop",
     Trash = "bi bi-trash",
@@ -37,14 +38,14 @@ export class Builder {
         const template = document.createElement('template');
         template.innerHTML = `
             <div id="${title}" class="text-text-primary w-84 min-h-64 max-h-full flex flex-col text-sm outline outline-gray-01">
-                <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none">
+                <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none sticky">
                     <i class="h-full aspect-square flex items-center justify-center ${icon}"></i>
                     <p class="w-full truncate">${title}</p>
                     <button data-role="pin" class="h-full aspect-square cursor-pointer text-sm hover:bg-gray-08 ${Icons.Pin}"></button>
                     <button data-role="unpin" class="h-full aspect-square cursor-pointer text-xs hover:bg-gray-08 ${Icons.Unpin} hidden"></button>
                     <button data-role="close" class="h-full aspect-square cursor-pointer text-base hover:bg-gray-08 ${Icons.Close}"></button>
                 </div>
-                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01">
+                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01 sticky">
                 </div>
                 <div data-role="body" class="bg-gray-08 flex-1 overflow-auto"></div>
             </div>
