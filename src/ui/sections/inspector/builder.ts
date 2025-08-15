@@ -12,58 +12,41 @@ import { Dropdown, DropdownItem } from "../components/dropdown";
 import { InputOptions } from "./options";
 
 export class Builder {
+    public static buildComponent(scene: Entity, currentEntity: Entity, component: Component): HTMLDivElement {
+        const container = document.createElement("div");
+
+        const bodyElement = this.buildBodyElement(scene, currentEntity, component);
+        const headElement = this.buildComponentHead(currentEntity, bodyElement, component);
+        
+        container.appendChild(headElement);
+        container.appendChild(bodyElement);
+
+        return container;
+    }
+
     public static buildComponentHead(entity: Entity, body: HTMLElement, component: Component): HTMLDivElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div class="text-text-primary w-84 min-h-64 max-h-full flex flex-col text-sm outline outline-gray-01">
-                <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none">
-                    <i class="h-full aspect-square flex items-center justify-center ${Icons.ArrowDown}"></i>
-                    <i class="h-full aspect-square flex items-center justify-center ${Icons.ArrowRight}"></i>
-                    <p class="w-full truncate">${component.constructor.name}</p>
-                </div>
-                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01">
-                </div>
-                <div data-role="body" class="bg-gray-08 flex-1 overflow-auto"></div>
+            <div role="wrapper" class="bg-gray-06 w-full h-6 flex items-center justify-between text-xs outline outline-gray-01 hover:font-medium hover:bg-gray-09">
+                <button role="opened" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.ArrowDown}"></button>
+                <button role="closed" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer hidden ${Icons.ArrowRight}"></button>
+                <button role="main" class="w-full truncate flex items-center justify-start text-sm cursor-pointer">${component.constructor.name}</button>
+                <button role="remove" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.Trash}"></button>
             </div>
-        `.trim();
+        `
 
+        const wrapper = template.content.querySelector(`[role="wrapper"]`) as HTMLDivElement;
+        const opened = template.content.querySelector(`[role="opened"]`) as HTMLButtonElement;
+        const closed = template.content.querySelector(`[role="closed"]`) as HTMLButtonElement;
+        const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
 
+        entity.enabled.subscribe(() => wrapper.classList.toggle("opacity-50"));
 
-        const head = document.createElement("div");
-        head.classList = "w-full h-6 flex items-center border-y border-zinc-600";
+        opened.addEventListener("click", () => {body.classList.toggle("hidden"), opened.classList.toggle("hidden"), closed.classList.toggle("hidden")});
+        closed.addEventListener("click", () => {body.classList.toggle("hidden"), opened.classList.toggle("hidden"), closed.classList.toggle("hidden")});
+        remove.addEventListener("click", () => entity.removeComponent(component.constructor as any));
 
-        const toggle = document.createElement('button');
-        head.appendChild(toggle);
-        toggle.className = "w-6 flex-none text-center cursor-pointer ";
-
-        const toggleIcon = document.createElement('i');
-        toggleIcon.className = "bi bi-caret-right-fill transition-transform duration-200";
-        toggle.appendChild(toggleIcon);
-
-        body.classList.toggle("hidden");
-        toggle.addEventListener('click', () => {
-            const isHidden = body.classList.toggle('hidden');
-            toggleIcon.classList.toggle('bi-caret-down-fill', !isHidden);
-            toggleIcon.classList.toggle('bi-caret-right-fill', isHidden);
-        });
-
-        toggle.click();
-
-        const title = document.createElement('p');
-        head.appendChild(title);
-        title.textContent = component.constructor.name;
-        title.className = 'w-full font-bold';
-
-        const remove = document.createElement('i');
-        head.appendChild(remove);
-        remove.className = "w-6 flex-none text-center cursor-pointer bi bi-trash";
-        remove.addEventListener('click', () => entity.removeComponent(component.constructor as any))
-
-        const options = document.createElement('i');
-        head.appendChild(options);
-        options.className = "w-6 flex-none text-center cursor-pointer bi bi-three-dots-vertical";
-
-        return head;
+        return template.content.firstElementChild as HTMLDivElement;
     }
 
     public static buildBodyElement(scene: Entity, entity: Entity, component: Component): HTMLElement {
@@ -74,7 +57,7 @@ export class Builder {
         for (const propertyName of propertyNames) {
             fieldsHTML += `
                 <div class="w-full flex items-start justify-center max-h-64 overflow-auto">
-                    <div class="w-1/4 h-full font-medium text-sm truncate">${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}</div>
+                    <div class="w-1/4 h-full text-sm truncate">${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}</div>
                     <div class="w-3/4 flex" data-property="${propertyName}"></div>
                 </div>
             `;
@@ -187,12 +170,12 @@ export class Builder {
 
         for (const axis of ['x', 'y', 'z'] as const) {
             const axisWrapper = document.createElement('div');
-            axisWrapper.className = "w-1/3 px-1.5 py-0.5 space-x-1 text-xs flex items-center outline outline-zinc-500";
+            axisWrapper.className = "w-1/3 px-0.5 py-0.5 space-x-1 text-xs flex items-center border border-gray-01";
 
             const input = this.buildNumberField(property[axis])
             input.type = "number";
             input.step = "1";
-            input.className = "w-full focus:outline no-spinner";
+            input.classList.remove("border");
 
             input.min = options?.min || (-Infinity).toString();
             input.step = options?.step || "any";
@@ -309,7 +292,7 @@ export class Builder {
         const field = document.createElement("input");
         field.type = "number";
         field.step = "1";
-        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded focus:outline-none no-spinner";
+        field.className = "w-full text-xs px-1 py-0.5 border border-gray-01 rounded focus:outline-none no-spinner";
 
         observablefield.subscribe(value => field.value = value.toString());
 
@@ -328,7 +311,7 @@ export class Builder {
         const field = document.createElement("input");
         field.type = "text";
         field.step = "0.1";
-        field.className = "w-full text-xs px-1 py-0.5 border border-gray-300 rounded truncate";
+        field.className = "w-full text-xs px-1 py-0.5 border border-gray-01 rounded truncate";
 
         observablefield.subscribe((value: any) => field.value = value.toString());
 

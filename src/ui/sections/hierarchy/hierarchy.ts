@@ -42,7 +42,7 @@ export class Hierarchy extends Section {
                 <span role="offset"></span>
                 <button role="opened" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.SquareMinus}"></button>
                 <button role="closed" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer hidden ${Icons.SquarePlus}"></button>
-                <button role="main" class="w-full truncate flex items-center justify-start text-sm cursor-pointer">${entity.name.value}</button>
+                <button role="name" class="w-full truncate flex items-center justify-start text-sm cursor-pointer">${entity.name.value}</button>
                 <button role="remove" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.Trash}"></button>
             </div>
         `
@@ -51,7 +51,7 @@ export class Hierarchy extends Section {
         const offset = template.content.querySelector(`[role="offset"]`) as HTMLSpanElement;
         const opened = template.content.querySelector(`[role="opened"]`) as HTMLButtonElement;
         const closed = template.content.querySelector(`[role="closed"]`) as HTMLButtonElement;
-        const main = template.content.querySelector(`[role="main"]`) as HTMLButtonElement;
+        const name = template.content.querySelector(`[role="name"]`) as HTMLButtonElement;
         const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
 
         entity.enabled.subscribe(() => wrapper.classList.toggle("opacity-50"));
@@ -71,7 +71,7 @@ export class Hierarchy extends Section {
         opened.addEventListener("click", toggleChildrenVisibility.bind(this));
         closed.addEventListener("click", toggleChildrenVisibility.bind(this));
 
-        main.addEventListener("click", () => {
+        name.addEventListener("click", () => {
             if(this._entityHandler.selectedEntity.value == entity) {
                 this._entityHandler.selectedEntity.value = null;
             }
@@ -79,7 +79,7 @@ export class Hierarchy extends Section {
                 this._entityHandler.selectedEntity.value = entity;
             }
         })
-        entity.name.subscribe((name) => main.textContent = name);
+        entity.name.subscribe(value => name.textContent = value);
 
         remove.addEventListener("click", () => {
           this._entityHandler.removeEntity(entity.id);

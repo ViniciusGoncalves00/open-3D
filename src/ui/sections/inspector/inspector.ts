@@ -4,7 +4,6 @@ import { Rotate } from "../../../assets/components/rotate";
 import { Transform } from "../../../assets/components/transform";
 import { Entity } from "../../../core/api/entity";
 import { Dropdown, DropdownItem } from "../components/dropdown";
-import { ComponentUI } from "./component";
 import { EntityHandler } from "../../others/entity-handler";
 import { Mesh } from "../../../assets/components/mesh";
 import { Component } from "../../../assets/components/abstract/component";
@@ -12,7 +11,7 @@ import { Engine } from "../../../core/engine/engine";
 import { Hierarchy } from "../hierarchy/hierarchy";
 import { Icons } from "../builder";
 import { DirectionalLight } from "../../../assets/components/directional-light";
-import { getInspectableProperties } from "../../../common/reflection/reflection";
+import { Builder } from "./builder";
 
 export class Inspector extends Section {
   private engine: Engine;
@@ -21,8 +20,6 @@ export class Inspector extends Section {
 
   public constructor(engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
     super("Inspector", Icons.Info);
-
-    this.sectionBody.classList.add("space-y-2");
 
     this.engine = engine;
     this.entityHandler = entityHandler;
@@ -42,14 +39,11 @@ export class Inspector extends Section {
     this.sectionBody.innerHTML = "";
     if (!this.entityHandler.selectedEntity.value) return;
 
-    //entity main
     const main = this.main(this.entityHandler.selectedEntity.value)
     this.sectionBody.appendChild(main);
-    //entity components
-    //add components
 
     this.entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
-      const componentUI = new ComponentUI(this.engine.currentProject.value.activeScene.value, this.entityHandler.selectedEntity.value as Entity, component).container;
+      const componentUI = Builder.buildComponent(this.engine.currentProject.value.activeScene.value, this.entityHandler.selectedEntity.value as Entity, component);
       this.sectionBody.appendChild(componentUI);
     });
   }
@@ -57,7 +51,7 @@ export class Inspector extends Section {
     private main(entity: Entity): HTMLElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id=${entity.id} class="bg-gray-06 w-full flex flex-col space-y-2 text-sm text-text-primary">
+            <div id=${entity.id} class="bg-gray-06 w-full flex flex-col space-y-2 py-2 text-sm text-text-primary">
                 <div class="w-full h-8 flex items-center p-2 space-x-2">
                     <div class="h-full aspect-square flex items-center justify-center">
                         <input role="enabled" type="checkbox" ${entity.enabled.value ? "checked" : ""} class="w-full h-full">
@@ -82,7 +76,7 @@ export class Inspector extends Section {
                     <label class="w-1/4 h-full">parent</label>
                     <div role="parent" class="w-3/4 h-full"></div>
                 </div>
-                <div class="w-full flex items-center px-2">
+                <div class="w-full h-6 flex items-center px-2">
                     <div role="components" class="w-full h-full"></div>
                 </div>
             </div>
