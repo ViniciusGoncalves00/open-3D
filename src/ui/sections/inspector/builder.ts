@@ -74,7 +74,7 @@ export class Builder {
         for (const propertyName of propertyNames) {
             fieldsHTML += `
                 <div class="w-full flex items-start justify-center max-h-64 overflow-auto">
-                    <div class="w-1/4 h-full font-medium text-sm truncate">${propertyName}</div>
+                    <div class="w-1/4 h-full font-medium text-sm truncate">${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}</div>
                     <div class="w-3/4 flex" data-property="${propertyName}"></div>
                 </div>
             `;

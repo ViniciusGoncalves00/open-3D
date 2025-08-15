@@ -87,16 +87,16 @@ export class Engine {
     const root = this.currentProject.value?.activeScene.value;
     if (!root) return;
 
-    const notAwaked: Entity[] = [];
-    const notStarted: Entity[] = [];
+    // const notAwaked: Entity[] = [];
+    // const notStarted: Entity[] = [];
 
-    this.collectLifecycleEntities(root, notAwaked, notStarted);
+    // this.collectLifecycleEntities(root, notAwaked, notStarted);
 
-    this._awakeSystems.forEach(system => system.awake(notAwaked));
-    notAwaked.forEach(entity => entity.isAwaked = true);
+    // this._awakeSystems.forEach(system => system.awake(notAwaked));
+    // notAwaked.forEach(entity => entity.isAwaked = true);
 
-    this._startSystems.forEach(system => system.start(notStarted));
-    notStarted.forEach(entity => entity.isStarted = true);
+    // this._startSystems.forEach(system => system.start(notStarted));
+    // notStarted.forEach(entity => entity.isStarted = true);
 
     this.updateRecursively(root, (entity) => {
       this._fixedUpdateSystems.forEach(system => system.fixedUpdate([entity], this.time.deltaTime));
@@ -105,14 +105,14 @@ export class Engine {
     });
   };
 
-  private collectLifecycleEntities(entity: Entity, notAwaked: Entity[], notStarted: Entity[]): void {
-    if (!entity.isAwaked) notAwaked.push(entity);
-    if (!entity.isStarted) notStarted.push(entity);
+  // private collectLifecycleEntities(entity: Entity, notAwaked: Entity[], notStarted: Entity[]): void {
+  //   if (!entity.isAwaked) notAwaked.push(entity);
+  //   if (!entity.isStarted) notStarted.push(entity);
 
-    for (const child of entity.children.items) {
-      this.collectLifecycleEntities(child, notAwaked, notStarted);
-    }
-  }
+  //   for (const child of entity.children.items) {
+  //     this.collectLifecycleEntities(child, notAwaked, notStarted);
+  //   }
+  // }
 
   private updateRecursively(entity: Entity, callback: (entity: Entity) => void): void {
     callback(entity);

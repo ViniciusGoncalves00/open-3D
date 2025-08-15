@@ -37,7 +37,7 @@ export class Builder {
     public static section(title: string, icon: Icons, closeCallback: () => void, pinCallback: () => void): HTMLDivElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id="${title}" class="text-text-primary w-84 min-h-64 max-h-full flex flex-col text-sm outline outline-gray-01">
+            <div id="${title}" class="text-text-primary w-84 min-h-64 h-full max-h-full flex flex-col text-sm outline outline-gray-01">
                 <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none sticky">
                     <i class="h-full aspect-square flex items-center justify-center ${icon}"></i>
                     <p class="w-full truncate">${title}</p>
@@ -47,7 +47,7 @@ export class Builder {
                 </div>
                 <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01 sticky">
                 </div>
-                <div data-role="body" class="bg-gray-08 flex-1 overflow-auto"></div>
+                <div data-role="body" class="bg-gray-08 flex-1 overflow-y-auto"></div>
             </div>
         `.trim();
         const section = template.content.firstElementChild as HTMLDivElement;

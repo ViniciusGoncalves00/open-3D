@@ -31,15 +31,15 @@ export class Dropdown {
         this.sortItems();
 
         this.container = document.createElement("div");
-        this.container.classList = "w-full inline-block relative"
+        this.container.classList = "w-full inline-block relative text-primary-text"
 
         this.button = document.createElement("button");
         this.button.textContent = this.fixedLabel ? this.fixedLabel : initialSelection;
-        this.button.classList = "w-full bg-zinc-700 text-white px-2 py-1 rounded truncate hover:bg-zinc-600 cursor-pointer";
+        this.button.classList = "bg-gray-08 hover:bg-gray-09 outline outline-gray-01 w-full h-6 px-2 py-1 rounded truncate text-sm font-base hover:font-medium cursor-pointer";
         this.button.onclick = () => this.toggle();
 
         this.menu = document.createElement("ul");
-        this.menu.classList = "absolute left-0 top-full mt-1 bg-zinc-700 text-white text-sm rounded z-50";
+        this.menu.classList = "absolute left-0 outline outline-gray-01 top-full mt-1 rounded z-50";
         this.menu.style.display = "none";
 
         this.renderItems();
@@ -73,7 +73,7 @@ export class Dropdown {
         this.menu.innerHTML = "";
         this.items.forEach(item => {
             const li = document.createElement("li");
-            li.classList = "px-4 py-2 text-center hover:bg-zinc-600 cursor-pointer truncate overflow-hidden whitespace-nowrap";
+            li.classList = "bg-gray-08 hover:bg-gray-09 px-4 py-2 text-center cursor-pointer truncate text-sm font-base hover:font-medium overflow-hidden whitespace-nowrap";
             li.textContent = item.label;
             li.onclick = () => this.selectItem(item);
             this.menu.appendChild(li);
@@ -87,7 +87,16 @@ export class Dropdown {
     }
 
     private toggle(state?: boolean) {
-        this.isOpen = typeof state === "boolean" ? state : !this.isOpen;
+        const newState = typeof state === "boolean" ? state : !this.isOpen;
+
+        if (newState && !this.isOpen) {
+            document.addEventListener("click", this.handleOutsideClick);
+        } else if (!newState && this.isOpen) {
+            document.removeEventListener("click", this.handleOutsideClick);
+        }
+
+        this.isOpen = newState;
+
         if (this.isOpen) {
             const rect = this.button.getBoundingClientRect();
             this.menu.style.position = "absolute";
@@ -100,4 +109,11 @@ export class Dropdown {
             this.menu.style.display = "none";
         }
     }
+
+    private handleOutsideClick = (event: MouseEvent) => {
+        const target = event.target as Node;
+        if (!this.menu.contains(target) && !this.button.contains(target)) {
+            this.toggle(false);
+        }
+    };
 }

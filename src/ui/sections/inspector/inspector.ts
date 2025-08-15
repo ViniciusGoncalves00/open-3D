@@ -12,23 +12,24 @@ import { Engine } from "../../../core/engine/engine";
 import { Hierarchy } from "../hierarchy/hierarchy";
 import { Icons } from "../builder";
 import { DirectionalLight } from "../../../assets/components/directional-light";
+import { getInspectableProperties } from "../../../common/reflection/reflection";
 
 export class Inspector extends Section {
-  private _engine: Engine;
-  private _entityHandler: EntityHandler;
-  private _hierarchy: Hierarchy;
+  private engine: Engine;
+  private entityHandler: EntityHandler;
+  private hierarchy: Hierarchy;
 
   public constructor(engine: Engine, entityHandler: EntityHandler, hierarchy: Hierarchy) {
     super("Inspector", Icons.Info);
 
     this.sectionBody.classList.add("space-y-2");
 
-    this._engine = engine;
-    this._entityHandler = entityHandler;
-    this._hierarchy = hierarchy;
+    this.engine = engine;
+    this.entityHandler = entityHandler;
+    this.hierarchy = hierarchy;
 
-    this._entityHandler.selectedEntity?.subscribe(() => {
-      const entity = this._entityHandler.selectedEntity.value;
+    this.entityHandler.selectedEntity?.subscribe(() => {
+      const entity = this.entityHandler.selectedEntity.value;
       entity?.components.subscribe({
           onAdd: (component) => this.update(),
           onRemove: (component) => this.update(),
@@ -39,175 +40,123 @@ export class Inspector extends Section {
 
   public update() {
     this.sectionBody.innerHTML = "";
-    
-    if (!this._entityHandler.selectedEntity.value) return;
+    if (!this.entityHandler.selectedEntity.value) return;
 
-    const entityWrapper = this.buildEntity(this._entityHandler.selectedEntity.value)
-    this.sectionBody.appendChild(entityWrapper)
+    //entity main
+    const main = this.main(this.entityHandler.selectedEntity.value)
+    this.sectionBody.appendChild(main);
+    //entity components
+    //add components
 
-    this._entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
-      const componentUI = new ComponentUI(this._engine.currentProject.value.activeScene.value, this._entityHandler.selectedEntity.value as Entity, component).container;
+    this.entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
+      const componentUI = new ComponentUI(this.engine.currentProject.value.activeScene.value, this.entityHandler.selectedEntity.value as Entity, component).container;
       this.sectionBody.appendChild(componentUI);
     });
-
-    const row = document.createElement('div');
-    row.className = 'w-full flex items-center justify-center px-2';
-    this.sectionBody.appendChild(row);
-
-    const items = [
-        { label: "Transform", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Transform(true, this._entityHandler.selectedEntity.value))},
-        { label: "Rotate", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Rotate())},
-        { label: "Orbit", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Orbit())},
-        { label: "Mesh", action: () => this._entityHandler.selectedEntity.value?.addComponent(new Mesh())},
-        { label: "DirectionalLight", action: () => this._entityHandler.selectedEntity.value?.addComponent(new DirectionalLight())},
-    ]
-
-    const dropdown = new Dropdown(items, null, "Add Component");
-    
-    row.appendChild(dropdown.getElement());
   }
 
-  private buildEntity(entity: Entity): HTMLElement {
-    const entityWrapper = document.createElement('div');
-    entityWrapper.className = 'w-full flex flex-col';
+    private main(entity: Entity): HTMLElement {
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <div id=${entity.id} class="bg-gray-06 w-full flex flex-col space-y-2 text-sm text-text-primary">
+                <div class="w-full h-8 flex items-center p-2 space-x-2">
+                    <div class="h-full aspect-square flex items-center justify-center">
+                        <input role="enabled" type="checkbox" ${entity.enabled.value ? "checked" : ""} class="w-full h-full">
+                    </div>
+                    <div class="w-full h-full flex items-center justify-center">
+                        <input role="name" placeholder="${entity.name.value}" value="${entity.name.value}" class="bg-gray-08 w-full h-full font-medium outline outline-gray-01">
+                    </div>
+                </div>
+                <div class="w-full h-6 flex items-center px-2">
+                    <label class="w-1/4 h-full">id</label>
+                    <p class="w-3/4 h-full truncate">${entity.id}</p>
+                </div>
+                <div class="w-full h-6 flex items-center px-2">
+                    <label class="w-1/4 h-full">layer</label>
+                    <p class="w-3/4 h-full truncate">not available yet</p>
+                </div>
+                <div class="w-full h-6 flex items-center px-2">
+                    <label class="w-1/4 h-full">tags</label>
+                    <p class="w-3/4 h-full truncate">not available yet</p>
+                </div>
+                <div class="w-full flex items-center px-2">
+                    <label class="w-1/4 h-full">parent</label>
+                    <div role="parent" class="w-3/4 h-full"></div>
+                </div>
+                <div class="w-full flex items-center px-2">
+                    <div role="components" class="w-full h-full"></div>
+                </div>
+            </div>
+        `
 
-    const titleRow = document.createElement('div');
-    entityWrapper.appendChild(titleRow);
-    titleRow.className = "w-full h-6 flex items-center border-y border-zinc-600"
+        const enabled = template.content.querySelector(`[role="enabled"]`) as HTMLInputElement;
+        enabled.addEventListener('input', () => entity.enabled.value = enabled.checked);
+        entity.enabled.subscribe(value => enabled.checked = value);
+        
+        const name = template.content.querySelector(`[role="name"]`) as HTMLInputElement;
+        name.addEventListener('input', () => entity.name.value = name.value);
+        entity.name.subscribe(value => name.value = value);
 
-    const collapseToggle = document.createElement('button');
-    titleRow.appendChild(collapseToggle);
-    collapseToggle.className = "w-6 flex-none text-center";
+        const entitiesRepresentation: DropdownItem[] = [];
 
-    const visibilityToggleIcon = document.createElement('i');
-    visibilityToggleIcon.className = "fa fa-chevron-up transition-transform duration-200";
-    collapseToggle.appendChild(visibilityToggleIcon);
+        entitiesRepresentation.push({
+          label: this.engine.currentProject.value.activeScene.value.name.value,
+          action: () => entity.parent = this.engine.currentProject.value.activeScene.value,
+        });
 
-    collapseToggle.addEventListener('click', () => {
-      const isHidden = body.classList.toggle('hidden');
-    
-      visibilityToggleIcon.classList.toggle('fa-chevron-up', !isHidden);
-      visibilityToggleIcon.classList.toggle('fa-chevron-down', isHidden);
-    });
+        const scene = this.engine.currentProject.value.activeScene.value;
+        const selectedId = entity.id;
 
-    const title = document.createElement('p');
-    titleRow.appendChild(title)
-    title.textContent = entity.name.value;
-    title.className = 'w-full font-bold';
-
-    const options = document.createElement('i');
-    titleRow.appendChild(options)
-    options.className = "w-6 flex-none text-center fa fa-ellipsis-vertical"
-
-    const body = document.createElement('div');
-    entityWrapper.appendChild(body);
-    body.className = 'w-full flex flex-col p-2 space-y-1';
-
-    const row_id = document.createElement('div');
-    row_id.className = 'w-full flex items-center';
-    body.appendChild(row_id)
-
-    const labelColumn = document.createElement('div');
-    labelColumn.className = 'w-1/4 font-medium text-sm';
-    labelColumn.textContent = "id";
-    row_id.appendChild(labelColumn);
-    
-    const inputColumn = document.createElement('div');
-    inputColumn.className = 'w-3/4 flex truncate';
-    inputColumn.textContent = entity.id;
-    row_id.appendChild(inputColumn);
-
-    const readonlyFields = ["isEnabled", "isAwaked", "isStarted", "isRuntime"]
-
-    readonlyFields.forEach(field => {
-      const row = document.createElement('div');
-      row.className = 'w-full flex items-center';
-      body.appendChild(row)
-
-      const labelColumn = document.createElement('div');
-      labelColumn.className = 'w-1/4 font-medium text-sm';
-      labelColumn.textContent = field;
-      row.appendChild(labelColumn);
+        const appendEntitiesRecursively = (current: Entity, depth: number = 0) => {
+          if (current.id === selectedId) return;
+        
+          const transform = current.getComponent(Transform);
+          if (!transform) return;
+        
+          const indent = "  ".repeat(depth);
+          entitiesRepresentation.push({
+            label: `${indent}${current.name.value}`,
+            action: () => {
+              entity.parent = current;
+              this.hierarchy.constructHierarchy();
+            },
+          });
       
-      const inputColumn = document.createElement('input');
-      inputColumn.className = 'w-3/4 flex';
-      inputColumn.type = "checkbox"
-      inputColumn.disabled = true;
-      inputColumn.checked = (this._entityHandler.selectedEntity as any)[field];
-      row.appendChild(inputColumn);
-    });
+          for (const child of current.children.items) {
+            appendEntitiesRecursively(child, depth + 1);
+          }
+        };
 
-    const row_name = document.createElement('div');
-    row_name.className = 'w-full flex items-center';
-    body.appendChild(row_name)
+        for (const rootEntity of scene.children.items) {
+          appendEntitiesRecursively(rootEntity);
+        }
 
-    const labelColumn_name = document.createElement('div');
-    labelColumn_name.className = 'w-1/4 font-medium text-sm';
-    labelColumn_name.textContent = "name";
-    row_name.appendChild(labelColumn_name);
-    
-    const inputColumn_name = document.createElement('input');
-    inputColumn_name.className = 'w-3/4 flex';
-    inputColumn_name.placeholder = entity.name.value;
-    inputColumn_name.addEventListener('input', () => {
-      entity.name.value = inputColumn_name.value;
-    });
-    row_name.appendChild(inputColumn_name);
+        const initialValue = entity.parent.value
+          ? entity.parent.value.name.value
+          : "None";
 
-    const entitiesRepresentation: DropdownItem[] = [];
+        const parentDropdown = new Dropdown(entitiesRepresentation, initialValue);
+        const parentElement = template.content.querySelector(`[role="parent"]`) as HTMLButtonElement;
+        parentElement.appendChild(parentDropdown.getElement());
 
-    entitiesRepresentation.push({
-      label: "None",
-      action: () => entity.parent = null,
-    });
+        const items = [
+            { label: "Transform", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Transform(true, this.entityHandler.selectedEntity.value))},
+            { label: "Rotate", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Rotate())},
+            { label: "Orbit", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Orbit())},
+            { label: "Mesh", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Mesh())},
+            { label: "DirectionalLight", action: () => this.entityHandler.selectedEntity.value?.addComponent(new DirectionalLight())},
+        ]
 
-    const scene = this._engine.currentProject.value.activeScene.value;
-    const selectedId = entity.id;
+        const componentsDropdown = new Dropdown(items, null, "✛ ADD COMPONENT");
+        const componentsElement = template.content.querySelector(`[role="components"]`) as HTMLButtonElement;
+        componentsElement.appendChild(componentsDropdown.getElement());
 
-    const appendEntitiesRecursively = (current: Entity, depth: number = 0) => {
-      if (current.id === selectedId) return;
-    
-      const transform = current.getComponent(Transform);
-      if (!transform) return;
-    
-      const indent = "  ".repeat(depth);
-      entitiesRepresentation.push({
-        label: `${indent}${current.name.value}`,
-        action: () => {
-          entity.parent = current;
-          this._hierarchy.constructHierarchy();
-        },
-      });
-    
-      for (const child of current.children.items) {
-        appendEntitiesRecursively(child, depth + 1);
-      }
-    };
-
-    for (const rootEntity of scene.children.items) {
-      appendEntitiesRecursively(rootEntity);
+        return template.content.firstElementChild as HTMLElement;
     }
 
-    const initialValue = entity.parent.value
-      ? entity.parent.value.name.value
-      : "None";
+    private components(): void {   
 
-    const dropdown = new Dropdown(entitiesRepresentation, initialValue);
+    }   
+    private other(): void { 
 
-    const row_dropdown = document.createElement('div');
-    row_dropdown.className = 'w-full flex items-center';
-    body.appendChild(row_dropdown)
-
-    const labelColumn_dropdown = document.createElement('div');
-    labelColumn_dropdown.className = 'w-1/4 font-medium text-sm';
-    labelColumn_dropdown.textContent = "parent";
-    row_dropdown.appendChild(labelColumn_dropdown);
-    
-    const inputColumn_dropdown = document.createElement('div');
-    inputColumn_dropdown.className = 'w-3/4 flex';
-    inputColumn_dropdown.appendChild(dropdown.getElement());
-    row_dropdown.appendChild(inputColumn_dropdown);
-
-    return entityWrapper;
-  }
+    }
 }

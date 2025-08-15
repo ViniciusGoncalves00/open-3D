@@ -38,7 +38,7 @@ export class Hierarchy extends Section {
     private constructEntity(entity: Entity, depth: number, isLast: boolean): void {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div id=${entity.id} class="w-full h-6 flex items-center justify-between text-xs opacity-80 hover:opacity-100 hover:bg-gray-07">
+            <div role="wrapper" id="${entity.id}" class="w-full h-6 flex items-center justify-between text-xs ${entity.enabled.value ? "" : "opacity-50"} hover:font-medium hover:bg-gray-09">
                 <span role="offset"></span>
                 <button role="opened" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.SquareMinus}"></button>
                 <button role="closed" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer hidden ${Icons.SquarePlus}"></button>
@@ -47,11 +47,14 @@ export class Hierarchy extends Section {
             </div>
         `
 
-        const offset = template.content.querySelector(`[role="offset"]`) as HTMLButtonElement;
+        const wrapper = template.content.querySelector(`[role="wrapper"]`) as HTMLDivElement;
+        const offset = template.content.querySelector(`[role="offset"]`) as HTMLSpanElement;
         const opened = template.content.querySelector(`[role="opened"]`) as HTMLButtonElement;
         const closed = template.content.querySelector(`[role="closed"]`) as HTMLButtonElement;
         const main = template.content.querySelector(`[role="main"]`) as HTMLButtonElement;
         const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
+
+        entity.enabled.subscribe(() => wrapper.classList.toggle("opacity-50"));
 
         offset.style.width = `${depth * 24}px`;
 

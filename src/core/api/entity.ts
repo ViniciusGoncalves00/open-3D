@@ -10,28 +10,15 @@ import { ObservableMap } from "../../common/observer/observable-map";
 import { ObservableNullableField } from "../../common/observer/observable-nullable-field";
 
 export class Entity {
-  private readonly _id: `${string}-${string}-${string}-${string}-${string}`;
-  public get id(): string { return this._id; }
-
-  private readonly _name: ObservableField<string> = new ObservableField("Entity");
-  public get name(): ObservableField<string> { return this._name; }
-
-  private _isEnabled = true;
-  public get isEnabled(): boolean { return this._isEnabled; }
-  public set isEnabled(isEnabled: boolean) { this._isEnabled = isEnabled; }
-  
-  private _isAwaked = false;
-  public get isAwaked(): boolean { return this._isAwaked; }
-  public set isAwaked(isAwaked: boolean) { this._isAwaked = isAwaked; }
-
-  private _isStarted = false;
-  public get isStarted(): boolean { return this._isStarted; }
-  public set isStarted(isStarted: boolean) { this._isStarted = isStarted; }
+  public readonly id: `${string}-${string}-${string}-${string}-${string}`;
+  public readonly name: ObservableField<string> = new ObservableField("Entity");
+  public readonly enabled: ObservableField<boolean> = new ObservableField(true);
   
   private readonly _components = new ObservableMap<new (...args: any[]) => Component, Component>(new Map());
   public get components(): ObservableMap<new (...args: any[]) => Component, Component> { return this._components; }
 
   private readonly _parent: ObservableNullableField<Entity | null> = new ObservableNullableField();
+
   public get parent(): ObservableNullableField<Entity | null> { return this._parent; }
   public set parent(newParent: Entity | null) {
     // return if it is the same entity
@@ -50,7 +37,7 @@ export class Entity {
   public get children(): ObservableList<Entity> { return this._children; }
   
   public constructor(id: `${string}-${string}-${string}-${string}-${string}`) {
-    this._id = id;
+    this.id = id;
   }
 
   public addComponent<T extends Component>(component: T): void {
@@ -78,12 +65,10 @@ export class Entity {
   }
 
   public clone(): Entity {
-    const clone = new Entity(this._id);
+    const clone = new Entity(this.id);
     clone.parent.value = this._parent.value;
-    clone.name.value = this._name.value;
-    clone.isEnabled = this._isEnabled;
-    clone.isAwaked = this._isAwaked;
-    clone.isStarted = this._isStarted;
+    clone.name.value = this.name.value;
+    clone.enabled.value = this.enabled.value;
     this._children.items.forEach(child => clone.children.items.push(child.clone()));
   
     for (const [type, component] of this._components.entries()) {
@@ -97,9 +82,7 @@ export class Entity {
     return {
       id: this.id,
       name: this.name.value,
-      isEnabled: this.isEnabled,
-      isAwaked: this.isAwaked,
-      isStarted: this.isStarted,
+      enabled: this.enabled.value,
       components: this.getComponents().map(component => ({
         type: component.constructor.name,
         data: component.toJSON?.() ?? {}
@@ -112,9 +95,7 @@ export class Entity {
     const entity = new Entity(json.id);
   
     entity.name.value = json.name;
-    entity.isEnabled = json.isEnabled;
-    entity.isAwaked = json.isAwaked;
-    entity.isStarted = json.isStarted;
+    entity.enabled.value = json.enabled;
   
     const componentMap: Record<string, new () => Component> = {
       'Mesh': Mesh,
@@ -160,10 +141,8 @@ export class Entity {
   }
 
   public restoreFrom(clone: Entity): void {
-    this._name.value = clone.name.value;
-    this._isEnabled = clone.isEnabled;
-    this._isAwaked = clone.isAwaked;
-    this._isStarted = clone.isStarted;
+    this.name.value = clone.name.value;
+    this.enabled.value = clone.enabled.value;
 
     for (const type of this._components.keys()) {
       if (!clone._components.has(type)) {
