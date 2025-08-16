@@ -166,6 +166,27 @@ export class Entity {
     }
   }
 
+  public descendants(): Entity[] {
+    const descendants: Entity[] = [];
+    const visited = new Set<Entity>();
+    const stack: Entity[] = [...this.children.items];
+
+    while (stack.length > 0) {
+        const current = stack.pop()!;
+        
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        descendants.push(current);
+
+        if (current.children.items.length) {
+            stack.push(...current.children.items);
+        }
+    }
+
+    return descendants;
+  }
+
   private isMyDescendant(possibleDescendant: Entity): boolean {
     for (const child of this._children.items) {
       if (child === possibleDescendant || child.isMyDescendant(possibleDescendant)) return true;

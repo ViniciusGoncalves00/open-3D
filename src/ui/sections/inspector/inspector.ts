@@ -37,10 +37,11 @@ export class Inspector extends Section {
 
   public update() {
     this.sectionBody.innerHTML = "";
+    this.subHeader.innerHTML = "";
     if (!this.entityHandler.selectedEntity.value) return;
 
-    const main = this.main(this.entityHandler.selectedEntity.value)
-    this.sectionBody.appendChild(main);
+    const main = this.main(this.entityHandler.selectedEntity.value);
+    this.subHeader.appendChild(main);
 
     this.entityHandler.selectedEntity.value.getComponents().forEach((component: Component) => {
       const componentUI = Builder.buildComponent(this.engine.currentProject.value.activeScene.value, this.entityHandler.selectedEntity.value as Entity, component);
