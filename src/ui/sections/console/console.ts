@@ -12,6 +12,9 @@ export class Console extends Section{
 
     public constructor() {
         super("Console", Icons.FileText);
+        
+        this.section.classList.remove("w-84");
+        this.section.classList.add("w-full");
 
         const createFilterButton = (label: string, type: LogType | null): void => {
             const button = document.createElement("button");

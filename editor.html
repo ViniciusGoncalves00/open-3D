@@ -16,7 +16,7 @@
                 <div id="overlay" class="relative w-full h-full flex p-2 space-x-2 z-50">
                     <section id="left" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01">
                         <div id="leftButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
-                        <div id="leftDetails" class="h-full flex flex-col overflow-y-hidden z-10"></div>
+                        <div id="leftDetails" class="grow h-full flex-none flex flex-col overflow-y-hidden z-10"></div>
                     </section>
                     <section id="center" class="w-full h-full flex flex-col">
                         <div id="centerTop" class="w-full h-8 flex justify-between space-x-2">
@@ -63,7 +63,8 @@
                             </div>
                         </div>
                         <div id="centerMid" class="w-full h-full"></div>
-                        <div id="centerBot" class="w-full h-8 flex justify-center space-x-2">
+                        <div id="centerBot" class="w-full flex flex-col justify-center space-x-2">
+                            <div id="centerBotDetails" class="w-full flex flex-col overflow-y-hidden z-10"></div>
                             <!-- <div id="camera-controls" class="flex outline outline-gray-01">
                                 <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
                                     <div class="pl-2">top</div>
@@ -93,12 +94,53 @@
                         </div>
                     </section>
                     <section id="right" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01">
-                        <div id="rightDetails" class="h-full flex flex-col overflow-y-hidden z-10"></div>
+                        <div id="rightDetails" class="grow h-full flex-none flex flex-col overflow-y-hidden z-10"></div>
                         <div id="rightButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
                     </section>
                 </div>
             </main>
-            <footer class="bg-gray-07 w-full h-8 flex-none outline outline-gray-01"></footer>
+            <footer class="bg-gray-07 w-full h-8 flex-none flex items-center justify-between p-2 outline outline-gray-01">
+                <div class="flex items-center justify-center gap-[32px] opacity-70">
+                    <div id="mouse0" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3645/3645851.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">pan</div>
+                    </div>
+                    <div id="mouse1" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3645/3645819.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">rotate</div>
+                    </div>
+                    <div id="mouse2" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3646/3646205.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">zoom</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center gap-[16px] opacity-70">
+                    <div id="w" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">forward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542499.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="a" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">leftward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542365.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="s" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">backward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542478.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="d" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">rightward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542385.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="q" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">downward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542469.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="e" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">upward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542393.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                </div>
+            </footer>
         </div>
     </body>
 </html>

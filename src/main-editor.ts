@@ -35,6 +35,7 @@ export class Program {
     public readonly centerTop: HTMLDivElement;
     public readonly centerMid: HTMLDivElement;
     public readonly centerBot: HTMLDivElement;
+    public readonly centerBotDetails: HTMLDivElement;
     public readonly left: HTMLDivElement;
     public readonly leftButtons: HTMLDivElement;
     public readonly leftDetails: HTMLDivElement;
@@ -50,7 +51,9 @@ export class Program {
         this.center = Utils.getElementOrFail<HTMLDivElement>("center");
         this.centerTop = Utils.getElementOrFail<HTMLDivElement>("centerTop");
         this.centerMid = Utils.getElementOrFail<HTMLDivElement>("centerMid");
+        
         this.centerBot = Utils.getElementOrFail<HTMLDivElement>("centerBot");
+        this.centerBotDetails = Utils.getElementOrFail<HTMLDivElement>("centerBotDetails");
 
         this.left = Utils.getElementOrFail<HTMLDivElement>("left");
         this.leftButtons = Utils.getElementOrFail<HTMLDivElement>("leftButtons");
@@ -174,11 +177,10 @@ export class Program {
 
         hierarchy.assign(this.leftDetails, groupStartLeft);
         assets.assign(this.leftDetails, groupStartLeft);
-        assets.toggle();
         sceneManager.assign(this.leftDetails, groupStartLeft);
-        console.assign(this.leftDetails, groupStartLeft);
         
         inspector.assign(this.rightDetails, groupStartRight);
+        console.assign(this.centerBotDetails, groupStartRight);
 
         const settings = Builder.sectionButton(Icons.Gear, () => '');
         groupEndLeft.appendChild(settings);

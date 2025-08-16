@@ -6,7 +6,7 @@ export abstract class Section {
     private buttonContainer: HTMLElement | null = null;
 
     private button: HTMLButtonElement;
-    private section: HTMLDivElement;
+    protected section: HTMLDivElement;
     protected subHeader: HTMLDivElement;
     protected sectionBody: HTMLDivElement;
 
