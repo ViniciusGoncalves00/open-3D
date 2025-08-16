@@ -54,7 +54,7 @@ export class Inspector extends Section {
         template.innerHTML = `
             <div id=${entity.id} class="bg-gray-06 w-full flex flex-col space-y-2 py-2 text-sm text-text-primary">
                 <div class="w-full h-8 flex items-center p-2 space-x-2">
-                    <div class="h-full aspect-square flex items-center justify-center">
+                    <div class="h-full aspect-square flex items-center justify-center p-[1px]">
                         <input role="enabled" type="checkbox" ${entity.enabled.value ? "checked" : ""} class="w-full h-full">
                     </div>
                     <div class="w-full h-full flex items-center justify-center">

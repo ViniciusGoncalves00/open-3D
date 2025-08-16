@@ -4,14 +4,14 @@ import { Section } from "../base";
 import { Builder, Icons } from "../builder";
 
 export class Hierarchy extends Section {
-    private _scene: Entity;
-    private _entityHandler: EntityHandler;
+    private scene: Entity;
+    private entityHandler: EntityHandler;
 
     public constructor(scene: Entity, entityHandler: EntityHandler) {
         super(Hierarchy.name, Icons.Nested);
 
-        this._scene = scene;
-        this._entityHandler = entityHandler;
+        this.scene = scene;
+        this.entityHandler = entityHandler;
     
         scene.children.subscribe({
           onAdd: (entity) => this.constructHierarchy(),
@@ -27,15 +27,16 @@ export class Hierarchy extends Section {
     public constructHierarchy(): void {
         this.sectionBody.innerHTML = '';
 
-        const length = this._scene.children.items.length;
+        const length = this.scene.children.items.length;
         for (let i = 0; i < length; i++) {
-            const child = this._scene.children.items[i];
+            const child = this.scene.children.items[i];
             const isLast = i === length - 1;
             this.constructEntity(child, 0, isLast);
         }
     }
 
     private constructEntity(entity: Entity, depth: number, isLast: boolean): void {
+
         const template = document.createElement('template');
         template.innerHTML = `
             <div role="wrapper" id="${entity.id}" class="w-full h-6 flex items-center justify-between text-xs ${entity.enabled.value ? "" : "opacity-50"} hover:font-medium hover:bg-gray-09">
@@ -54,6 +55,7 @@ export class Hierarchy extends Section {
         const name = template.content.querySelector(`[role="name"]`) as HTMLButtonElement;
         const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
 
+        this.entityHandler.selectedEntity.subscribe(value => value?.id === entity.id ? wrapper.classList.add("bg-gray-06") : wrapper.classList.remove("bg-gray-06") );
         entity.enabled.subscribe(() => wrapper.classList.toggle("opacity-50"));
 
         offset.style.width = `${depth * 24}px`;
@@ -72,17 +74,17 @@ export class Hierarchy extends Section {
         closed.addEventListener("click", toggleChildrenVisibility.bind(this));
 
         name.addEventListener("click", () => {
-            if(this._entityHandler.selectedEntity.value == entity) {
-                this._entityHandler.selectedEntity.value = null;
+            if(this.entityHandler.selectedEntity.value == entity) {
+                this.entityHandler.selectedEntity.value = null;
             }
             else {
-                this._entityHandler.selectedEntity.value = entity;
+                this.entityHandler.selectedEntity.value = entity;
             }
         })
         entity.name.subscribe(value => name.textContent = value);
 
         remove.addEventListener("click", () => {
-          this._entityHandler.removeEntity(entity.id);
+          this.entityHandler.removeEntity(entity.id);
           this.constructHierarchy();
         });
 

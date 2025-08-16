@@ -16,6 +16,9 @@ export class Builder {
 
         const bodyElement = this.buildComponentBody(scene, currentEntity, component);
         const headElement = this.buildComponentHead(currentEntity, bodyElement, component);
+
+        component.enabled.value ? '' : bodyElement.classList.add("opacity-50");
+        component.enabled.subscribe(enabled => enabled ? bodyElement.classList.remove("opacity-50") : bodyElement.classList.add("opacity-50") );
         
         container.appendChild(headElement);
         container.appendChild(bodyElement);
@@ -29,21 +32,23 @@ export class Builder {
             <div role="wrapper" class="bg-gray-06 w-full h-6 flex items-center justify-between text-xs outline outline-gray-01 hover:font-medium hover:bg-gray-09">
                 <button role="opened" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.ArrowDown}"></button>
                 <button role="closed" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer hidden ${Icons.ArrowRight}"></button>
+                <div class="h-full flex items-center justify-center py-2 pr-2">
+                    <input role="enabled" type="checkbox" ${component.enabled.value ? "checked" : ""} class="w-full aspect-square">
+                </div>
                 <button role="main" class="w-full truncate flex items-center justify-start text-sm cursor-pointer">${component.constructor.name}</button>
                 <button role="remove" class="h-full aspect-square flex items-center justify-center hover:text-sm cursor-pointer ${Icons.Trash}"></button>
             </div>
         `
-
-        const wrapper = template.content.querySelector(`[role="wrapper"]`) as HTMLDivElement;
         const opened = template.content.querySelector(`[role="opened"]`) as HTMLButtonElement;
         const closed = template.content.querySelector(`[role="closed"]`) as HTMLButtonElement;
         const remove = template.content.querySelector(`[role="remove"]`) as HTMLButtonElement;
-
-        entity.enabled.subscribe(() => wrapper.classList.toggle("opacity-50"));
+        const enabled = template.content.querySelector(`[role="enabled"]`) as HTMLInputElement;
 
         opened.addEventListener("click", () => {body.classList.toggle("hidden"), opened.classList.toggle("hidden"), closed.classList.toggle("hidden")});
         closed.addEventListener("click", () => {body.classList.toggle("hidden"), opened.classList.toggle("hidden"), closed.classList.toggle("hidden")});
         remove.addEventListener("click", () => entity.removeComponent(component.constructor as any));
+        enabled.addEventListener('input', () => component.enabled.value = enabled.checked);
+        component.enabled.subscribe(value => enabled.checked = value);
 
         return template.content.firstElementChild as HTMLDivElement;
     }
@@ -53,13 +58,13 @@ export class Builder {
 
         const container = document.createElement("div");
         container.className = "w-full flex-none flex flex-col p-2 space-y-1";
-        
+
         for (const propertyName of propertyNames) {
             const property = (component as any)[propertyName];
             const propertyElement = this.buildProperty(propertyName, property, scene, entity);
             container.appendChild(propertyElement);
         }
-    
+
         return container;
     }
 
