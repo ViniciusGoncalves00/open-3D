@@ -34,7 +34,7 @@ export class Console extends Section{
         createFilterButton("Debug",   LogType.Debug);
 
         button.classList.remove("bg-gray-07");
-        button.classList.add("bg-gray-05");
+        button.classList.add("bg-gray-04");
         button.classList.add("border");
         button.classList.add("border-gray-01");
     }
@@ -72,11 +72,11 @@ export class Console extends Section{
         this.filterButtons.forEach(({ button, type }) => {
             if (type === logType) {
                 button.classList.remove("bg-gray-07");
-                button.classList.add("bg-gray-05");
+                button.classList.add("bg-gray-04");
                 button.classList.add("border");
                 button.classList.add("border-gray-01");
             } else {
-                button.classList.remove("bg-gray-05");
+                button.classList.remove("bg-gray-04");
                 button.classList.remove("border");
                 button.classList.remove("border-gray-01");
                 button.classList.add("bg-gray-07");
