@@ -45,7 +45,7 @@ export class Builder {
                     <button data-role="unpin" class="h-full aspect-square cursor-pointer text-xs hover:bg-gray-08 ${Icons.Unpin} hidden"></button>
                     <button data-role="close" class="h-full aspect-square cursor-pointer text-base hover:bg-gray-08 ${Icons.Close}"></button>
                 </div>
-                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex items-center justify-start overflow-hidden z-10 outline outline-gray-01 sticky">
+                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex-none flex items-center justify-start overflow-hidden z-10 outline outline-gray-01 sticky">
                 </div>
                 <div data-role="body" class="bg-gray-08 flex-1 overflow-y-auto"></div>
             </div>

@@ -16,21 +16,27 @@ export class Console extends Section{
         this.section.classList.remove("w-84");
         this.section.classList.add("w-full");
 
-        const createFilterButton = (label: string, type: LogType | null): void => {
+        const createFilterButton = (label: string, type: LogType | null): HTMLButtonElement => {
             const button = document.createElement("button");
             button.textContent = label;
-            button.className = "px-4 py-[2px] hover:bg-zinc-500 hover:outline hover:outline-white/50 hover:z-50 cursor-pointer";
+            button.className = "bg-gray-07 hover:bg-gray-09 text-text-primary text-sm font-base hover:font-medium cursor-pointer h-6 px-4 py-[2px] flex items-center justify-center";
             button.addEventListener("click", () => this.filter(type));
             this.subHeader.appendChild(button);
             this.filterButtons.push({ button, type });
+            return button;
         };
 
-        createFilterButton("All",     null);
+        const button = createFilterButton("All",     null);
         createFilterButton("Log",     LogType.Log);
         createFilterButton("Success", LogType.Success);
         createFilterButton("Warning", LogType.Warning);
         createFilterButton("Error",   LogType.Error);
         createFilterButton("Debug",   LogType.Debug);
+
+        button.classList.remove("bg-gray-07");
+        button.classList.add("bg-gray-05");
+        button.classList.add("border");
+        button.classList.add("border-gray-01");
     }
 
     public log(message: string, logType: LogType = LogType.Log) {
@@ -65,11 +71,15 @@ export class Console extends Section{
 
         this.filterButtons.forEach(({ button, type }) => {
             if (type === logType) {
-                button.classList.add("bg-zinc-700");
-                button.classList.add("inset-shadow-[0_0_2px_rgba(0,0,0,1)]");
+                button.classList.remove("bg-gray-07");
+                button.classList.add("bg-gray-05");
+                button.classList.add("border");
+                button.classList.add("border-gray-01");
             } else {
-                button.classList.remove("bg-zinc-700");
-                button.classList.remove("inset-shadow-[0_0_2px_rgba(0,0,0,1)]");
+                button.classList.remove("bg-gray-05");
+                button.classList.remove("border");
+                button.classList.remove("border-gray-01");
+                button.classList.add("bg-gray-07");
             }
         });
 

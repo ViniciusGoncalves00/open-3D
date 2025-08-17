@@ -157,12 +157,12 @@ export class Builder {
 
         for (const axis of ['x', 'y', 'z'] as const) {
             const axisWrapper = document.createElement('div');
-            axisWrapper.className = "w-1/3 px-0.5 py-0.5 space-x-1 text-xs flex items-center border border-gray-01";
+            axisWrapper.className = "w-1/3 px-2 py-0.5 space-x-1 text-xs flex items-center border border-gray-01";
 
             const input = this.buildNumberField(property[axis])
-            input.type = "number";
-            input.step = "1";
             input.classList.remove("border");
+            input.classList.remove("px-1");
+            input.classList.remove("py-0.5");
 
             input.min = options?.min || (-Infinity).toString();
             input.step = options?.step || "any";
