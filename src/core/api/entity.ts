@@ -1,4 +1,5 @@
 import { Component } from "../../assets/components/abstract/component";
+import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
 import { Mesh } from "../../assets/components/mesh";
 import { Orbit } from "../../assets/components/orbit";
@@ -102,6 +103,7 @@ export class Entity {
       'Rotate': Rotate,
       'Orbit': Orbit,
       'DirectionalLight': DirectionalLight,
+      'Camera': Camera,
     };
   
     for (const compJson of json.components) {

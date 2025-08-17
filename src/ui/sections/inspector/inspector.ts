@@ -12,6 +12,7 @@ import { Hierarchy } from "../hierarchy/hierarchy";
 import { Icons } from "../builder";
 import { DirectionalLight } from "../../../assets/components/directional-light";
 import { Builder } from "./builder";
+import { Camera } from "../../../assets/components/camera";
 
 export class Inspector extends Section {
   private engine: Engine;
@@ -139,6 +140,7 @@ export class Inspector extends Section {
             { label: "Orbit", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Orbit())},
             { label: "Mesh", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Mesh())},
             { label: "DirectionalLight", action: () => this.entityHandler.selectedEntity.value?.addComponent(new DirectionalLight())},
+            { label: "Camera", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Camera())},
         ]
 
         const componentsDropdown = new Dropdown(items, null, "✛ ADD COMPONENT");

@@ -7,9 +7,10 @@ import { Mesh } from "../assets/components/mesh";
 import { Transform } from "../assets/components/transform";
 import { ObservableVector3 } from "../common/observer/observable-vector3";
 import { DirectionalLight } from "../assets/components/directional-light";
+import { Camera } from "../assets/components/camera";
 
 export class Open3DAdapter implements IGraphicEngine {
-    private _engine: Engine | null = null;
+    private _engine: Engine
     private _entities: Map<string, any> = new Map<string, any>();
 
     private rendererA: WebGLRenderingContext | null = null;
@@ -22,6 +23,10 @@ export class Open3DAdapter implements IGraphicEngine {
   color: WebGLBuffer | null;
   vertexCount: number;
 } | null = null;
+
+  public constructor(engine: Engine) {
+    this._engine = engine;
+  }
     
     public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
       this._engine = engine;
@@ -75,7 +80,10 @@ export class Open3DAdapter implements IGraphicEngine {
       };
       
       const loop = () => {
-        this.drawScene(gl, programInfo, this._engine!.currentProject.value.activeScene.value);
+        const camera = this._engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Camera));
+        if(camera) {
+          this.drawScene(gl, programInfo, this._engine.currentProject.value.activeScene.value, camera);
+        }
 
         requestAnimationFrame(loop);
       }
@@ -236,7 +244,7 @@ export class Open3DAdapter implements IGraphicEngine {
       return buffer;
     }
     
-    private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity) {
+    private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity, camera: Entity) {
         const bgColor = GraphicSettings.backgroundColor;
         gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         gl.clearDepth(1.0);
@@ -245,19 +253,21 @@ export class Open3DAdapter implements IGraphicEngine {
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const fieldOfViewRadians = (45 * Math.PI) / 180;
-        const aspect = gl.canvas.width / gl.canvas.height;
-        const zNear = 0.01;
-        const zFar = 10000.0;
+        const cameraTransform = camera.getComponent(Transform);
+        const cameraCamera = camera.getComponent(Camera);
+
+        const fieldOfViewRadians = (cameraCamera.fov.value * Math.PI) / 180;
+
+        // cameraCamera._aspectRatio.value = gl.canvas.width / gl.canvas.height;
         const projectionMatrix = mat4.create();
 
-        mat4.perspective(projectionMatrix, fieldOfViewRadians, aspect, zNear, zFar);
-
-        const cameraPosition: Float32Array = new Float32Array([-5, 5, -10]);
+        mat4.perspective(projectionMatrix, fieldOfViewRadians, cameraCamera.aspectRatio.value, cameraCamera.nearClip.value, cameraCamera.farClip.value);
 
         const viewMatrix = mat4.create();
-        mat4.translate(viewMatrix, viewMatrix, cameraPosition);
-        mat4.lookAt(viewMatrix, cameraPosition, [0, 0, 0], [0, 1, 0]);
+        mat4.translate(viewMatrix, viewMatrix, cameraTransform.position.getValues());
+        const lookAt: vec3 = vec3.create();
+        vec3.add(lookAt, cameraTransform.position.getValues(), cameraTransform.forward())
+        mat4.lookAt(viewMatrix, cameraTransform.position.getValues(), lookAt, cameraTransform.up());
 
         this.directionalLights = [];
         const getDirectionalLights = (entity: Entity) => {

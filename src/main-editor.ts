@@ -114,7 +114,7 @@ export class Program {
         const viewports = new Viewports(canvasA,  canvasB);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
-        const graphicEngine = new Open3DAdapter();
+        const graphicEngine = new Open3DAdapter(engine);
         graphicEngine.init(engine, canvasA, canvasB);
 
         // graphicEngine.setEditorCamera(canvasA, {x: 10, y: 10, z: 10});

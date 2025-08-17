@@ -108,6 +108,50 @@ export class Transform extends Component {
     this.scale.set(s[0], s[1], s[2]);
   }
 
+  public forward(): vector3 {
+    const forward = vector3.fromValues(0, 0, 1);
+    const result = vector3.create();
+
+    vector3.transformMat4(result, forward, this.worldMatrix.value);
+
+    const pos = vector3.create();
+    matrix4.getTranslation(pos, this.worldMatrix.value);
+    vector3.subtract(result, result, pos);
+
+    vector3.normalize(result, result);
+
+    return result;
+  }
+
+  public right(): vector3 {
+    const right = vector3.fromValues(1, 0, 0);
+    const result = vector3.create();
+
+    vector3.transformMat4(result, right, this.worldMatrix.value);
+
+    const pos = vector3.create();
+    matrix4.getTranslation(pos, this.worldMatrix.value);
+    vector3.subtract(result, result, pos);
+
+    vector3.normalize(result, result);
+    return result;
+  }
+  
+  public up(): vector3 {
+    const up = vector3.fromValues(0, 1, 0);
+    const result = vector3.create();
+
+    vector3.transformMat4(result, up, this.worldMatrix.value);
+    
+    const pos = vector3.create();
+    matrix4.getTranslation(pos, this.worldMatrix.value);
+    vector3.subtract(result, result, pos);
+
+    vector3.normalize(result, result);
+    return result;
+  }
+
+
   public clone(): Transform {
     const clone = new Transform(
       this.enabled.value,
