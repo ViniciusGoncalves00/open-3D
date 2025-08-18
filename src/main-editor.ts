@@ -1,5 +1,6 @@
 import { OrbitSystem } from './assets/systems/orbitSystem';
 import { RotateSystem } from './assets/systems/rotateSystem';
+import { ObservableField } from './common/observer/observable-field';
 import { Engine } from './core/engine/engine';
 import { Storage } from './database/storage';
 import { GraphicSettings } from './graphics/graphicSettings';
@@ -188,16 +189,17 @@ export class Program {
         const save = Builder.sectionButton(Icons.Floppy, () => storage.saveAll(project));
         groupEndLeft.appendChild(save);
 
-        const linkedIn = Builder.sectionButton(Icons.LinkedIn, () => window.open("https://www.linkedin.com/in/viniciusgonçalves00/", "_blank"));
-        const github = Builder.sectionButton(Icons.Github, () => window.open("https://github.com/ViniciusGoncalves00", "_blank"));
-        const repository = Builder.sectionButton(Icons.Dice3, () => window.open("https://github.com/ViniciusGoncalves00/open-3D", "_blank"));
-        groupEndRight.appendChild(linkedIn);
+        const github = Builder.sectionButton(Icons.Github, () => window.open("https://github.com/ViniciusGoncalves00/open-3D", "_blank"), new ObservableField(false), "Report Github Issues");
+        const discord = Builder.sectionButton(Icons.Discord, () => window.open("https://discord.gg/pFpWD7dr", "_blank"), new ObservableField(false), "Join our Discord server!");
+        const linkedIn = Builder.sectionButton(Icons.LinkedIn, () => window.open("https://www.linkedin.com/in/viniciusgonçalves00/", "_blank"), new ObservableField(false), "Check author LinkedIn");
+
         groupEndRight.appendChild(github);
-        groupEndRight.appendChild(repository);
+        groupEndRight.appendChild(discord);
+        groupEndRight.appendChild(linkedIn);
 
         engine.registerSystem(new RotateSystem());
         engine.registerSystem(new OrbitSystem());
 
-//         this.console.log("All right! You can start now!")
+        console.log("All right! You can start now!")
     }
 }

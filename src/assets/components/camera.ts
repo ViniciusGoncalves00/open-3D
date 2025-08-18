@@ -1,4 +1,5 @@
 import { ObservableField } from "../../common/observer/observable-field";
+import { HideInInspector } from "../../common/reflection/reflection";
 import { Component } from "./abstract/component";
 
 export class Camera extends Component {
@@ -12,6 +13,7 @@ export class Camera extends Component {
     public readonly width: ObservableField<number> = new ObservableField(1920);
     public readonly height: ObservableField<number> = new ObservableField(1080);
 
+    @HideInInspector
     private dot: number = 0;
 
     public constructor(

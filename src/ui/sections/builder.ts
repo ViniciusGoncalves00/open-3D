@@ -8,6 +8,7 @@ export enum Icons {
     Close = "bi bi-x",
     Dice3 = "bi bi-dice-3",
     Download = "bi bi-download",
+    Discord = "bi bi-discord",
     FileText = "bi bi-file-text",
     Floppy = "bi bi-floppy",
     FullScreen = "bi bi-fullscreen",
@@ -72,10 +73,10 @@ export class Builder {
         return section;
     }
 
-    public static sectionButton(icon: Icons, callback: () => void, highLightCondition?: ObservableField<boolean>): HTMLButtonElement {
+    public static sectionButton(icon: Icons, callback: () => void, highLightCondition?: ObservableField<boolean>, tooltip: string = ""): HTMLButtonElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <button class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square cursor-pointer text-sm hover:text-base ${icon}"></button>
+            <button  title="${tooltip}" class="bg-gray-07 hover:bg-gray-09 text-text-primary w-full aspect-square flex items-center justify-center cursor-pointer text-base hover:text-lg ${icon}"></button>
         `.trim();
         const button = template.content.firstElementChild as HTMLButtonElement;
         button.addEventListener("click", callback);
