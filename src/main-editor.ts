@@ -1,12 +1,16 @@
+import { Camera } from './assets/components/camera';
+import { Transform } from './assets/components/transform';
 import { OrbitSystem } from './assets/systems/orbitSystem';
 import { RotateSystem } from './assets/systems/rotateSystem';
 import { ObservableField } from './common/observer/observable-field';
+import { Entity } from './core/api/entity';
 import { Engine } from './core/engine/engine';
 import { Storage } from './database/storage';
 import { GraphicSettings } from './graphics/graphicSettings';
 import { Open3DAdapter } from './graphics/open3DAdapter';
 import './styles.css';
 import { EntityHandler } from './ui/others/entity-handler';
+import { MouseHandler } from './ui/others/mouse-handler';
 import { Utils } from './ui/others/utils';
 import { Assets } from './ui/sections/assets/assets';
 import { Section } from './ui/sections/base';
@@ -112,7 +116,9 @@ export class Program {
         canvasB.classList = "w-full h-full hidden";
         viewport.appendChild(canvasB);
 
-        const viewports = new Viewports(canvasA,  canvasB);
+        const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
+        const mouseHandler = new MouseHandler(camera.getComponent(Transform), camera.getComponent(Camera));
+        const viewports = new Viewports(canvasA,  canvasB, mouseHandler);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
         const graphicEngine = new Open3DAdapter(engine);

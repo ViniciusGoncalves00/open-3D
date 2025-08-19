@@ -21,7 +21,7 @@ export class EntityHandler {
     const entity = new Entity(crypto.randomUUID());
     entity.addComponent(new Transform(true, entity));
 
-    const cube = PrefabMesh.sphere();
+    const cube = PrefabMesh.cube();
     const observableIndices: ObservableField<number>[] = []
     cube.indices.forEach(index => observableIndices.push(new ObservableField(index)));
     const observableVectors: ObservableVector3[] = [];
@@ -32,7 +32,7 @@ export class EntityHandler {
         cube.vertices[index + 2]
       ));
     }
-    const meshComponent = new Mesh("Sphere", observableVectors, observableIndices);
+    const meshComponent = new Mesh("Cube", observableVectors, observableIndices);
     entity.addComponent(meshComponent);
 
     entity.parent = this._scene;

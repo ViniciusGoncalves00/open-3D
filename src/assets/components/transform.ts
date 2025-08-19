@@ -151,6 +151,14 @@ export class Transform extends Component {
     return result;
   }
 
+  public translateLocal(dx: number, dy: number, dz: number): void {
+    const delta = vector3.create();
+    vector3.scaleAndAdd(delta, delta, this.right(), dx);
+    vector3.scaleAndAdd(delta, delta, this.up(), dy);
+    vector3.scaleAndAdd(delta, delta, this.forward(), dz);
+    
+    this.position.translate(delta[0], delta[1], delta[2]);
+  }
 
   public clone(): Transform {
     const clone = new Transform(

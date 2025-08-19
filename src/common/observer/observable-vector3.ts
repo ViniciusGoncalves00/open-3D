@@ -34,6 +34,12 @@ export class ObservableVector3 {
     this._z.value = z;
   }
 
+  public translate(x: number, y: number, z: number): void {
+    this._x.value += x;
+    this._y.value += y;
+    this._z.value += z;
+  }
+
   public setFromVector(vector: ObservableVector3): void {
     this._x.value = vector.x.value;
     this._y.value = vector.y.value;
