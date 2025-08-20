@@ -101,7 +101,7 @@ export class Transform extends Component {
     matrix4.getScaling(s, this.localMatrix.value);
 
     const euler = vector3.create();
-    quatToEulerXYZ?.(euler, r);
+    this.quatToEulerXYZ?.(euler, r);
 
     this.position.set(t[0], t[1], t[2]);
     this.rotation.set(euler[0], euler[1], euler[2]);
@@ -160,6 +160,23 @@ export class Transform extends Component {
     this.position.translate(delta[0], delta[1], delta[2]);
   }
 
+  public quatToEulerXYZ(out: vector3, q: quaternion): vector3 {
+    const x = q[0], y = q[1], z = q[2], w = q[3];
+    const xx = x * x, yy = y * y, zz = z * z;
+    const wx = w * x, wy = w * y, wz = w * z;
+    const xy = x * y, xz = x * z, yz = y * z;
+
+    const rx = -Math.atan2(2 * (yz - wx), 1 - 2 * (xx + yy));
+    const ry = Math.asin(Math.max(-1, Math.min(1, 2 * (xz + wy))));
+    const rz = -Math.atan2(2 * (xy - wz), 1 - 2 * (yy + zz));
+
+    const toDeg = 180 / Math.PI;
+    out[0] = rx * toDeg;
+    out[1] = ry * toDeg;
+    out[2] = rz * toDeg;
+    return out;
+  }
+
   public clone(): Transform {
     const clone = new Transform(
       this.enabled.value,
@@ -212,21 +229,4 @@ export class Transform extends Component {
     // this.children.length = 0;
     // this._parent = null;
   }
-}
-
-function quatToEulerXYZ(out: vector3, q: quaternion): vector3 {
-  const x = q[0], y = q[1], z = q[2], w = q[3];
-  const xx = x * x, yy = y * y, zz = z * z;
-  const wx = w * x, wy = w * y, wz = w * z;
-  const xy = x * y, xz = x * z, yz = y * z;
-
-  const rx = -Math.atan2(2 * (yz - wx), 1 - 2 * (xx + yy));
-  const ry = Math.asin(Math.max(-1, Math.min(1, 2 * (xz + wy))));
-  const rz = -Math.atan2(2 * (xy - wz), 1 - 2 * (yy + zz));
-
-  const toDeg = 180 / Math.PI;
-  out[0] = rx * toDeg;
-  out[1] = ry * toDeg;
-  out[2] = rz * toDeg;
-  return out;
 }
