@@ -16,14 +16,14 @@ export class MouseHandler {
     private yawDirection = -1;
     private pitchDirection = 1;
 
-    private xOrbitDirection = 1;
+    private xOrbitDirection = -1;
     private xOrbitSensivity = 0.01;
-    private yOrbitDirection = 1;
+    private yOrbitDirection = -1;
     private yOrbitSensivity = 0.01;
 
-    private transform: Transform;
-    private camera: Camera;
-    private lastPosition: [number, number] | null = null;
+    public transform: Transform;
+    public camera: Camera;
+    public lastPosition: [number, number] | null = null;
 
     public constructor(transform: Transform, camera: Camera) {
         this.transform = transform;
@@ -70,57 +70,96 @@ export class MouseHandler {
     //     this.transform.rotation.y.value = lookAngle * this.RAD2DEG;
     // }
 
+
+
+
+
+
+    // public orbit(event: MouseEvent): void {
+    //     this.orbitAxisXZ(event);
+    //     this.orbitAxisYZ(event);
+    // }
+
+    // private orbitAxisXZ(event: MouseEvent): void {
+    //     const position = this.transform.position;
+    //     const target = vec3.fromValues(0, 0, 0);
+
+    //     const dx = position.x.value - target[0];
+    //     const dz = position.z.value - target[2];
+    //     const distance = Math.sqrt(dx*dx + dz*dz);
+
+    //     const angleXZ = Math.atan2(dz, dx);
+    //     const deltaXZ = event.movementX * this.yOrbitSensivity * this.yOrbitDirection;
+    //     const desiredXZ = angleXZ + deltaXZ;
+
+    //     this.transform.position.x.value = target[0] + Math.cos(desiredXZ) * distance;
+    //     this.transform.position.z.value = target[2] + Math.sin(desiredXZ) * distance;
+
+    //     const lookAngle = Math.atan2(target[0] - this.transform.position.x.value, target[2] - this.transform.position.z.value);
+    //     this.transform.rotation.y.value = lookAngle * this.RAD2DEG;
+    // }
+
+    // private orbitAxisYZ(event: MouseEvent): void {
+    //     const position = this.transform.position;
+    //     const target = vec3.fromValues(0, 0, 0);
+
+    //     const dx = position.x.value - target[0];
+    //     const dz = position.z.value - target[2];
+    //     const dy = position.y.value - target[1];
+
+    //     const radius = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+    //     const angleYZ = Math.asin(dy / radius);
+    //     const deltaYZ = event.movementY * this.xOrbitSensivity * this.xOrbitDirection;
+    //     const desiredYZ = angleYZ + deltaYZ;
+
+    //     this.transform.position.y.value = target[1] + Math.sin(desiredYZ) * radius;
+
+    //     const lookDir = vec3.fromValues(
+    //         target[0] - this.transform.position.x.value,
+    //         target[1] - this.transform.position.y.value,
+    //         target[2] - this.transform.position.z.value
+    //     );
+
+    //     const horizontalDist = Math.sqrt(lookDir[0] * lookDir[0] + lookDir[2] * lookDir[2]);
+
+    //     this.transform.rotation.x.value = Math.atan2(lookDir[1], horizontalDist) * this.RAD2DEG * -1;
+    // }
+
+
+
     public orbit(event: MouseEvent): void {
-        this.orbitAxisXZ(event);
-        this.orbitAxisYZ(event);
-    }
-
-    private orbitAxisXZ(event: MouseEvent): void {
         const position = this.transform.position;
         const target = vec3.fromValues(0, 0, 0);
 
         const dx = position.x.value - target[0];
-        const dz = position.z.value - target[2];
-        const distance = Math.sqrt(dx*dx + dz*dz);
-
-        const angleXZ = Math.atan2(dz, dx);
-        const deltaXZ = event.movementX * this.yOrbitSensivity * this.yOrbitDirection;
-        const desiredXZ = angleXZ + deltaXZ;
-
-        this.transform.position.x.value = target[0] + Math.cos(desiredXZ) * distance;
-        this.transform.position.z.value = target[2] + Math.sin(desiredXZ) * distance;
-
-        const lookAngle = Math.atan2(target[0] - this.transform.position.x.value, target[2] - this.transform.position.z.value);
-        this.transform.rotation.y.value = lookAngle * this.RAD2DEG;
-    }
-
-    private orbitAxisYZ(event: MouseEvent): void {
-        const position = this.transform.position;
-        const target = vec3.fromValues(0, 0, 0);
-
-        const dx = position.x.value - target[0];
-        const dz = position.z.value - target[2];
         const dy = position.y.value - target[1];
+        const dz = position.z.value - target[2];
 
         const radius = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-        const angleYZ = Math.asin(dy / radius);
-        const deltaYZ = event.movementY * this.xOrbitSensivity * this.xOrbitDirection;
-        const desiredYZ = angleYZ + deltaYZ;
+        let yaw = Math.atan2(dx, dz);
+        let pitch = Math.asin(dy / radius);
 
-        this.transform.position.y.value = target[1] + Math.sin(desiredYZ) * radius;
+        const deltaYaw = event.movementX * this.yOrbitSensivity * this.yOrbitDirection;
+        const deltaPitch = event.movementY * this.xOrbitSensivity * this.xOrbitDirection;
 
-        const lookDir = vec3.fromValues(
-            target[0] - this.transform.position.x.value,
-            target[1] - this.transform.position.y.value,
-            target[2] - this.transform.position.z.value
-        );
+        pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitch + deltaPitch));
+        yaw += deltaYaw;
 
-        const horizontalDist = Math.sqrt(lookDir[0] * lookDir[0] + lookDir[2] * lookDir[2]);
+        const newX = target[0] + radius * Math.cos(pitch) * Math.sin(yaw);
+        const newY = target[1] + radius * Math.sin(pitch);
+        const newZ = target[2] + radius * Math.cos(pitch) * Math.cos(yaw);
 
-        this.transform.rotation.x.value = Math.atan2(lookDir[1], horizontalDist) * this.RAD2DEG * -1;
+        this.transform.position.set(newX, newY, newZ);
+
+        const dir = vec3.fromValues(target[0] - newX, target[1] - newY, target[2] - newZ);
+
+        const newYaw = Math.atan2(dir[0], dir[2]) * this.RAD2DEG;
+        const newPitch = Math.atan2(dir[1], Math.sqrt(dir[0]*dir[0] + dir[2]*dir[2])) * this.RAD2DEG * -1;
+
+        this.transform.rotation.set(newPitch, newYaw, 0);
     }
-
 
     
 

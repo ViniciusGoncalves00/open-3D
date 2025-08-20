@@ -17,19 +17,21 @@ export class Viewports {
     let rotate = false;
 
     editorContainer.addEventListener("mousedown", (event) => {
-        InputManager.moveButtons.has(event.button) ? pan = true : '';
-        InputManager.orbitButtons.has(event.button) ? orbit = true : '';
-        InputManager.rotateButtons.has(event.button) ? rotate = true : '';
+        const pressedButton = event.button;
+        InputManager.moveButtons.has(pressedButton) ? pan = true : '';
+        InputManager.orbitButtons.has(pressedButton) ? orbit = true : '';
+        InputManager.rotateButtons.has(pressedButton) ? rotate = true : '';
     })
     editorContainer.addEventListener("mouseup", (event) => {
-        InputManager.moveButtons.has(event.button) ? pan = false : '';
-        InputManager.orbitButtons.has(event.button) ? orbit = false : '';
-        InputManager.rotateButtons.has(event.button) ? rotate = false : '';
+        const pressedButton = event.button;
+        InputManager.moveButtons.has(pressedButton) ? pan = false : '';
+        InputManager.orbitButtons.has(pressedButton) ? orbit = false : '';
+        InputManager.rotateButtons.has(pressedButton) ? rotate = false : '';
     })
     editorContainer.addEventListener("mousemove", (event) => {
         pan ? mouseHandler.translate(event) : "";
-        orbit ? mouseHandler.orbit(event) : "";
         rotate ? mouseHandler.rotate(event) : "";
+        orbit ? mouseHandler.orbit(event) : "";
     })
     editorContainer.addEventListener("wheel", (event) => mouseHandler.mouseWheel(event));
   }
