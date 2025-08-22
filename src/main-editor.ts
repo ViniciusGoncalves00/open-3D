@@ -10,7 +10,7 @@ import { GraphicSettings } from './graphics/graphicSettings';
 import { Open3DAdapter } from './graphics/open3DAdapter';
 import './styles.css';
 import { EntityHandler } from './ui/others/entity-handler';
-import { MouseHandler } from './ui/others/mouse-handler';
+import { InputHandler } from './ui/others/input-handler';
 import { Utils } from './ui/others/utils';
 import { Assets } from './ui/sections/assets/assets';
 import { Section } from './ui/sections/base';
@@ -117,7 +117,7 @@ export class Program {
         viewport.appendChild(canvasB);
 
         const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const mouseHandler = new MouseHandler(camera.getComponent(Transform), camera.getComponent(Camera));
+        const mouseHandler = new InputHandler(camera.getComponent(Transform), camera.getComponent(Camera));
         const viewports = new Viewports(canvasA,  canvasB, mouseHandler);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         

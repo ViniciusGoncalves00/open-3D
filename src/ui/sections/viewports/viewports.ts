@@ -1,11 +1,11 @@
 import { InputManager } from "../../others/input-manager";
-import { MouseHandler } from "../../others/mouse-handler";
+import { InputHandler } from "../../others/input-handler";
 
 export class Viewports {
   private _editorContainer: HTMLCanvasElement;
   private _previewContainer: HTMLCanvasElement;
 
-  public constructor(editorContainer: HTMLCanvasElement, previewContainer: HTMLCanvasElement, mouseHandler: MouseHandler) {
+  public constructor(editorContainer: HTMLCanvasElement, previewContainer: HTMLCanvasElement, mouseHandler: InputHandler) {
     this._editorContainer = editorContainer;
     this._previewContainer = previewContainer;
 
@@ -29,7 +29,7 @@ export class Viewports {
         InputManager.rotateButtons.has(pressedButton) ? rotate = false : '';
     })
     editorContainer.addEventListener("mousemove", (event) => {
-        pan ? mouseHandler.translate(event) : "";
+        pan ? mouseHandler.pan(event) : "";
         rotate ? mouseHandler.rotate(event) : "";
         orbit ? mouseHandler.orbit(event) : "";
     })

@@ -44,6 +44,7 @@ export class Console extends Section{
         this.logs.push(log);
 
         const logLine = document.createElement("p");
+        logLine.className = "px-1";
         logLine.textContent = this.format(log);
     
         switch (logType) {
