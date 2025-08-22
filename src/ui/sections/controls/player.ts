@@ -9,7 +9,10 @@ export class Player {
 
         play.addEventListener('click', () => timeController.start());
         stop.addEventListener('click', () => timeController.stop());
-        pause.addEventListener('click', () =>  timeController.isPaused.value ? timeController.unpause() : timeController.pause());
+        pause.addEventListener('click', () => {
+          if(!timeController.isRunning.value) return;
+          timeController.isPaused.value ? timeController.unpause() : timeController.pause()
+        });
 
         timeController.isRunning.subscribe(value => {
           play.classList.toggle('border', value);
@@ -17,6 +20,7 @@ export class Player {
         });
 
         timeController.isPaused.subscribe(value => {
+          if(!timeController.isRunning.value) return;
           pause.classList.toggle("border", value)
           pause.classList.toggle("border-white", value)
         })
