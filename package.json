@@ -21,7 +21,7 @@
     "reflect-metadata": "^0.2.2",
     "tailwind": "^4.0.0",
     "three": "^0.175.0",
-    "ts-utils": "^6.1.0"
+    "ts-math-utils": "git+https://github.com/vinicius-goncalves/ts-utils.git"
   },
   "devDependencies": {
     "@types/three": "^0.175.0",

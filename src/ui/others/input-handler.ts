@@ -1,6 +1,6 @@
 import { Camera } from "../../assets/components/camera";
 import { Transform } from "../../assets/components/transform";
-import { MathUtils } from 'ts-utils';
+import { MathUtils } from 'ts-math-utils';
 import { ObservableField } from "../../common/observer/observable-field";
 
 export class InputHandler {
