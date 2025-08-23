@@ -1,141 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>open-3D | editor</title>
-  <script type="module" src="./dist/editor-bundle.js"></script>
-  <script type="module" src="./editor-bundle.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-  <div id="explorer-window" class="bg-zinc-900 w-screen h-screen flex flex-col overflow-hidden">
-    <!-- FIXED -->
-    <div id="settingsOverlay" class="fixed hidden w-full h-full z-50 items-center justify-center">
-      <div id="settingsWindow" class="bg-zinc-700 text-white w-1/2 h-1/2 pointer-events-auto">
-        <button id="closeSettings" class="">X</button>
-        <div class="flex items-center justify-between">
-          <label>autosave</label>
-          <input id="autoSaveEnabled" type="checkbox" value="true" checked>
-        </div>
-        <div class="flex items-center justify-between">
-          <label>save time interval (seconds)</label>
-          <input id="autoSaveInterval" type="number" value="">
-        </div>
-      </div>
-    </div>
-    <!-- TOP -->
-    <div id="top" class="w-full h-8 flex items-center justify-between px-2">
-      <div class="w-full h-8 flex items-center justify-start space-x-[2px]">
-        <button id="openSettings" class="btn btn--time-controller">
-          <i class="bi bi-gear"></i>
-        </button>
-        <button id="save" class="btn btn--time-controller">
-          <i class="bi bi-floppy"></i>
-        </button>
-        <div class="btn btn--time-controller">
-          <p id="averageFpsContainer"></p>
-        </div>
-        <div class="btn btn--time-controller">
-          <p id="fpsContainer"></p>
-        </div>
-      </div>
+    <head>
+        <meta charset="UTF-8">
+        <title>open-3D | editor</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="module" src="./dist/editor-bundle.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        <div class="w-full h-full flex flex-col">
+            <header class="bg-(--color-gray-07) w-full h-8 flex-none outline outline-gray-01"></header>
+            <main class="relative w-full h-[calc(100%-64px)]">
+                <div id="viewport" class="absolute w-full h-full"></div>
+                <div id="overlay" class="relative w-full h-full flex p-2 space-x-2 z-50 pointer-events-none">
+                    <section id="left" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01 pointer-events-auto">
+                        <div id="leftButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
+                        <div id="leftDetails" class="grow h-full flex-none flex flex-col overflow-y-hidden z-10"></div>
+                    </section>
+                    <section id="center" class="w-full h-full flex flex-col pointer-events-none">
+                        <div id="centerTop" class="w-full h-8 flex-none flex justify-between space-x-2 pointer-events-auto">
+                            <div id="fps-controls" class="flex outline outline-gray-01">
+                                <div class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[3/1] cursor-pointer flex items-center justify-center">
+                                  <p id="averageFpsContainer"></p>
+                                </div>
+                                <div class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[3/1] cursor-pointer flex items-center justify-center">
+                                  <p id="fpsContainer"></p>
+                                </div>
+                            </div>
 
-      <div id="controls" class="w-full h-8 flex items-center justify-center space-x-[16px]">
-
-        <div id="player-controls" class="flex space-x-[2px]">
-          <button id="play" class="btn btn--time-controller">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
-              <path d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z"/>
-            </svg>
-          </button>
-          <button id="pause" class="btn btn--time-controller">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
-              <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5"/>
-            </svg>
-          </button>
-          <button id="stop" class="btn btn--time-controller">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" fill="currentColor" class="bi bi-stop" viewBox="0 0 16 16">
-              <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5z"/>
-            </svg>
-          </button>
+                            <div id="player-controls" class="flex outline outline-gray-01">
+                                <button id="play" class="bi bi-play bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-base hover:text-xl"></button>
+                                <button id="pause" class="bi bi-pause bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-base hover:text-xl"></button>
+                                <button id="stop" class="bi bi-stop bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-base hover:text-xl"></button>
+                            </div>
+                            
+                            <div id="timescale-controls" class="flex outline outline-gray-01">
+                                <button id="speedDown" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-sm hover:text-base">
+                                    <p>0.5x</p>
+                                </button>
+                                <button id="speedNormal" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-sm hover:text-base">
+                                    <p>1.0x</p>
+                                </button>
+                                <button id="speedUp" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-sm hover:text-base">
+                                    <p>2.0x</p>
+                                </button>
+                                <button id="fullScreen" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center text-sm hover:text-base">
+                                    <i class="bi bi-fullscreen"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="centerMid" class="w-full h-full pointer-events-none"></div>
+                        <div id="centerBot" class=" bg-gray-07 w-full max-h-32 flex flex-col justify-center space-x-2 outline outline-gray-01 pointer-events-auto">
+                            <div id="centerBotDetails" class="w-full flex flex-col overflow-y-hidden z-10"></div>
+                            <!-- <div id="camera-controls" class="flex outline outline-gray-01">
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">top</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">bot</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">left</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">right</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">front</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">back</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">perspective</div>
+                                </button>
+                                <button id="" class="bg-gray-07 hover:bg-gray-09 text-text-primary h-full aspect-[1.5/1] cursor-pointer flex items-center justify-center px-2 bi bi-box">
+                                    <div class="pl-2">orthographic</div>
+                                </button>
+                            </div> -->
+                        </div>
+                    </section>
+                    <section id="right" class="bg-gray-07 max-w-96 h-full flex outline outline-gray-01 pointer-events-auto">
+                        <div id="rightDetails" class="grow h-full flex-none flex flex-col overflow-y-hidden z-10"></div>
+                        <div id="rightButtons" class="w-12 flex-none outline flex flex-col justify-between outline-gray-01 z-20"></div>
+                    </section>
+                </div>
+            </main>
+            <footer class="bg-gray-07 w-full h-8 flex-none flex items-center justify-between p-2 outline outline-gray-01">
+                <div class="flex items-center justify-center gap-[32px] opacity-70">
+                    <div id="mouse0" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3645/3645819.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">pan (hold)</div>
+                    </div>
+                    <div id="mouse1" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3645/3645851.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">rotate (hold)</div>
+                    </div>
+                    <div id="mouse2" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3646/3646205.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">zoom (scroll)</div>
+                    </div>
+                    <div id="mouse2" class="h-full flex items-center justify-center gap-[4px]">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3646/3646205.png" alt="Left Click Icon" class="w-[20px] h-[20px]">
+                        <div class="flex items-center justify-center align-center text-center">orbit (hold)</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center gap-[16px] opacity-70">
+                    <!-- <div id="w" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">forward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542499.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="a" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">leftward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542365.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="s" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">backward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542478.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="d" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">rightward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542385.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="q" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">downward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542469.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div>
+                    <div id="e" class="h-full flex items-center justify-center gap-[8px]">
+                        <div class="flex items-center justify-center align-center text-center">upward</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/9542/9542393.png" alt="Left Click Icon" class="w-[16px] h-[16px]">
+                    </div> -->
+                </div>
+            </footer>
         </div>
-
-        <div id="timescale-controls" class="flex space-x-[2px]">
-          <button id="speedDown" class="btn btn--time-controller">
-            <p>0.5x</p>
-          </button>
-          <button id="speedNormal" class="btn btn--time-controller">
-            <p>1.0x</p>
-          </button>
-          <button id="speedUp" class="btn btn--time-controller">
-            <p>2.0x</p>
-          </button>
-        </div>
-
-        <div id="screen-controls" class="flex space-x-[2px]">
-          <button id="fullScreen" class="btn btn--time-controller">
-            <i class="bi bi-fullscreen"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="w-full h-8 flex items-center justify-end space-x-[2px]">
-        <a target="_blank" href="https://www.linkedin.com/in/viniciusgonçalves00/" class="btn btn--time-controller">
-          <i class="bi bi-linkedin"></i>
-        </a>
-        <a target="_blank" href="https://github.com/ViniciusGoncalves00"  class="btn btn--time-controller">
-          <i class="bi bi-github"></i>
-        </a>
-        <a target="_blank" href="https://github.com/ViniciusGoncalves00/open-3D" class="btn btn--time-controller">
-          <p>open-3D</p>
-        </a>
-      </div>
-    </div>
-    <div id="drag-n-drop-overlay" class="z-50 absolute w-full h-full bg-black/50"></div>
-    <!-- BOTTOM -->
-    <div id="bottom" class="w-full h-full flex items-start justify-start space-x-[2px]">
-      <!-- LEFT -->
-      <div id="left" class="dropzone-body">
-        <div class="dropzone">drop</div>
-        <div id="Hierarchy"></div>
-        <div id="Assets"></div>
-        <div id="SceneManager"></div>
-      </div>
-
-      <!-- CENTER -->
-      <div id="center" class="w-full h-full flex flex-col items-start justify-start relative">
-        <div class="dropzone">drop</div>
-        <div id="viewport-container" class="tab-body flex items-start justify-start space-x-[2px]">
-          <div class="w-1/2 h-full flex flex-col">
-            <div class="title-bar tab-title">
-              <i class="bi bi-grid-3x3"></i>
-              <p>Editor</p>
-            </div>
-            <div id="viewportEditorContainer" class="w-full h-full relative">
-              <canvas id="canvasA" class="absolute w-full h-full"></canvas>
-            </div>
-          </div>
-          <div class="w-1/2 h-full flex flex-col">
-            <div class="title-bar tab-title">
-              <i class="bi bi-dice-3"></i>
-              <p>Preview</p>
-            </div>
-            <div id="viewportSceneContainer" class="w-full h-full relative">
-              <canvas id="canvasB" class="absolute w-full h-full"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div id="Console"></div>
-      </div>
-
-      <!-- RIGHT -->
-      <div id="right" class="dropzone-body">
-        <div class="dropzone">drop</div>
-        <div id="Inspector"></div>
-      </div>
-    </div>
-  </div>
-</body>
+    </body>
 </html>
