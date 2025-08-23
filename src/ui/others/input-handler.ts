@@ -1,8 +1,6 @@
-import { mat4, quat, vec3 } from "gl-matrix";
 import { Camera } from "../../assets/components/camera";
 import { Transform } from "../../assets/components/transform";
-import { MathUtils } from "../../common/utils/math-utils";
-import { VectorUtils } from "../../common/utils/vector-utils";
+import { MathUtils } from 'ts-utils';
 import { ObservableField } from "../../common/observer/observable-field";
 
 export class InputHandler {
