@@ -19,7 +19,10 @@ export class Viewports {
     editorContainer.addEventListener("mousedown", (event) => {
         const pressedButton = event.button;
         InputManager.moveButtons.has(pressedButton) ? pan = true : '';
-        InputManager.orbitButtons.has(pressedButton) ? orbit = true : '';
+        if(InputManager.orbitButtons.has(pressedButton)) {
+          orbit = true;
+          mouseHandler.findCameraTarget();
+        }
         InputManager.rotateButtons.has(pressedButton) ? rotate = true : '';
     })
     editorContainer.addEventListener("mouseup", (event) => {

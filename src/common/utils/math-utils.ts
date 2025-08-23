@@ -94,6 +94,10 @@ export namespace MathUtils {
     return t * t * (3 - 2 * t);
   }
 
+  export function smooth(a: number, smoothness: number): number {
+    return a / (1 + smoothness * a);
+  }
+
   /**
    * Generates a random number between min and max.
    * @param min Minimum value.
