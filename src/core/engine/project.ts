@@ -1,3 +1,4 @@
+import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
 import { Transform } from "../../assets/components/transform";
 import { ObservableField } from "../../common/observer/observable-field";
@@ -75,6 +76,12 @@ export class Project {
         light.name.value = "Directional Light";
         light.addComponent(new DirectionalLight());
         scene.children.add(light);
+
+        const camera = new Entity(crypto.randomUUID());
+        camera.name.value = "Camera";
+        camera.addComponent(new Camera());
+        camera.addComponent(new Transform(true, camera));
+        scene.children.add(camera);
 
         return scene;
     }
