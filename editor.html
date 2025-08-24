@@ -11,7 +11,14 @@
     </head>
     <body>
         <div class="w-full h-full flex flex-col">
-            <header class="bg-(--color-gray-07) w-full h-8 flex-none outline outline-gray-01"></header>
+            <header class="bg-gray-07 w-full h-8 flex-none flex items-center justify-between p-2 outline outline-gray-01">
+                <div class="flex items-center justify-center gap-[32px] opacity-70">
+                    <a href="hub.html" id="back to HUB" class="h-full flex items-center justify-center gap-[4px] bg-gray-07 hover:bg-gray-09 text-text-primary cursor-pointer text-base hover:text-lg">
+                        <i class="bi bi-arrow-left"></i>
+                        <div class="flex items-center justify-center align-center text-center">back to hub</div>
+                    </a>
+                </div>
+            </header>
             <main class="relative w-full h-[calc(100%-64px)]">
                 <div id="viewport" class="absolute w-full h-full"></div>
                 <div id="overlay" class="relative w-full h-full flex p-2 space-x-2 z-50 pointer-events-none">
