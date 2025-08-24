@@ -1,22 +1,23 @@
+import { ObservableField } from "../common/observer/observable-field";
 import { Theme } from "../ui/editor/others/enums";
 
 export class Preferences {
-    public autoSaveEnabled: boolean = true;
-    public autoSaveInterval: number = 6000;
+    public autoSaveEnabled: ObservableField<boolean> = new ObservableField(true);
+    public autoSaveInterval: ObservableField<number> = new ObservableField(600);
     public theme: Theme = Theme.Light;
 
     public static fromJSON(data: any): Preferences {
         const preferences = new Preferences();
-        preferences.autoSaveEnabled = data.autoSaveEnabled || true;
-        preferences.autoSaveInterval = data.autoSaveEnabled || 60;
+        preferences.autoSaveEnabled.value = data.autoSaveEnabled || true;
+        preferences.autoSaveInterval.value = data.autoSaveInterval || 600;
         preferences.theme = data.theme || Theme.Light;
         return preferences;
     }
 
     public toJSON(): Object {
         return {
-            autoSaveEnabled : this.autoSaveEnabled,
-            autoSaveInterval : this.autoSaveInterval,
+            autoSaveEnabled : this.autoSaveEnabled.value,
+            autoSaveInterval : this.autoSaveInterval.value,
             theme : this.theme,
         }
     }

@@ -1,11 +1,10 @@
-import { InputManager } from "../../others/input-manager";
 import { InputHandler } from "../../others/input-handler";
 
 export class Viewports {
   private _editorContainer: HTMLCanvasElement;
   private _previewContainer: HTMLCanvasElement;
 
-  public constructor(editorContainer: HTMLCanvasElement, previewContainer: HTMLCanvasElement, mouseHandler: InputHandler) {
+  public constructor(editorContainer: HTMLCanvasElement, previewContainer: HTMLCanvasElement, inputHandler: InputHandler) {
     this._editorContainer = editorContainer;
     this._previewContainer = previewContainer;
 
@@ -18,25 +17,25 @@ export class Viewports {
 
     editorContainer.addEventListener("mousedown", (event) => {
         const pressedButton = event.button;
-        InputManager.moveButtons.has(pressedButton) ? pan = true : '';
-        if(InputManager.orbitButtons.has(pressedButton)) {
+        inputHandler.panButtons.value.has(pressedButton) ? pan = true : '';
+        if(inputHandler.orbitButtons.value.has(pressedButton)) {
           orbit = true;
-          mouseHandler.findCameraTarget();
+          inputHandler.findCameraTarget();
         }
-        InputManager.rotateButtons.has(pressedButton) ? rotate = true : '';
+        inputHandler.rotateButtons.value.has(pressedButton) ? rotate = true : '';
     })
     editorContainer.addEventListener("mouseup", (event) => {
         const pressedButton = event.button;
-        InputManager.moveButtons.has(pressedButton) ? pan = false : '';
-        InputManager.orbitButtons.has(pressedButton) ? orbit = false : '';
-        InputManager.rotateButtons.has(pressedButton) ? rotate = false : '';
+        inputHandler.panButtons.value.has(pressedButton) ? pan = false : '';
+        inputHandler.orbitButtons.value.has(pressedButton) ? orbit = false : '';
+        inputHandler.rotateButtons.value.has(pressedButton) ? rotate = false : '';
     })
     editorContainer.addEventListener("mousemove", (event) => {
-        pan ? mouseHandler.pan(event) : "";
-        rotate ? mouseHandler.rotate(event) : "";
-        orbit ? mouseHandler.orbit(event) : "";
+        pan ? inputHandler.pan(event) : "";
+        rotate ? inputHandler.rotate(event) : "";
+        orbit ? inputHandler.orbit(event) : "";
     })
-    editorContainer.addEventListener("wheel", (event) => mouseHandler.mouseWheel(event));
+    editorContainer.addEventListener("wheel", (event) => inputHandler.mouseWheel(event));
   }
 
   public toggleHighlight(): void {

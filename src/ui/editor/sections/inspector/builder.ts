@@ -275,7 +275,7 @@ export class Builder {
         });
     }
 
-    private static buildNumberField(observablefield: ObservableField<number>): HTMLInputElement {
+    public static buildNumberField(observablefield: ObservableField<number>): HTMLInputElement {
         const field = document.createElement("input");
         field.type = "number";
         field.step = "1";

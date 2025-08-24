@@ -117,8 +117,8 @@ export class Program {
         viewport.appendChild(canvasB);
 
         const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const mouseHandler = new InputHandler(camera.getComponent(Transform), camera.getComponent(Camera));
-        const viewports = new Viewports(canvasA,  canvasB, mouseHandler);
+        const inputHandler = new InputHandler(camera.getComponent(Transform), camera.getComponent(Camera));
+        const viewports = new Viewports(canvasA,  canvasB, inputHandler);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
         const graphicEngine = new Open3DAdapter(engine);
@@ -154,6 +154,7 @@ export class Program {
         const player = new Player(engine.timeController);
         const timescale = new Timescale(engine.time);
         const screen = new Screen(engine.timeController, viewport);
+        const settings = new Settings(storage, inputHandler);
 
         const fpsContainer = Utils.getElementOrFail<HTMLElement>('fpsContainer');
         const averageFpsContainer = Utils.getElementOrFail<HTMLElement>('averageFpsContainer');
@@ -189,8 +190,8 @@ export class Program {
         inspector.assign(this.rightDetails, groupStartRight);
         console.assign(this.centerBotDetails, groupStartRight);
 
-        const settings = Builder.sectionButton(Icons.Gear, () => '');
-        groupEndLeft.appendChild(settings);
+        const settingsButton = Builder.sectionButton(Icons.Gear, () => settings.toggle());
+        groupEndLeft.appendChild(settingsButton);
 
         const save = Builder.sectionButton(Icons.Floppy, () => storage.saveAll(project));
         groupEndLeft.appendChild(save);

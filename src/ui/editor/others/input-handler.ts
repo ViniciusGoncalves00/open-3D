@@ -4,6 +4,10 @@ import { MathUtils } from 'ts-math-utils';
 import { ObservableField } from "../../../common/observer/observable-field";
 
 export class InputHandler {
+    public panButtons: ObservableField<Set<number>> = new ObservableField(new Set([0]));
+    public orbitButtons: ObservableField<Set<number>> = new ObservableField(new Set([1]));
+    public rotateButtons: ObservableField<Set<number>> = new ObservableField(new Set([2]));
+
     // #region [direction]
     public readonly xPanDirection: ObservableField<number> = new ObservableField(1);
     public readonly yPanDirection: ObservableField<number> = new ObservableField(1);

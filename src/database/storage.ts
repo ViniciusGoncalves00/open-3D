@@ -74,23 +74,23 @@ export class Storage {
       else if(magnitude == TimeFormat.Hour) interval *= 3600000;
 
       if(interval < this.second || interval > this.hour) return;
-      this.preferences.autoSaveInterval = interval;
+      this.preferences.autoSaveInterval.value = interval;
 
       this.restartAutoSave();
     }
 
     public getAutoSaveInterval(): number {
-      return this.preferences.autoSaveInterval;
+      return this.preferences.autoSaveInterval.value;
     }
 
     public toggleAutoSave(): void {
-      this.preferences.autoSaveEnabled = !this.preferences.autoSaveEnabled;
-      this.preferences.autoSaveEnabled ? this.startAutoSave(this.preferences.autoSaveInterval) : this.stopAutoSave();
+      this.preferences.autoSaveEnabled.value = !this.preferences.autoSaveEnabled;
+      this.preferences.autoSaveEnabled.value ? this.startAutoSave(this.preferences.autoSaveInterval.value) : this.stopAutoSave();
     }
 
     private restartAutoSave(): void {
       this.stopAutoSave();
-      this.startAutoSave(this.preferences.autoSaveInterval);
+      this.startAutoSave(this.preferences.autoSaveInterval.value);
     }
 
     private startAutoSave(interval: number): void {

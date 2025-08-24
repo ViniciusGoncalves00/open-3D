@@ -13,12 +13,14 @@ export abstract class Section {
     private visible: ObservableField<boolean> = new ObservableField(true);
     private pinned: ObservableField<boolean> = new ObservableField(false);
 
-    public constructor(name: string, icon: Icons) {
+    public constructor(name: string, icon: Icons, state: boolean = false) {
         this.button = Builder.sectionButton(icon, () => this.toggle(), this.visible);
         this.section = Builder.section(name, icon, () => this.toggle(), () => this.pin());
 
         this.subHeader = this.section.querySelector('[data-role="subHeader"]') as HTMLDivElement;
         this.sectionBody = this.section.querySelector('[data-role="body"]') as HTMLDivElement;
+
+        if(state) this.toggle();
     }
 
     public toggle(): void {
