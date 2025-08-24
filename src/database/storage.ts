@@ -3,13 +3,14 @@ import { Engine } from "../core/engine/engine";
 import { Project } from "../core/engine/project";
 import { Metadata } from "./metadata";
 import { Preferences } from "./preferences";
+import { ObservableMap } from "../common/observer/observable-map";
 
 export class Storage {
   public readonly dbName = 'open3d-storage';
   public readonly dbVersion = 1;
   public db!: IDBDatabase | null;
   public autoSaveIntervalId: number = 0;
-  public metadata: Map<string, Metadata> = new Map();
+  public metadata: ObservableMap<string, Metadata> = new ObservableMap(new Map());
 
   public preferences!: Preferences;
 

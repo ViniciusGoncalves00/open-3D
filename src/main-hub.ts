@@ -25,8 +25,10 @@ export class Program {
         this.initializeTheme();
 
         const projectsList = this.getElementOrFail<HTMLDivElement>('projectsList');
-        
-        this._storage.metadata.forEach(metadata => {
+
+
+        const renderProjectList = () => {
+            this._storage.metadata.forEach(metadata => {
             const rowDiv = document.createElement("div");
             rowDiv.className = "w-full h-12 border-b border-(--color-gray-02) flex-none flex items-center justify-between hover:bg-(--color-gray-09)";
 
@@ -56,7 +58,21 @@ export class Program {
             rowDiv.appendChild(deleteButton);
                     
             projectsList.appendChild(rowDiv);
-        });
+            });
+        }    
+        
+        this._storage.metadata.subscribe({
+                onAdd: () => {
+                    projectsList.innerHTML = "";
+                    renderProjectList();
+                },
+                onRemove: () => {
+                    projectsList.innerHTML = "";
+                    renderProjectList();
+                },
+            }
+        )
+        renderProjectList();
 
         const newProjectButton = this.getElementOrFail<HTMLButtonElement>('newProject');
         newProjectButton.addEventListener("click", async () => {
