@@ -1,4 +1,4 @@
-import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableField } from "../../../common/observer/observable-field";
 
 export enum Icons {
     ArrowDown = "bi-caret-down-fill",

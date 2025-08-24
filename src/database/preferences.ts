@@ -1,4 +1,4 @@
-import { Theme } from "../ui/others/enums";
+import { Theme } from "../ui/editor/others/enums";
 
 export class Preferences {
     public autoSaveEnabled: boolean = true;

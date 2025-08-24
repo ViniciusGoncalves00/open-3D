@@ -1,7 +1,7 @@
-import { Camera } from "../../assets/components/camera";
-import { Transform } from "../../assets/components/transform";
+import { Camera } from "../../../assets/components/camera";
+import { Transform } from "../../../assets/components/transform";
 import { MathUtils } from 'ts-math-utils';
-import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableField } from "../../../common/observer/observable-field";
 
 export class InputHandler {
     // #region [direction]

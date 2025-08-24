@@ -1,10 +1,10 @@
-import { Color } from "../../../assets/components/abstract/color";
-import { Component } from "../../../assets/components/abstract/component";
-import { ObservableField } from "../../../common/observer/observable-field";
-import { ObservableList } from "../../../common/observer/observable-list";
-import { ObservableVector3 } from "../../../common/observer/observable-vector3";
-import { getInspectableProperties } from "../../../common/reflection/reflection";
-import { Entity } from "../../../core/api/entity";
+import { Color } from "../../../../assets/components/abstract/color";
+import { Component } from "../../../../assets/components/abstract/component";
+import { ObservableField } from "../../../../common/observer/observable-field";
+import { ObservableList } from "../../../../common/observer/observable-list";
+import { ObservableVector3 } from "../../../../common/observer/observable-vector3";
+import { getInspectableProperties } from "../../../../common/reflection/reflection";
+import { Entity } from "../../../../core/api/entity";
 import { Icons } from "../builder";
 import { Dropdown, DropdownItem } from "../components/dropdown";
 import { InputOptions } from "./options";

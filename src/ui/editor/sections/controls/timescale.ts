@@ -1,4 +1,4 @@
-import { Time } from "../../../core/engine/time";
+import { Time } from "../../../../core/engine/time";
 import { Utils } from "../../others/utils";
 
 export class Timescale {

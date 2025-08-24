@@ -1,18 +1,18 @@
 import { Section } from "../base";
-import { Orbit } from "../../../assets/components/orbit";
-import { Rotate } from "../../../assets/components/rotate";
-import { Transform } from "../../../assets/components/transform";
-import { Entity } from "../../../core/api/entity";
+import { Orbit } from "../../../../assets/components/orbit";
+import { Rotate } from "../../../../assets/components/rotate";
+import { Transform } from "../../../../assets/components/transform";
+import { Entity } from "../../../../core/api/entity";
 import { Dropdown, DropdownItem } from "../components/dropdown";
 import { EntityHandler } from "../../others/entity-handler";
-import { Mesh } from "../../../assets/components/mesh";
-import { Component } from "../../../assets/components/abstract/component";
-import { Engine } from "../../../core/engine/engine";
+import { Mesh } from "../../../../assets/components/mesh";
+import { Component } from "../../../../assets/components/abstract/component";
+import { Engine } from "../../../../core/engine/engine";
 import { Hierarchy } from "../hierarchy/hierarchy";
 import { Icons } from "../builder";
-import { DirectionalLight } from "../../../assets/components/directional-light";
+import { DirectionalLight } from "../../../../assets/components/directional-light";
 import { Builder } from "./builder";
-import { Camera } from "../../../assets/components/camera";
+import { Camera } from "../../../../assets/components/camera";
 
 export class Inspector extends Section {
   private engine: Engine;

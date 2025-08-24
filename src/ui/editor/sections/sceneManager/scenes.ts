@@ -1,6 +1,6 @@
 import { Section } from "../base";
-import { Entity } from "../../../core/api/entity";
-import { Project } from "../../../core/engine/project";
+import { Entity } from "../../../../core/api/entity";
+import { Project } from "../../../../core/engine/project";
 import { Builder, Icons } from "../builder";
 
 export class SceneManager extends Section {

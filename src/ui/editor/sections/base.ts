@@ -1,4 +1,4 @@
-import { ObservableField } from "../../common/observer/observable-field";
+import { ObservableField } from "../../../common/observer/observable-field";
 import { Builder, Icons } from "./builder";
 
 export abstract class Section {

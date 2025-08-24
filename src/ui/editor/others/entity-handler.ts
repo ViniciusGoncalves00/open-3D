@@ -1,10 +1,10 @@
-import { Transform } from "../../assets/components/transform";
-import { Entity } from "../../core/api/entity";
-import { ObservableField } from '../../common/observer/observable-field';
-import { ObservableVector3 } from '../../common/observer/observable-vector3';
-import { Mesh } from '../../assets/components/mesh';
-import { ObservableNullableField } from '../../common/observer/observable-nullable-field';
-import { PrefabMesh } from "../../core/api/prefab-mesh";
+import { Transform } from "../../../assets/components/transform";
+import { Entity } from "../../../core/api/entity";
+import { ObservableField } from '../../../common/observer/observable-field';
+import { ObservableVector3 } from '../../../common/observer/observable-vector3';
+import { Mesh } from '../../../assets/components/mesh';
+import { ObservableNullableField } from '../../../common/observer/observable-nullable-field';
+import { PrefabMesh } from "../../../core/api/prefab-mesh";
 
 export class EntityHandler {
     private _scene: Entity;

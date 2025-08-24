@@ -1,4 +1,4 @@
-import { TimeController } from "../../../core/engine/time-controller";
+import { TimeController } from "../../../../core/engine/time-controller";
 import { Utils } from "../../others/utils";
 
 export class Screen {

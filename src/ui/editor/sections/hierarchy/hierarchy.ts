@@ -1,4 +1,4 @@
-import { Entity } from "../../../core/api/entity";
+import { Entity } from "../../../../core/api/entity";
 import { EntityHandler } from "../../others/entity-handler";
 import { Section } from "../base";
 import { Builder, Icons } from "../builder";

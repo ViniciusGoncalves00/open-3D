@@ -1,6 +1,6 @@
-import { FileNode } from "../../../common/tree/file-node";
-import { FolderNode } from "../../../common/tree/folder-node";
-import { TreeNode } from "../../../common/tree/tree-node";
+import { FileNode } from "../../../../common/tree/file-node";
+import { FolderNode } from "../../../../common/tree/folder-node";
+import { TreeNode } from "../../../../common/tree/tree-node";
 
 export class Tree {
     private readonly _container: HTMLElement;

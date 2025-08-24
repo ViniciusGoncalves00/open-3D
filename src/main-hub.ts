@@ -1,6 +1,6 @@
 import './styles.css';
 import { Storage } from './database/storage';
-import { Theme } from './ui/others/enums';
+import { Theme } from './ui/editor/others/enums';
 import { Entity } from "./core/api/entity";
 
 window.addEventListener('DOMContentLoaded', () => {

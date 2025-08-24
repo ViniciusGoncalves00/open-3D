@@ -1,4 +1,4 @@
-import { Storage } from "../../../database/storage";
+import { Storage } from "../../../../database/storage";
 
 export class Settings {
     public constructor(settingsWindow: HTMLDivElement, openSettingsButton: HTMLButtonElement, closeSettingsButton: HTMLButtonElement, storage: Storage, autoSaveEnabledButton: HTMLButtonElement, autoSaveIntervalInput: HTMLInputElement) {

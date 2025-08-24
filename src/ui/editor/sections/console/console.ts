@@ -1,5 +1,5 @@
-import { LogType } from "../../../core/api/enum/log-type";
-import { Log } from "../../../core/api/log";
+import { LogType } from "../../../../core/api/enum/log-type";
+import { Log } from "../../../../core/api/log";
 import { Utils } from "../../others/utils";
 import { Section } from "../base";
 import { Builder, Icons } from "../builder";
