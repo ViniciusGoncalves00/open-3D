@@ -38,6 +38,13 @@ export class Open3DAdapter implements IGraphicEngine {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
         return;
       }
+
+      const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
+      this.resize(rect.width, rect.height);
+      window.addEventListener("resize", () => {
+        const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
+        this.resize(rect.width, rect.height);
+      });
     }
 
     private render(gl: WebGLRenderingContext): void {
@@ -97,8 +104,26 @@ export class Open3DAdapter implements IGraphicEngine {
       this.render(this.rendererA);
       this.render(this.rendererB);
     }
+
     public resize(width: number, height: number): void {
-        // throw new Error("Method not implemented.");
+      if (!this.rendererA || !this.rendererB) return;
+        
+      const dpr = window.devicePixelRatio || 1;
+        
+      (this.rendererA.canvas as HTMLCanvasElement).width = width * dpr;
+      (this.rendererA.canvas as HTMLCanvasElement).height = height * dpr;
+        
+      (this.rendererB.canvas as HTMLCanvasElement).width = width * dpr;
+      (this.rendererB.canvas as HTMLCanvasElement).height = height * dpr;
+
+      (this.rendererA.canvas as HTMLCanvasElement).style.width = `${width}px`;
+      (this.rendererA.canvas as HTMLCanvasElement).style.height = `${height}px`;
+      (this.rendererB.canvas as HTMLCanvasElement).style.width = `${width}px`;
+      (this.rendererB.canvas as HTMLCanvasElement).style.height = `${height}px`;
+
+        
+      this.rendererA.viewport(0, 0, this.rendererA.drawingBufferWidth, this.rendererA.drawingBufferHeight);
+      this.rendererB.viewport(0, 0, this.rendererB.drawingBufferWidth, this.rendererB.drawingBufferHeight);
     }
     public bind(entity: Entity): void {
         // throw new Error("Method not implemented.");
@@ -245,6 +270,8 @@ export class Open3DAdapter implements IGraphicEngine {
     }
     
     private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity, camera: Entity) {
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
         const bgColor = GraphicSettings.backgroundColor;
         gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
         gl.clearDepth(1.0);
