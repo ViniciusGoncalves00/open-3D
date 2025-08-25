@@ -16,53 +16,68 @@ export class Settings {
         <div id="settings" class="h-full w-full z-[9999] inset-0 fixed flex items-center justify-center hidden">
             <div class="absolute inset-0 bg-gray-01/50 backdrop-blur-xs"></div>
             <div class="relative w-1/4 h-3/4 flex flex-col text-sm outline outline-gray-01 bg-gray-08">
-                <div data-role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none sticky">
+                <div role="header" class="text-bold bg-gray-06 text-sm w-full h-6 flex items-center outline outline-gray-01 z-20 select-none sticky">
                     <i class="h-full aspect-square flex items-center justify-center ${icon}"></i>
                     <p class="w-full truncate">${title}</p>
-                    <button data-role="close" class="h-full aspect-square cursor-pointer text-base hover:bg-gray-08 ${Icons.Close}"></button>
+                    <button role="close" class="h-full aspect-square cursor-pointer text-base hover:bg-gray-08 ${Icons.Close}"></button>
                 </div>
-                <div data-role="subHeader" class="bg-gray-06 flex-wrap flex-none flex items-center justify-start overflow-hidden z-10 outline outline-gray-01 sticky">
-                </div>
-                <div data-role="body" class="bg-gray-08 h-full p-2 space-y-1 overflow-y-auto">
-                    <div data-role="database" class="w-full font-bold">Database</div>
-                    <div data-role="camera" class="w-full font-bold">Camera</div>
+                <div role="body" class="bg-gray-08 h-full p-2 space-y-1 overflow-y-auto">
+                    <div role="database" class="w-full font-medium">
+                        <div class="text-lg">DATABASE</div>
+                        <div class="w-full flex flex-col space-y-2">
+                            <div role="autosave" class="">Autosave</div>
+                        </div>
+                    </div>
+                    <div role="camera" class="w-full font-medium">
+                        <div class="text-lg">CAMERA</div>
+                        <div class="w-full flex flex-col space-y-2">
+                            <div role="keybinding" class="">Key binding</div>
+                            <div role="pan" class="">Pan</div>
+                            <div role="rotate" class="">Rotate</div>
+                            <div role="orbit" class="">Orbit</div>
+                            <div role="zoom" class="">Zoom</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         `;
 
         const section = template.content.firstElementChild as HTMLDivElement;
-        const closeButton = section.querySelector('[data-role="close"]') as HTMLButtonElement;
+        const closeButton = section.querySelector('[role="close"]') as HTMLButtonElement;
         closeButton.addEventListener("click", () => this.toggle());
 
-        const body = section.querySelector('[data-role="body"]') as HTMLDivElement;
-        const databaseDiv = body.querySelector('[data-role="database"]') as HTMLDivElement;
-        databaseDiv.appendChild(Builder.buildBooleanProperty("Autosave enabled", storage.preferences.autoSaveEnabled));
-        databaseDiv.appendChild(Builder.buildNumberProperty("Autosave interval (seconds)", storage.preferences.autoSaveInterval));
+        const autosaveDiv = section.querySelector('[role="autosave"]') as HTMLDivElement;
+        autosaveDiv.appendChild(Builder.buildBooleanProperty("Autosave enabled", storage.preferences.autoSaveEnabled));
+        autosaveDiv.appendChild(Builder.buildNumberProperty("Autosave interval (seconds)", storage.preferences.autoSaveInterval));
 
-        const cameraDiv = body.querySelector('[data-role="camera"]') as HTMLDivElement;
+        const keybindingDiv = section.querySelector('[role="keybinding"]') as HTMLDivElement;
+        const panDiv = section.querySelector('[role="pan"]') as HTMLDivElement;
+        const rotateDiv = section.querySelector('[role="rotate"]') as HTMLDivElement;
+        const orbitDiv = section.querySelector('[role="orbit"]') as HTMLDivElement;
+        const zoomDiv = section.querySelector('[role="zoom"]') as HTMLDivElement;
 
-        cameraDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", inputHandler.panButtons));
-        cameraDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", inputHandler.orbitButtons));
-        cameraDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", inputHandler.rotateButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", inputHandler.panButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", inputHandler.orbitButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", inputHandler.rotateButtons));
 
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pan Direction X", inputHandler.xPanDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pan Direction Y", inputHandler.yPanDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pan Sensitivity X", inputHandler.xPanSensivity));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pan Sensitivity Y", inputHandler.yPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction X", inputHandler.xPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction Y", inputHandler.yPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity X", inputHandler.xPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity Y", inputHandler.yPanSensivity));
 
-        cameraDiv.appendChild(Builder.buildNumberProperty("Yaw Rotate Direction", inputHandler.yawRotateDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pitch Rotate Direction", inputHandler.pitchRotateDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Yaw Rotate Sensitivity", inputHandler.pitchRotateSensivity));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pitch Rotate Sensitivity", inputHandler.yawRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.yawRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.pitchRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.pitchRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.yawRotateSensivity));
 
-        cameraDiv.appendChild(Builder.buildNumberProperty("Yaw Orbit Direction", inputHandler.yawOrbitDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pitch Orbit Direction", inputHandler.pitchOrbitDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Yaw Orbit Sensitivity", inputHandler.yawOrbitSensivity));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Pitch Orbit Sensitivity", inputHandler.pitchOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.yawOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.pitchOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.yawOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.pitchOrbitSensivity));
 
-        cameraDiv.appendChild(Builder.buildNumberProperty("Zoom Direction", inputHandler.zoomDirection));
-        cameraDiv.appendChild(Builder.buildNumberProperty("Zoom Sensitivity", inputHandler.zoomSensivity));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Direction Zoom", inputHandler.zoomDirection));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Sensitivity Zoom", inputHandler.zoomSensivity));
 
         const element = template.content.firstElementChild as HTMLDivElement;
         this.element = element;

@@ -71,7 +71,7 @@ export class Builder {
     public static buildProperty(propertyName: string, property: any, scene: Entity, entity: Entity): HTMLElement {
         const template = document.createElement('template');
         template.innerHTML = `
-            <div role="row" class="w-full min-h-6 flex items-start justify-center max-h-64 overflow-auto">
+            <div role="row" class="w-full min-h-6 flex items-start justify-center max-h-64 space-x-1 overflow-auto">
                 <div role="label" class="w-1/4 h-full text-sm truncate">
                     ${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}
                 </div>
