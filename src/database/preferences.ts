@@ -1,24 +1,33 @@
-import { ObservableField } from "../common/observer/observable-field";
-import { Theme } from "../ui/editor/others/enums";
+import { EditorPreferences } from "./editorPreferences";
+import { GeneralPreferences } from "./generalPreferences";
+import { StoragePreferences } from "./storagePreferences";
 
 export class Preferences {
-    public autoSaveEnabled: ObservableField<boolean> = new ObservableField(true);
-    public autoSaveInterval: ObservableField<number> = new ObservableField(600);
-    public theme: Theme = Theme.Light;
+    public editor: EditorPreferences;
+    public general: GeneralPreferences;
+    public storage: StoragePreferences;
+
+    public constructor() {
+        this.editor = new EditorPreferences();
+        this.general = new GeneralPreferences();
+        this.storage = new StoragePreferences();
+    }
 
     public static fromJSON(data: any): Preferences {
         const preferences = new Preferences();
-        preferences.autoSaveEnabled.value = data.autoSaveEnabled || true;
-        preferences.autoSaveInterval.value = data.autoSaveInterval || 600;
-        preferences.theme = data.theme || Theme.Light;
+
+        preferences.editor = EditorPreferences.fromJSON(data?.editor ?? {});
+        preferences.general = GeneralPreferences.fromJSON(data?.editor ?? {});
+        preferences.storage = StoragePreferences.fromJSON(data?.storage ?? {});
+
         return preferences;
     }
 
     public toJSON(): Object {
         return {
-            autoSaveEnabled : this.autoSaveEnabled.value,
-            autoSaveInterval : this.autoSaveInterval.value,
-            theme : this.theme,
-        }
+            editor: this.editor.toJSON(),
+            general: this.general.toJSON(),
+            storage: this.storage.toJSON(),
+        };
     }
 }

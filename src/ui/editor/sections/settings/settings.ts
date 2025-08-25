@@ -48,8 +48,8 @@ export class Settings {
         closeButton.addEventListener("click", () => this.toggle());
 
         const autosaveDiv = section.querySelector('[role="autosave"]') as HTMLDivElement;
-        autosaveDiv.appendChild(Builder.buildBooleanProperty("Autosave enabled", storage.preferences.autoSaveEnabled));
-        autosaveDiv.appendChild(Builder.buildNumberProperty("Autosave interval (seconds)", storage.preferences.autoSaveInterval));
+        autosaveDiv.appendChild(Builder.buildBooleanProperty("Autosave enabled", storage.preferences.storage.autoSaveEnabled));
+        autosaveDiv.appendChild(Builder.buildNumberProperty("Autosave interval (seconds)", storage.preferences.storage.autoSaveInterval));
 
         const keybindingDiv = section.querySelector('[role="keybinding"]') as HTMLDivElement;
         const panDiv = section.querySelector('[role="pan"]') as HTMLDivElement;
@@ -57,27 +57,27 @@ export class Settings {
         const orbitDiv = section.querySelector('[role="orbit"]') as HTMLDivElement;
         const zoomDiv = section.querySelector('[role="zoom"]') as HTMLDivElement;
 
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", inputHandler.panButtons));
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", inputHandler.orbitButtons));
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", inputHandler.rotateButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", inputHandler.preferences.panButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", inputHandler.preferences.orbitButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", inputHandler.preferences.rotateButtons));
 
-        panDiv.appendChild(Builder.buildNumberProperty("Direction X", inputHandler.xPanDirection));
-        panDiv.appendChild(Builder.buildNumberProperty("Direction Y", inputHandler.yPanDirection));
-        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity X", inputHandler.xPanSensivity));
-        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity Y", inputHandler.yPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction X", inputHandler.preferences.xPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction Y", inputHandler.preferences.yPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity X", inputHandler.preferences.xPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity Y", inputHandler.preferences.yPanSensivity));
 
-        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.yawRotateDirection));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.pitchRotateDirection));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.pitchRotateSensivity));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.yawRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.preferences.yawRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.preferences.pitchRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.preferences.pitchRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.preferences.yawRotateSensivity));
 
-        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.yawOrbitDirection));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.pitchOrbitDirection));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.yawOrbitSensivity));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.pitchOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.preferences.yawOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.preferences.pitchOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.preferences.yawOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.preferences.pitchOrbitSensivity));
 
-        zoomDiv.appendChild(Builder.buildNumberProperty("Direction Zoom", inputHandler.zoomDirection));
-        zoomDiv.appendChild(Builder.buildNumberProperty("Sensitivity Zoom", inputHandler.zoomSensivity));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Direction Zoom", inputHandler.preferences.zoomDirection));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Sensitivity Zoom", inputHandler.preferences.zoomSensivity));
 
         const element = template.content.firstElementChild as HTMLDivElement;
         this.element = element;

@@ -117,8 +117,8 @@ export class Program {
         viewport.appendChild(canvasB);
 
         const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const inputHandler = new InputHandler(camera.getComponent(Transform), camera.getComponent(Camera));
-        const viewports = new Viewports(canvasA,  canvasB, inputHandler);
+        const inputHandler = new InputHandler(storage.preferences.editor);
+        const viewports = new Viewports(canvasA,  canvasB, inputHandler, camera.getComponent(Transform));
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
         const graphicEngine = new Open3DAdapter(engine);

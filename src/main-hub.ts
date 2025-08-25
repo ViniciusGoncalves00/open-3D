@@ -92,17 +92,17 @@ export class Program {
     const offIcon = this.getElementOrFail<HTMLButtonElement>('off');
     const darkModeToggle = this.getElementOrFail<HTMLButtonElement>('darkMode');
  
-    const currentTheme = this.storage.preferences.theme;
+    const currentTheme = this.storage.preferences.general.theme;
 
     document.body.setAttribute("data-theme", currentTheme);
-    const isDarkMode = this.storage.preferences.theme === Theme.Dark;
+    const isDarkMode = this.storage.preferences.general.theme === Theme.Dark;
     isDarkMode ? offIcon.classList.add("hidden") : onIcon.classList.add("hidden")
 
     darkModeToggle.addEventListener("click", () => {
-        const isDarkMode = this.storage.preferences.theme === Theme.Dark;
+        const isDarkMode = this.storage.preferences.general.theme === Theme.Dark;
         const newTheme = isDarkMode ? Theme.Light : Theme.Dark;
 
-        this.storage.preferences.theme = newTheme;
+        this.storage.preferences.general.theme = newTheme;
         this.storage.savePreferences();
         document.body.setAttribute("data-theme", newTheme);
 
