@@ -207,6 +207,10 @@ export class Program {
         engine.registerSystem(new RotateSystem());
         engine.registerSystem(new OrbitSystem());
 
+        document.addEventListener('contextmenu', event => {
+            event.preventDefault();
+        });
+
         console.log("All right! You can start now!")
     }
 }
