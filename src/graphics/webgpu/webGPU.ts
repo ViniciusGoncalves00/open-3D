@@ -1,7 +1,7 @@
 // WebGPUAdapter.ts
 import { ObservableMap } from "../../common/observer/observable-map";
 
-export interface Mesh {
+export interface GPUMesh {
     vertexBuffer: GPUBuffer;
     indexBuffer: GPUBuffer;
     indexCount: number;
@@ -28,17 +28,19 @@ export class WebGPU {
 }
 
 export class DeviceManager {
-    private adapter!: GPUAdapter;
-    private device!: GPUDevice;
-    private queue!: GPUQueue;
-    private context: GPUCanvasContext;
-    private format!: GPUTextureFormat;
+    public adapter!: GPUAdapter;
+    public device!: GPUDevice;
+    public queue!: GPUQueue;
+    public context: GPUCanvasContext;
+    public format!: GPUTextureFormat;
 
-    private pipeline!: GPURenderPipeline;
-    private depthTexture!: GPUTexture;
+    public pipeline!: GPURenderPipeline;
+    public depthTexture!: GPUTexture;
 
-    private buffers: Set<GPUBuffer> = new Set();
-    private textures: Set<GPUTexture> = new Set();
+    public buffers: Set<GPUBuffer> = new Set();
+    public textures: Set<GPUTexture> = new Set();
+
+    public pipelineBindGroupLayout!: GPUBindGroupLayout;
 
     constructor(context: GPUCanvasContext) {
         this.context = context;
@@ -92,7 +94,7 @@ export class DeviceManager {
 
         const shaderModule = this.device.createShaderModule({ code: shaderCode });
 
-        const uniformBindGroupLayout = this.device.createBindGroupLayout({
+        this.pipelineBindGroupLayout = this.device.createBindGroupLayout({
             entries: [{
                 binding: 0,
                 visibility: GPUShaderStage.VERTEX,
@@ -101,7 +103,7 @@ export class DeviceManager {
         });
 
         const pipeline = this.device.createRenderPipeline({
-            layout: this.device.createPipelineLayout({ bindGroupLayouts: [uniformBindGroupLayout] }),
+            layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.pipelineBindGroupLayout] }),
             vertex: {
                 module: shaderModule,
                 entryPoint: "vs_main",
@@ -168,7 +170,7 @@ export class DeviceManager {
         return texture;
     }
 
-    public createMesh(vertices: Float32Array, indices: Uint16Array): Mesh {
+    public createMesh(vertices: Float32Array, indices: Uint16Array): GPUMesh {
         const vertexBuffer = this.createBuffer({
             size: vertices.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
@@ -188,7 +190,7 @@ export class DeviceManager {
         return { vertexBuffer, indexBuffer, indexCount: indices.length };
     }
 
-    public render(uniformBindGroup: GPUBindGroup, meshes: Mesh[]) {
+    public render(uniformBindGroup: GPUBindGroup, meshes: GPUMesh[]) {
         const encoder = this.device.createCommandEncoder();
         const textureView = this.context.getCurrentTexture().createView();
         const renderPass = encoder.beginRenderPass({
@@ -217,6 +219,15 @@ export class DeviceManager {
 
         renderPass.end();
         this.device.queue.submit([encoder.finish()]);
+    }
+
+    public resize(width: number, height: number) {
+        this.depthTexture.destroy();
+        this.depthTexture = this.device.createTexture({
+            size: [width, height],
+            format: "depth24plus",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+        });
     }
 
     public destroyAll() {
