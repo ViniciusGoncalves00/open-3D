@@ -333,7 +333,15 @@ export class Open3DAdapter implements IGraphicEngine {
               const vertexCount = mesh.indices.items.length;
               const type = gl.UNSIGNED_SHORT;
               const offset = 0;
+
+
+              // gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+
+              // gl.drawElements(gl.LINES, vertexCount, type, offset);
+
               gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+              gl.drawElements(gl.LINES, vertexCount, type, offset);
+
           }
 
           for (const child of entity.children.items ?? []) {

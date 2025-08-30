@@ -2,7 +2,7 @@ export class ObservableMap<K, V> {
   private _map = new Map<K, V>();
   private _listeners: Set<{onAdd: (value: V) => void, onRemove: (value: V) => void}> = new Set();
 
-  public constructor(map: Map<K, V>) {
+  public constructor(map: Map<K, V> = new Map()) {
     this._map = map;
   }
 
