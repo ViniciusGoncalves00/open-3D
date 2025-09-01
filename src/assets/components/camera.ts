@@ -1,6 +1,8 @@
+import { mat4, vec3 } from "gl-matrix";
 import { ObservableField } from "../../common/observer/observable-field";
 import { HideInInspector } from "../../common/reflection/reflection";
 import { Component } from "./abstract/component";
+import { Transform } from "./transform";
 
 export class Camera extends Component {
     public readonly isPerspective: ObservableField<boolean> = new ObservableField(true);
@@ -91,4 +93,53 @@ export class Camera extends Component {
     }
 
     public destroy(): void {}
+
+    public viewProjection(transform: Transform): Float32Array {
+    // Posição da câmera
+    const eye = vec3.fromValues(
+        transform.position.x.value,
+        transform.position.y.value,
+        transform.position.z.value
+    );
+
+    // Direção para onde a câmera olha (forward do transform)
+    const forward = transform.forward(); 
+
+    // Determinamos o ponto central que a câmera olha
+    const center = vec3.create();
+    vec3.add(center, eye, forward);
+
+    // Vetor up da câmera
+    const up = transform.up();
+
+    // Matriz de visão
+    const view = mat4.lookAt(mat4.create(), eye, center, up);
+
+    // Matriz de projeção
+    let proj: mat4;
+    if (this.isPerspective.value) {
+        proj = mat4.perspective(
+            mat4.create(),
+            (this.fov.value * Math.PI) / 180,
+            this.aspectRatio.value,
+            this.nearClip.value,
+            this.farClip.value
+        );
+    } else {
+        proj = mat4.ortho(
+            mat4.create(),
+            -this.width.value / 2,
+            this.width.value / 2,
+            -this.height.value / 2,
+            this.height.value / 2,
+            this.nearClip.value,
+            this.farClip.value
+        );
+    }
+
+    // Multiplica projeção * view
+    const viewProj = mat4.create();
+    mat4.multiply(viewProj, proj, view);
+    return new Float32Array(viewProj);
+}
 }

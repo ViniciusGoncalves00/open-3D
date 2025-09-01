@@ -12,7 +12,7 @@ export class PrefabMesh {
             value, 0.0,  value,
         ]);
 
-        const indices = new Uint16Array([
+        const indices = new Uint32Array([
             0, 1, 2,
             3, 2, 1,
         ]);
@@ -42,7 +42,7 @@ export class PrefabMesh {
             -value, -value, -value, -value, -value, value, -value, value, value, -value, value, -value,
         ] );
 
-        const indices =  new Uint16Array([
+        const indices =  new Uint32Array([
             0,  1,  2,      0,  2,  3,    // front
             4,  5,  6,      4,  6,  7,    // back
             8,  9,  10,     8,  10, 11,   // top
@@ -88,7 +88,7 @@ export class PrefabMesh {
 
         return {
           vertices: new Float32Array(vertices),
-          indices: new Uint16Array(indices),
+          indices: new Uint32Array(indices),
         };
     }
 }
