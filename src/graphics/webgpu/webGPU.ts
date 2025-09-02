@@ -129,7 +129,7 @@ export class DeviceManager {
                 entryPoint: "fs_main",
                 targets: [{ format: this.format }]
             },
-            primitive: { topology: "triangle-list", cullMode: "back" },
+            primitive: { topology: "triangle-list", cullMode: "none" },
             depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less" }
         });
 

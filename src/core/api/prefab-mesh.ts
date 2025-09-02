@@ -4,43 +4,62 @@ import { vec3 } from "gl-matrix";
 
 export class PrefabMesh {
     public static quad(size: number = 1): mesh {
-        const value = 0.5 * size;
-        const vertices = new Float32Array([
-            -value, 0.0, -value,
-            value, 0.0, -value,
-            -value, 0.0,  value,
-            value, 0.0,  value,
-        ]);
+      const v = 0.5 * size;
+      const vertices = new Float32Array([
+          -v, -v, 0,
+           v, -v, 0,
+          -v,  v, 0,
+           v,  v, 0,
+      ]);
 
-        const indices = new Uint32Array([
-            0, 1, 2,
-            3, 2, 1,
-        ]);
+      const indices = new Uint32Array([
+          0, 1, 2,
+          2, 1, 3,
+      ]);
 
-        return { vertices, indices };
-    }
+      return { vertices, indices };
+  }
+
 
     public static cube(size: number = 1): mesh {
-        const value = 0.5 * size;
-        const vertices = new Float32Array( [
-            // Front face
-            -value, -value, value, value, -value, value, value, value, value, -value, value, value,
-                
-            // Back face
-            -value, -value, -value, -value, value, -value, value, value, -value, value, -value, -value,
-                
-            // Top face
-            -value, value, -value, -value, value, value, value, value, value, value, value, -value,
-                
-            // Bottom face
-            -value, -value, -value, value, -value, -value, value, -value, value, -value, -value, value,
-                
-            // Right face
-            value, -value, -value, value, value, -value, value, value, value, value, -value, value,
-                
-            // Left face
-            -value, -value, -value, -value, -value, value, -value, value, value, -value, value, -value,
-        ] );
+        const v = 0.5 * size;
+        const vertices = new Float32Array([
+          // Front face
+          -v, -v,  v,
+           v, -v,  v,
+           v,  v,  v,
+          -v,  v,  v,
+
+          // Back face
+          -v, -v, -v,
+          -v,  v, -v,
+           v,  v, -v,
+           v, -v, -v,
+
+          // Top face
+          -v,  v, -v,
+          -v,  v,  v,
+           v,  v,  v,
+           v,  v, -v,
+
+          // Bottom face
+          -v, -v, -v,
+           v, -v, -v,
+           v, -v,  v,
+          -v, -v,  v,
+
+          // Right face
+           v, -v, -v,
+           v,  v, -v,
+           v,  v,  v,
+           v, -v,  v,
+
+          // Left face
+          -v, -v, -v,
+          -v, -v,  v,
+          -v,  v,  v,
+          -v,  v, -v,
+      ]);
 
         const indices =  new Uint32Array([
             0,  1,  2,      0,  2,  3,    // front
