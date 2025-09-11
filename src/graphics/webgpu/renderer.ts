@@ -53,6 +53,7 @@ export class Renderer {
     }
 
     public render() {
+        this.resize();
         this.updateLights();
 
         const encoder = this.device.createCommandEncoder();
@@ -92,5 +93,22 @@ export class Renderer {
         }
 
         while (offset < this.lightData.length) this.lightData[offset++] = 0;
+    }
+
+    private resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const width = Math.floor(this.canvas.clientWidth * dpr);
+        const height = Math.floor(this.canvas.clientHeight * dpr);
+
+        if (this.canvas.width !== width || this.canvas.height !== height) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+
+            this.context.configure({
+                device: this.device,
+                format: navigator.gpu.getPreferredCanvasFormat(),
+                alphaMode: "opaque"
+            });
+        }
     }
 }
