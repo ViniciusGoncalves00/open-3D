@@ -1,74 +1,166 @@
 import { ObservableField } from "../../common/observer/observable-field";
-import { ObservableList } from "../../common/observer/observable-list";
-import { ObservableVector3 } from "../../common/observer/observable-vector3";
 import { Component } from "./abstract/component";
 
-export class Mesh extends Component {
-  public readonly name: ObservableField<string>;
-  public readonly vertices: ObservableList<ObservableVector3>;
-  public readonly indices: ObservableList<ObservableField<number>>;
+// --- Estruturas auxiliares baseadas no glTF ---
 
-  public constructor(
-    name = "name",
-    vertices: ObservableVector3[] = [new ObservableVector3(0, 0, 0), new ObservableVector3(0, 0, 1), new ObservableVector3(1, 0, 0)],
-    indices: ObservableField<number>[] = [new ObservableField(0), new ObservableField(1), new ObservableField(2)]
-  ) {
+export class Buffer {
+  constructor(
+    public readonly data: ArrayBuffer
+  ) {}
+}
+
+export class BufferView {
+  constructor(
+    public buffer: Buffer,
+    public byteOffset: number,
+    public byteLength: number,
+    public byteStride?: number
+  ) {}
+}
+
+export class Accessor {
+  constructor(
+    public bufferView: BufferView,
+    public componentType: number, // glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
+    public count: number,
+    public type: string,          // "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
+    public byteOffset: number = 0
+  ) {}
+
+  // Converte para um objeto JSON
+  public toJSON() {
+    return {
+      bufferViewIndex: this.bufferView ? this.bufferView.byteOffset : null,
+      componentType: this.componentType,
+      count: this.count,
+      type: this.type,
+      byteOffset: this.byteOffset,
+      // opcional: podemos serializar os dados em base64
+      // data: this.toBase64()
+    };
+  }
+
+  // Reconstrói a partir de JSON
+  public static fromJSON(json: any, bufferViewLookup?: (index: number) => BufferView): Accessor {
+    const bufferView = bufferViewLookup ? bufferViewLookup(json.bufferViewIndex) : undefined;
+    return new Accessor(
+      bufferView!,
+      json.componentType,
+      json.count,
+      json.type,
+      json.byteOffset
+    );
+  }
+
+  // Opcional: converte os dados em base64 para persistência
+  public toBase64(): string {
+    if (!this.bufferView) return "";
+    const start = this.bufferView.byteOffset + this.byteOffset;
+    const end = start + this.count * this.getComponentSize() * this.getNumComponents();
+    const slice = this.bufferView.buffer.data.slice(start, end);
+    const uint8 = new Uint8Array(slice);
+    let binary = '';
+    for (let i = 0; i < uint8.length; i++) {
+      binary += String.fromCharCode(uint8[i]);
+    }
+    return btoa(binary);
+  }
+
+  // Número de bytes por componente
+  public getComponentSize(): number {
+    switch (this.componentType) {
+      case 5126: return 4; // FLOAT32
+      case 5123: return 2; // UNSIGNED_SHORT
+      case 5125: return 4; // UNSIGNED_INT
+      default: throw new Error(`Componente tipo ${this.componentType} não suportado`);
+    }
+  }
+
+  // Número de elementos por tipo (SCALAR, VEC2, VEC3, VEC4, MAT4)
+  public getNumComponents(): number {
+    switch (this.type) {
+      case "SCALAR": return 1;
+      case "VEC2": return 2;
+      case "VEC3": return 3;
+      case "VEC4": return 4;
+      case "MAT2": return 4;
+      case "MAT3": return 9;
+      case "MAT4": return 16;
+      default: throw new Error(`Tipo ${this.type} não suportado`);
+    }
+  }
+}
+
+
+// --- Primitive (parte da Mesh) ---
+export class Primitive {
+  public attributes: Record<string, Accessor>; // POSITION, NORMAL, TEXCOORD_0, COLOR_0...
+  public indices?: Accessor;
+  public material?: number;
+
+  constructor(attributes: Record<string, Accessor>, indices?: Accessor, material?: number) {
+    this.attributes = attributes;
+    this.indices = indices;
+    this.material = material;
+  }
+
+  toJSON() {
+    return {
+      attributes: Object.fromEntries(
+        Object.entries(this.attributes).map(([name, accessor]) => [name, accessor.toJSON?.() ?? null])
+      ),
+      indices: this.indices ? this.indices.toJSON?.() : undefined,
+      material: this.material
+    };
+  }
+
+  static fromJSON(json: any): Primitive {
+    const attrs: Record<string, Accessor> = {};
+    for (const key of Object.keys(json.attributes)) {
+      attrs[key] = Accessor.fromJSON(json.attributes[key]);
+    }
+    const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
+    return new Primitive(attrs, indices, json.material);
+  }
+}
+
+// --- Mesh (herda de Component) ---
+export class Mesh extends Component {
+  public name: ObservableField<string>;
+  public primitives: Primitive[];
+
+  constructor(name: string = "DefaultMeshName", primitives: Primitive[] = []) {
     super();
     this.name = new ObservableField(name);
-    this.vertices = new ObservableList(vertices);
-    this.indices = new ObservableList(indices);
-  }
-
-  public clone(): Mesh {
-    const clone = new Mesh(
-      this.name.value,
-      this.vertices.items,
-      this.indices.items,
-    );
-    
-    clone.enabled.value = this.enabled.value;
-    return clone;
-  }
-
-  public override copyFrom(mesh: Mesh): void {
-    super.copyFrom(mesh);
-
-    this.name.value = mesh.name.value;
-    this.vertices.clear();
-    mesh.vertices.items.forEach(item => this.vertices.add(item));
-    this.indices.clear();
-    mesh.indices.items.forEach(item => this.indices.add(item));
+    this.primitives = primitives;
   }
 
   public override toJSON() {
     return {
       ...super.toJSON(),
-      name: this.name.value,
-      vertices: this.vertices.items.map(v => ({
-        x: v.x.value,
-        y: v.y.value,
-        z: v.z.value,
-      })),
-      indices: this.indices.items.map(i => i.value),
+      name: this.name,
+      primitives: this.primitives.map(p => p.toJSON())
     };
   }
 
   public override fromJSON(json: any): void {
-    super.fromJSON(json),
-
-    this.enabled.value = json.enabled;
-    this.name.value = json.name;
-
-    this.vertices.clear();
-    for (const v of json.vertices) {
-      this.vertices.add(new ObservableVector3(v.x, v.y, v.z));
-    }
-
-    this.indices.clear();
-    for (const i of json.indices) {
-      this.indices.add(new ObservableField<number>(i));
-    }
+    super.fromJSON(json);
+    this.name = json.name;
+    this.primitives = json.primitives.map((p: any) => Primitive.fromJSON(p));
   }
 
-  public destroy(): void {}
+  public clone(): Component {
+    return new Mesh(this.name.value, this.primitives);
+  }
+
+  public copyFrom(component: Mesh): void {
+    super.copyFrom(component);
+    
+    this.name.value = component.name.value;
+    this.primitives = component.primitives;
+  }
+
+  public destroy(): void {
+    throw new Error("Method not implemented.");
+  }
 }

@@ -7,8 +7,7 @@ import { RotateSystem } from './assets/systems/rotateSystem';
 import { ObservableField } from './common/observer/observable-field';
 import { Engine } from './core/engine/engine';
 import { Storage } from './database/storage';
-import { DeviceManager, WebGPU } from './graphics/webgpu/webGPU';
-import { GPUMesh, WebGPUBuilder } from './graphics/webgpu/webGPUutils';
+// import { GPUMesh, WebGPUBuilder } from './graphics/webgpu/webGPUutils';
 import './styles.css';
 import { EntityHandler } from './ui/editor/others/entity-handler';
 import { InputHandler } from './ui/editor/others/input-handler';
@@ -26,6 +25,11 @@ import { Settings } from './ui/editor/sections/settings/settings';
 import { Viewports } from './ui/editor/sections/viewports/viewports';
 import './ui/styles/time-controller.css';
 import { mat4 } from 'gl-matrix';
+import { Renderer } from './graphics/webgpu/renderer';
+import { Time } from './core/engine/time';
+import { RendererManager } from './graphics/webgpu/renderer-manager';
+import { Light } from './assets/components/abstract/light';
+import { DirectionalLight } from './assets/components/directional-light';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -125,62 +129,68 @@ export class Program {
         // const graphicEngine = new Open3DAdapter(engine);
         // graphicEngine.init(engine, canvasA, canvasB);
 
-        const graphicEngine = new WebGPU();
-        await graphicEngine.init(canvasA);
-        const deviceManager = graphicEngine.getManager();
+//         const graphicEngine = new WebGPU();
+//         await graphicEngine.init(canvasA);
+//         const deviceManager = graphicEngine.getManager();
 
-        const uniformData = new Float32Array(32);
-        const uniformBuffer = deviceManager.createUniformBuffer(uniformData);
-        const uniformBindGroup = deviceManager.createBindGroup(deviceManager.pipelineBindGroupLayout, uniformBuffer);
+//         const uniformData = new Float32Array(32);
+//         const uniformBuffer = deviceManager.createUniformBuffer(uniformData);
+//         const uniformBindGroup = deviceManager.createBindGroup(deviceManager.pipelineBindGroupLayout, uniformBuffer);
 
-        const observer = new ResizeObserver(entries => {
-            for (const entry of entries) {
-                const canvas = entry.target as HTMLCanvasElement;
-                const width = entry.contentBoxSize[0].inlineSize;
-                const height = entry.contentBoxSize[0].blockSize;
-                const w = Math.max(1, Math.min(width, deviceManager.device.limits.maxTextureDimension2D));
-                const h = Math.max(1, Math.min(height, deviceManager.device.limits.maxTextureDimension2D));
-                canvas.width = w;
-                canvas.height = h;
-                deviceManager.resize(w, h);
-                loop(0);
-            }
-        });
-        observer.observe(canvasA);
+//         const observer = new ResizeObserver(entries => {
+//             for (const entry of entries) {
+//                 const canvas = entry.target as HTMLCanvasElement;
+//                 const width = entry.contentBoxSize[0].inlineSize;
+//                 const height = entry.contentBoxSize[0].blockSize;
+//                 const w = Math.max(1, Math.min(width, deviceManager.device.limits.maxTextureDimension2D));
+//                 const h = Math.max(1, Math.min(height, deviceManager.device.limits.maxTextureDimension2D));
+//                 canvas.width = w;
+//                 canvas.height = h;
+//                 deviceManager.resize(w, h);
+//                 loop(0);
+//             }
+//         });
+//         observer.observe(canvasA);
 
-        const vertices = new Float32Array([
-          0, 0.5, 0,    1, 0, 0,
-         -0.5, -0.5, 0, 0, 1, 0,
-          0.5, -0.5, 0, 0, 0, 1
-        ]);
-        const indices = new Uint32Array([0, 1, 2]);
-        const testMesh = deviceManager.createMesh(vertices, indices);
+//         const cameraCamera = camera.getComponent(Camera);
+//         const cameraTransform = camera.getComponent(Transform);
 
-        const cameraCamera = camera.getComponent(Camera);
-        const cameraTransform = camera.getComponent(Transform);
+//         function loop(time: number) {
+//             deviceManager.render(cameraCamera, cameraTransform, scene);
+//             requestAnimationFrame(loop);
+// //     const viewProj = cameraCamera.viewProjection(cameraTransform);
+// // const gpuMeshes: GPUMesh[] = [];
+// // for (const entity of scene.descendants()) {
+// //     const mesh = entity.getComponent(Mesh);
+// //     if (!mesh) continue;
+// //     const gpuMeshArray = deviceManager.createMeshFromMesh(mesh);
+// //     gpuMeshes.push(...gpuMeshArray);
+// // }
 
-        function loop(time: number) {
-            const webGPUMeshes: GPUMesh[] = [];
-            
-            for (const entity of scene.descendants()) {
-                const transform = entity.getComponent(Transform);
-                const mesh = entity.getComponent(Mesh);
-                if (!mesh) continue;
+// //     let i = 0;
+// //     for (const entity of scene.descendants()) {
+// //         const transform = entity.getComponent(Transform);
+// //         const mesh = entity.getComponent(Mesh);
+// //         if (!mesh) continue;
 
-                transform.updateWorldMatrix();
-                const modelMatrix = transform.worldMatrix.value;
-                const viewProj = cameraCamera.viewProjection(cameraTransform);
-                uniformData.set(modelMatrix, 0);
-                uniformData.set(viewProj, 16);
-                deviceManager.queue.writeBuffer(uniformBuffer, 0, uniformData);
-                const webPGUMesh = WebGPUBuilder.createGPUMesh(deviceManager, mesh);
-                webGPUMeshes.push(webPGUMesh);
-            }
+// //         transform.updateWorldMatrix();
+// //         const modelMatrix = transform.worldMatrix.value;
 
-            deviceManager.render(uniformBindGroup, webGPUMeshes);
-            requestAnimationFrame(loop);
-        }
-        requestAnimationFrame(loop);
+// //         // Escreve model e viewProj no uniform
+// //         uniformData.set(modelMatrix, 0);
+// //         uniformData.set(viewProj, 16);
+// //         deviceManager.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+// //         // Renderiza os meshes GPU desse entity
+// //         const gpuMeshArray = deviceManager.createMeshFromMesh(mesh); // <-- deve ser cacheado
+// //         for (const gpuMesh of gpuMeshArray) {
+// //             deviceManager.render(uniformBindGroup, [gpuMesh]);
+// //         }
+// //         i++;
+// //     }
+// }
+
+//         requestAnimationFrame(loop);
 
         // graphicEngine.setEditorCamera(canvasA, {x: 10, y: 10, z: 10});
         // graphicEngine.setPreviewCamera(canvasB, {x: 0, y: 1, z: -10});
@@ -200,6 +210,28 @@ export class Program {
 
         // graphicEngine.startRender();
 
+        const cameraCamera = camera.getComponent(Camera);
+        const cameraTransform = camera.getComponent(Transform);
+        const light = engine.currentProject.value.activeScene.value.children.items.filter(entity => entity.hasComponent(DirectionalLight)).map(entity => entity.getComponent(DirectionalLight))
+
+        const adapter = await navigator.gpu.requestAdapter();
+        if(!adapter) {
+            console.log("Adapter cannot be found.");
+            return;
+        } 
+
+        const device = await adapter.requestDevice()
+
+        const rendererManager = new RendererManager(device);
+        const renderer = new Renderer(device, canvasA, rendererManager.pipelines.get("world")!, cameraCamera, cameraTransform, light);
+        rendererManager.renderers.set("renderer", renderer)
+
+        const loop = () => {
+            renderer.render();
+            requestAnimationFrame(loop);
+        }
+        loop();
+
         const scene = engine.currentProject.value.activeScene.value;
         if(!scene) return;
 
@@ -210,15 +242,15 @@ export class Program {
         const assets = new Assets();
 
         const player = new Player(engine.timeController);
-        const timescale = new Timescale(engine.time);
+        const timescale = new Timescale();
         const screen = new Screen(engine.timeController, viewport);
         const settings = new Settings(storage, inputHandler);
 
         const fpsContainer = Utils.getElementOrFail<HTMLElement>('fpsContainer');
         const averageFpsContainer = Utils.getElementOrFail<HTMLElement>('averageFpsContainer');
 
-        if (fpsContainer) engine.time.framesPerSecond.subscribe(() => fpsContainer.innerHTML = `${engine.time.framesPerSecond.value.toString()} FPS`);
-        if (averageFpsContainer) engine.time.averageFramesPerSecond.subscribe(() => averageFpsContainer.innerHTML = `${engine.time.averageFramesPerSecond.value.toString()} avgFPS`);
+        if (fpsContainer) Time.framesPerSecond.subscribe(() => fpsContainer.innerHTML = `${Time.framesPerSecond.value.toString()} FPS`);
+        if (averageFpsContainer) Time.averageFramesPerSecond.subscribe(() => averageFpsContainer.innerHTML = `${Time.averageFramesPerSecond.value.toString()} avgFPS`);
 
 
         //         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");

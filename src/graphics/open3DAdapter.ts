@@ -1,481 +1,481 @@
-import { IGraphicEngine } from "./IGraphicEngine";
-import { Entity } from '../core/api/entity';
-import { Engine } from '../core/engine/engine';
-import { GraphicSettings } from "./graphicSettings";
-import { glMatrix, mat3, mat4, vec3, vec4 } from "gl-matrix";
-import { Mesh } from "../assets/components/mesh";
-import { Transform } from "../assets/components/transform";
-import { ObservableVector3 } from "../common/observer/observable-vector3";
-import { DirectionalLight } from "../assets/components/directional-light";
-import { Camera } from "../assets/components/camera";
+// import { IGraphicEngine } from "./IGraphicEngine";
+// import { Entity } from '../core/api/entity';
+// import { Engine } from '../core/engine/engine';
+// import { GraphicSettings } from "./graphicSettings";
+// import { glMatrix, mat3, mat4, vec3, vec4 } from "gl-matrix";
+// import { Mesh } from "../assets/components/mesh";
+// import { Transform } from "../assets/components/transform";
+// import { ObservableVector3 } from "../common/observer/observable-vector3";
+// import { DirectionalLight } from "../assets/components/directional-light";
+// import { Camera } from "../assets/components/camera";
 
-export class Open3DAdapter implements IGraphicEngine {
-    private _engine: Engine
-    private _entities: Map<string, any> = new Map<string, any>();
+// export class Open3DAdapter implements IGraphicEngine {
+//     private _engine: Engine
+//     private _entities: Map<string, any> = new Map<string, any>();
 
-    private rendererA: WebGLRenderingContext | null = null;
-    private rendererB: WebGLRenderingContext | null = null;
+//     private rendererA: WebGLRenderingContext | null = null;
+//     private rendererB: WebGLRenderingContext | null = null;
 
-    private directionalLights: DirectionalLight[] = [];
+//     private directionalLights: DirectionalLight[] = [];
 
-    private gridBuffers: {
-  position: WebGLBuffer | null;
-  color: WebGLBuffer | null;
-  vertexCount: number;
-} | null = null;
+//     private gridBuffers: {
+//   position: WebGLBuffer | null;
+//   color: WebGLBuffer | null;
+//   vertexCount: number;
+// } | null = null;
 
-  public constructor(engine: Engine) {
-    this._engine = engine;
-  }
+//   public constructor(engine: Engine) {
+//     this._engine = engine;
+//   }
     
-    public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
-      this._engine = engine;
+//     public init(engine: Engine, canvasA: HTMLCanvasElement, canvasB: HTMLCanvasElement): void {
+//       this._engine = engine;
 
-      this.rendererA = canvasA.getContext("webgl", { antialias: true });
-      this.rendererB = canvasB.getContext("webgl", { antialias: true });
+//       this.rendererA = canvasA.getContext("webgl", { antialias: true });
+//       this.rendererB = canvasB.getContext("webgl", { antialias: true });
 
-      if (this.rendererA === null || this.rendererB === null) {
-        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-        return;
-      }
+//       if (this.rendererA === null || this.rendererB === null) {
+//         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+//         return;
+//       }
 
-      const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
-      this.resize(rect.width, rect.height);
-      window.addEventListener("resize", () => {
-        const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
-        this.resize(rect.width, rect.height);
-      });
-    }
+//       const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
+//       this.resize(rect.width, rect.height);
+//       window.addEventListener("resize", () => {
+//         const rect = (this.rendererA!.canvas as HTMLCanvasElement).getBoundingClientRect();
+//         this.resize(rect.width, rect.height);
+//       });
+//     }
 
-    private render(gl: WebGLRenderingContext): void {
-      const vsSource = `
-        attribute vec4 aVertexPosition;
-        attribute vec4 aVertexColor;
+//     private render(gl: WebGLRenderingContext): void {
+//       const vsSource = `
+//         attribute vec4 aVertexPosition;
+//         attribute vec4 aVertexColor;
         
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
+//         uniform mat4 uModelViewMatrix;
+//         uniform mat4 uProjectionMatrix;
         
-        varying lowp vec4 vColor;
+//         varying lowp vec4 vColor;
         
-        void main(void) {
-          gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-          vColor = aVertexColor;
-        }
-      `;
+//         void main(void) {
+//           gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+//           vColor = aVertexColor;
+//         }
+//       `;
 
-      const fsSource = `
-        varying lowp vec4 vColor;
+//       const fsSource = `
+//         varying lowp vec4 vColor;
 
-        void main(void) {
-          gl_FragColor = vColor;
-        }
-      `;
+//         void main(void) {
+//           gl_FragColor = vColor;
+//         }
+//       `;
 
-      const shaderProgram = this.initShaderProgram(gl, vsSource, fsSource);
-      if(!shaderProgram) return;
+//       const shaderProgram = this.initShaderProgram(gl, vsSource, fsSource);
+//       if(!shaderProgram) return;
 
-      const programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-          vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-          vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
-          modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-        },
-      };
+//       const programInfo = {
+//         program: shaderProgram,
+//         attribLocations: {
+//           vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+//           vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
+//         },
+//         uniformLocations: {
+//           projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+//           modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+//         },
+//       };
       
-      const loop = () => {
-        const camera = this._engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Camera));
-        if(camera) {
-          this.drawScene(gl, programInfo, this._engine.currentProject.value.activeScene.value, camera);
-        }
+//       const loop = () => {
+//         const camera = this._engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Camera));
+//         if(camera) {
+//           this.drawScene(gl, programInfo, this._engine.currentProject.value.activeScene.value, camera);
+//         }
 
-        requestAnimationFrame(loop);
-      }
-      requestAnimationFrame(loop);
+//         requestAnimationFrame(loop);
+//       }
+//       requestAnimationFrame(loop);
 
-    }
+//     }
 
-    public startRender(): void {
-      if(!this.rendererA || !this.rendererB) return;
+//     public startRender(): void {
+//       if(!this.rendererA || !this.rendererB) return;
 
-      this.render(this.rendererA);
-      this.render(this.rendererB);
-    }
+//       this.render(this.rendererA);
+//       this.render(this.rendererB);
+//     }
 
-    public resize(width: number, height: number): void {
-      if (!this.rendererA || !this.rendererB) return;
+//     public resize(width: number, height: number): void {
+//       if (!this.rendererA || !this.rendererB) return;
         
-      const dpr = window.devicePixelRatio || 1;
+//       const dpr = window.devicePixelRatio || 1;
         
-      (this.rendererA.canvas as HTMLCanvasElement).width = width * dpr;
-      (this.rendererA.canvas as HTMLCanvasElement).height = height * dpr;
+//       (this.rendererA.canvas as HTMLCanvasElement).width = width * dpr;
+//       (this.rendererA.canvas as HTMLCanvasElement).height = height * dpr;
         
-      (this.rendererB.canvas as HTMLCanvasElement).width = width * dpr;
-      (this.rendererB.canvas as HTMLCanvasElement).height = height * dpr;
+//       (this.rendererB.canvas as HTMLCanvasElement).width = width * dpr;
+//       (this.rendererB.canvas as HTMLCanvasElement).height = height * dpr;
 
-      (this.rendererA.canvas as HTMLCanvasElement).style.width = `${width}px`;
-      (this.rendererA.canvas as HTMLCanvasElement).style.height = `${height}px`;
-      (this.rendererB.canvas as HTMLCanvasElement).style.width = `${width}px`;
-      (this.rendererB.canvas as HTMLCanvasElement).style.height = `${height}px`;
+//       (this.rendererA.canvas as HTMLCanvasElement).style.width = `${width}px`;
+//       (this.rendererA.canvas as HTMLCanvasElement).style.height = `${height}px`;
+//       (this.rendererB.canvas as HTMLCanvasElement).style.width = `${width}px`;
+//       (this.rendererB.canvas as HTMLCanvasElement).style.height = `${height}px`;
 
         
-      this.rendererA.viewport(0, 0, this.rendererA.drawingBufferWidth, this.rendererA.drawingBufferHeight);
-      this.rendererB.viewport(0, 0, this.rendererB.drawingBufferWidth, this.rendererB.drawingBufferHeight);
-    }
-    public bind(entity: Entity): void {
-        // throw new Error("Method not implemented.");
-    }
-    public addEntity(entity: Entity): void {
-        // throw new Error("Method not implemented.");
-    }
-    public removeEntity(entity: Entity): void {
-        // throw new Error("Method not implemented.");
-    }
-    public setEditorCamera(canvas: HTMLCanvasElement, startPosition: { x: number; y: number; z: number; }): void {
-        // throw new Error("Method not implemented.");
-    }
-    public setPreviewCamera(canvas: HTMLCanvasElement, startPosition: { x: number; y: number; z: number; }): void {
-        // throw new Error("Method not implemented.");
-    }
-    public toggleActiveCamera(): void {
-        // throw new Error("Method not implemented.");
-    }
-    public setFog(color: { r: number; g: number; b: number; }, near: number, far: number): void {
-        // throw new Error("Method not implemented.");
-    }
-    public setBackground(color: { r: number; g: number; b: number;  a: number}): void {
-      this.rendererA?.clearColor(color.r, color.g, color.b, color.a)
-      this.rendererB?.clearColor(color.r, color.g, color.b, color.a)
-    }
-    public setGridHelper(color: { r: number; g: number; b: number }): void {
-  // if (!this.rendererA) return;
+//       this.rendererA.viewport(0, 0, this.rendererA.drawingBufferWidth, this.rendererA.drawingBufferHeight);
+//       this.rendererB.viewport(0, 0, this.rendererB.drawingBufferWidth, this.rendererB.drawingBufferHeight);
+//     }
+//     public bind(entity: Entity): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public addEntity(entity: Entity): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public removeEntity(entity: Entity): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public setEditorCamera(canvas: HTMLCanvasElement, startPosition: { x: number; y: number; z: number; }): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public setPreviewCamera(canvas: HTMLCanvasElement, startPosition: { x: number; y: number; z: number; }): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public toggleActiveCamera(): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public setFog(color: { r: number; g: number; b: number; }, near: number, far: number): void {
+//         // throw new Error("Method not implemented.");
+//     }
+//     public setBackground(color: { r: number; g: number; b: number;  a: number}): void {
+//       this.rendererA?.clearColor(color.r, color.g, color.b, color.a)
+//       this.rendererB?.clearColor(color.r, color.g, color.b, color.a)
+//     }
+//     public setGridHelper(color: { r: number; g: number; b: number }): void {
+//   // if (!this.rendererA) return;
 
-  // const gl = this.rendererA;
+//   // const gl = this.rendererA;
 
-  // // Parâmetros da grade
-  // const size = 10;  // 10 linhas para cada lado do centro
-  // const step = 1;   // espaçamento entre linhas
+//   // // Parâmetros da grade
+//   // const size = 10;  // 10 linhas para cada lado do centro
+//   // const step = 1;   // espaçamento entre linhas
 
-  // const vertices: number[] = [];
-  // const colors: number[] = [];
+//   // const vertices: number[] = [];
+//   // const colors: number[] = [];
 
-  // const halfSize = size * step * 0.5;
+//   // const halfSize = size * step * 0.5;
 
-  // // Linhas paralelas ao eixo X (varia Z)
-  // for (let i = -size; i <= size; i++) {
-  //   // Linha no plano XZ, z=i*step
-  //   vertices.push(-halfSize, 0, i * step);
-  //   vertices.push(halfSize, 0, i * step);
+//   // // Linhas paralelas ao eixo X (varia Z)
+//   // for (let i = -size; i <= size; i++) {
+//   //   // Linha no plano XZ, z=i*step
+//   //   vertices.push(-halfSize, 0, i * step);
+//   //   vertices.push(halfSize, 0, i * step);
 
-  //   // cor para duas extremidades da linha
-  //   colors.push(color.r, color.g, color.b, 1);
-  //   colors.push(color.r, color.g, color.b, 1);
-  // }
+//   //   // cor para duas extremidades da linha
+//   //   colors.push(color.r, color.g, color.b, 1);
+//   //   colors.push(color.r, color.g, color.b, 1);
+//   // }
 
-  // // Linhas paralelas ao eixo Z (varia X)
-  // for (let i = -size; i <= size; i++) {
-  //   vertices.push(i * step, 0, -halfSize);
-  //   vertices.push(i * step, 0, halfSize);
+//   // // Linhas paralelas ao eixo Z (varia X)
+//   // for (let i = -size; i <= size; i++) {
+//   //   vertices.push(i * step, 0, -halfSize);
+//   //   vertices.push(i * step, 0, halfSize);
 
-  //   colors.push(color.r, color.g, color.b, 1);
-  //   colors.push(color.r, color.g, color.b, 1);
-  // }
+//   //   colors.push(color.r, color.g, color.b, 1);
+//   //   colors.push(color.r, color.g, color.b, 1);
+//   // }
 
-  // const positionBuffer = gl.createBuffer();
-  // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+//   // const positionBuffer = gl.createBuffer();
+//   // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+//   // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-  // const colorBuffer = gl.createBuffer();
-  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+//   // const colorBuffer = gl.createBuffer();
+//   // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+//   // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
-  // this.gridBuffers = {
-  //   position: positionBuffer,
-  //   color: colorBuffer,
-  //   vertexCount: vertices.length / 3,
-  // };
-}
-    public setAxisHelper(color: { r: number; g: number; b: number; }): void {
-        // throw new Error("Method not implemented.");
-    }
+//   // this.gridBuffers = {
+//   //   position: positionBuffer,
+//   //   color: colorBuffer,
+//   //   vertexCount: vertices.length / 3,
+//   // };
+// }
+//     public setAxisHelper(color: { r: number; g: number; b: number; }): void {
+//         // throw new Error("Method not implemented.");
+//     }
 
-    private initShaderProgram(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
-        const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-        const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+//     private initShaderProgram(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
+//         const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+//         const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
-        if(!fragmentShader || !vertexShader) return;
+//         if(!fragmentShader || !vertexShader) return;
         
-        const shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
-        gl.linkProgram(shaderProgram);
+//         const shaderProgram = gl.createProgram();
+//         gl.attachShader(shaderProgram, vertexShader);
+//         gl.attachShader(shaderProgram, fragmentShader);
+//         gl.linkProgram(shaderProgram);
 
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-          alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(shaderProgram)}`);
-          return null;
-        }
+//         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+//           alert(`Unable to initialize the shader program: ${gl.getProgramInfoLog(shaderProgram)}`);
+//           return null;
+//         }
     
-        return shaderProgram;
-    }
+//         return shaderProgram;
+//     }
 
-    private loadShader(gl: WebGLRenderingContext, type: GLenum, source: string): WebGLShader | null {
-        const shader = gl.createShader(type);
+//     private loadShader(gl: WebGLRenderingContext, type: GLenum, source: string): WebGLShader | null {
+//         const shader = gl.createShader(type);
 
-        if(!shader) return null;
+//         if(!shader) return null;
 
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
+//         gl.shaderSource(shader, source);
+//         gl.compileShader(shader);
         
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-          alert(
-            `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
-          );
-          gl.deleteShader(shader);
-          return null;
-        }
+//         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+//           alert(
+//             `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
+//           );
+//           gl.deleteShader(shader);
+//           return null;
+//         }
     
-        return shader;
-    }
+//         return shader;
+//     }
 
-    private initBuffers(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
-      const vectors = mesh.vertices.items;
-      let vertices: number[] = [];
-      vectors.forEach(vector => vertices.push(vector.x.value, vector.y.value, vector.z.value))
+//     private initBuffers(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
+//       const vectors = mesh.vertices.items;
+//       let vertices: number[] = [];
+//       vectors.forEach(vector => vertices.push(vector.x.value, vector.y.value, vector.z.value))
 
-      const items = mesh.indices.items;
-      let indices: number[] = [];
-      items.forEach(index => indices.push(index.value))
+//       const items = mesh.indices.items;
+//       let indices: number[] = [];
+//       items.forEach(index => indices.push(index.value))
       
-      const verticesBuffer = this.initVerticesBuffer(gl, vertices);
-      const indexBuffer = this.initIndexBuffer(gl, indices);
-      const colorBuffer = this.initColorBuffer(gl, transform, mesh);
+//       const verticesBuffer = this.initVerticesBuffer(gl, vertices);
+//       const indexBuffer = this.initIndexBuffer(gl, indices);
+//       const colorBuffer = this.initColorBuffer(gl, transform, mesh);
 
-      return {
-        position: verticesBuffer,
-        indices: indexBuffer,
-        color: colorBuffer,
-      };
-    }
+//       return {
+//         position: verticesBuffer,
+//         indices: indexBuffer,
+//         color: colorBuffer,
+//       };
+//     }
 
-    private initVerticesBuffer(gl: WebGLRenderingContext, vertices: number[]) {
-      const buffer = gl.createBuffer();
+//     private initVerticesBuffer(gl: WebGLRenderingContext, vertices: number[]) {
+//       const buffer = gl.createBuffer();
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+//       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+//       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-      return buffer;
-    }
+//       return buffer;
+//     }
     
-    private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity, camera: Entity) {
-        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+//     private drawScene(gl: WebGLRenderingContext, programInfo: any, scene: Entity, camera: Entity) {
+//         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-        const bgColor = GraphicSettings.backgroundColor;
-        gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-        gl.clearDepth(1.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
+//         const bgColor = GraphicSettings.backgroundColor;
+//         gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+//         gl.clearDepth(1.0);
+//         gl.enable(gl.DEPTH_TEST);
+//         gl.depthFunc(gl.LEQUAL);
 
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+//         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        const cameraTransform = camera.getComponent(Transform);
-        const cameraCamera = camera.getComponent(Camera);
+//         const cameraTransform = camera.getComponent(Transform);
+//         const cameraCamera = camera.getComponent(Camera);
 
-        const fieldOfViewRadians = (cameraCamera.fov.value * Math.PI) / 180;
+//         const fieldOfViewRadians = (cameraCamera.fov.value * Math.PI) / 180;
 
-        // cameraCamera._aspectRatio.value = gl.canvas.width / gl.canvas.height;
-        const projectionMatrix = mat4.create();
+//         // cameraCamera._aspectRatio.value = gl.canvas.width / gl.canvas.height;
+//         const projectionMatrix = mat4.create();
 
-        mat4.perspective(projectionMatrix, fieldOfViewRadians, cameraCamera.aspectRatio.value, cameraCamera.nearClip.value, cameraCamera.farClip.value);
+//         mat4.perspective(projectionMatrix, fieldOfViewRadians, cameraCamera.aspectRatio.value, cameraCamera.nearClip.value, cameraCamera.farClip.value);
 
-        const viewMatrix = mat4.create();
-        mat4.translate(viewMatrix, viewMatrix, cameraTransform.position.getValues());
-        const lookAt: vec3 = vec3.create();
-        vec3.add(lookAt, cameraTransform.position.getValues(), cameraTransform.forward())
-        mat4.lookAt(viewMatrix, cameraTransform.position.getValues(), lookAt, cameraTransform.up());
+//         const viewMatrix = mat4.create();
+//         mat4.translate(viewMatrix, viewMatrix, cameraTransform.position.getValues());
+//         const lookAt: vec3 = vec3.create();
+//         vec3.add(lookAt, cameraTransform.position.getValues(), cameraTransform.forward())
+//         mat4.lookAt(viewMatrix, cameraTransform.position.getValues(), lookAt, cameraTransform.up());
 
-        this.directionalLights = [];
-        const getDirectionalLights = (entity: Entity) => {
-          if (entity.hasComponent(DirectionalLight)) {
-            const directionalLight = entity.getComponent(DirectionalLight);
-            this.directionalLights.push(directionalLight);
-          }
+//         this.directionalLights = [];
+//         const getDirectionalLights = (entity: Entity) => {
+//           if (entity.hasComponent(DirectionalLight)) {
+//             const directionalLight = entity.getComponent(DirectionalLight);
+//             this.directionalLights.push(directionalLight);
+//           }
 
-          for (const child of entity.children.items ?? []) {
-              getDirectionalLights(child);
-          }
-        }
+//           for (const child of entity.children.items ?? []) {
+//               getDirectionalLights(child);
+//           }
+//         }
 
-        getDirectionalLights(scene);
+//         getDirectionalLights(scene);
 
-        const drawEntityRecursive = (entity: Entity) => {
-          if (entity.hasComponent(Transform) && entity.hasComponent(Mesh)) {
-              const transform = entity.getComponent(Transform);
-              const mesh = entity.getComponent(Mesh);
+//         const drawEntityRecursive = (entity: Entity) => {
+//           if (entity.hasComponent(Transform) && entity.hasComponent(Mesh)) {
+//               const transform = entity.getComponent(Transform);
+//               const mesh = entity.getComponent(Mesh);
 
-              const modelMatrix = transform.worldMatrix.value;
+//               const modelMatrix = transform.worldMatrix.value;
 
-              const modelViewMatrix = mat4.create();
-              mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+//               const modelViewMatrix = mat4.create();
+//               mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
 
-              const buffers = this.initBuffers(gl, modelMatrix, mesh);
+//               const buffers = this.initBuffers(gl, modelMatrix, mesh);
 
-              this.setPositionAttribute(gl, buffers, programInfo);
-              this.setColorAttribute(gl, buffers, programInfo);
-              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+//               this.setPositionAttribute(gl, buffers, programInfo);
+//               this.setColorAttribute(gl, buffers, programInfo);
+//               gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
-              gl.useProgram(programInfo.program);
-              gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-              gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
+//               gl.useProgram(programInfo.program);
+//               gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+//               gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
 
-              const vertexCount = mesh.indices.items.length;
-              const type = gl.UNSIGNED_SHORT;
-              const offset = 0;
+//               const vertexCount = mesh.indices.items.length;
+//               const type = gl.UNSIGNED_SHORT;
+//               const offset = 0;
 
 
-              // gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+//               // gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
 
-              // gl.drawElements(gl.LINES, vertexCount, type, offset);
+//               // gl.drawElements(gl.LINES, vertexCount, type, offset);
 
-              gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-              gl.drawElements(gl.LINES, vertexCount, type, offset);
+//               gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+//               gl.drawElements(gl.LINES, vertexCount, type, offset);
 
-          }
+//           }
 
-          for (const child of entity.children.items ?? []) {
-              drawEntityRecursive(child);
-          }
-      };
+//           for (const child of entity.children.items ?? []) {
+//               drawEntityRecursive(child);
+//           }
+//       };
 
-      drawEntityRecursive(scene);
+//       drawEntityRecursive(scene);
 
-    }
+//     }
 
-  private setPositionAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
-      const numComponents = 3;
-      const type = gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      const offset = 0;
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-      gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset,
-      );
-      gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-  }
+//   private setPositionAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
+//       const numComponents = 3;
+//       const type = gl.FLOAT;
+//       const normalize = false;
+//       const stride = 0;
+//       const offset = 0;
+//       gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+//       gl.vertexAttribPointer(
+//         programInfo.attribLocations.vertexPosition,
+//         numComponents,
+//         type,
+//         normalize,
+//         stride,
+//         offset,
+//       );
+//       gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+//   }
 
-    private computeTriangleNormal(p0: ArrayLike<number>, p1: ArrayLike<number>, p2: ArrayLike<number>): [number, number, number] {
-        const u = [
-            p1[0] - p0[0],
-            p1[1] - p0[1],
-            p1[2] - p0[2]
-        ];
-        const v = [
-            p2[0] - p0[0],
-            p2[1] - p0[1],
-            p2[2] - p0[2]
-        ];
+//     private computeTriangleNormal(p0: ArrayLike<number>, p1: ArrayLike<number>, p2: ArrayLike<number>): [number, number, number] {
+//         const u = [
+//             p1[0] - p0[0],
+//             p1[1] - p0[1],
+//             p1[2] - p0[2]
+//         ];
+//         const v = [
+//             p2[0] - p0[0],
+//             p2[1] - p0[1],
+//             p2[2] - p0[2]
+//         ];
 
-        const nx = u[1] * v[2] - u[2] * v[1];
-        const ny = u[2] * v[0] - u[0] * v[2];
-        const nz = u[0] * v[1] - u[1] * v[0];
+//         const nx = u[1] * v[2] - u[2] * v[1];
+//         const ny = u[2] * v[0] - u[0] * v[2];
+//         const nz = u[0] * v[1] - u[1] * v[0];
 
-        const length = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
-        return [nx / length, ny / length, nz / length];
-    }
+//         const length = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+//         return [nx / length, ny / length, nz / length];
+//     }
 
-    private transformVertexToWorld(localPosition: number[], transform: mat4): vec3 {
-        const local = vec4.fromValues(localPosition[0], localPosition[1], localPosition[2], 1.0);
-        const world = vec4.create();
-        vec4.transformMat4(world, local, transform);
-        return vec3.fromValues(world[0], world[1], world[2]);
-    }
+//     private transformVertexToWorld(localPosition: number[], transform: mat4): vec3 {
+//         const local = vec4.fromValues(localPosition[0], localPosition[1], localPosition[2], 1.0);
+//         const world = vec4.create();
+//         vec4.transformMat4(world, local, transform);
+//         return vec3.fromValues(world[0], world[1], world[2]);
+//     }
 
-    private initColorBuffer(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
-        const vertices = mesh.vertices.items;
-        const numVertices = vertices.length;
+//     private initColorBuffer(gl: WebGLRenderingContext, transform: mat4, mesh: Mesh) {
+//         const vertices = mesh.vertices.items;
+//         const numVertices = vertices.length;
 
-        const normals: vec3[] = vertices.map(() => vec3.fromValues(0, 0, 0));
+//         const normals: vec3[] = vertices.map(() => vec3.fromValues(0, 0, 0));
 
-        for (let i = 0; i < mesh.indices.items.length; i += 3) {
-            const i0 = mesh.indices.items[i + 0].value;
-            const i1 = mesh.indices.items[i + 1].value;
-            const i2 = mesh.indices.items[i + 2].value;
+//         for (let i = 0; i < mesh.indices.items.length; i += 3) {
+//             const i0 = mesh.indices.items[i + 0].value;
+//             const i1 = mesh.indices.items[i + 1].value;
+//             const i2 = mesh.indices.items[i + 2].value;
 
-            const p0 = this.transformVertexToWorld(vertices[i0].getValues(), transform);
-            const p1 = this.transformVertexToWorld(vertices[i1].getValues(), transform);
-            const p2 = this.transformVertexToWorld(vertices[i2].getValues(), transform);
+//             const p0 = this.transformVertexToWorld(vertices[i0].getValues(), transform);
+//             const p1 = this.transformVertexToWorld(vertices[i1].getValues(), transform);
+//             const p2 = this.transformVertexToWorld(vertices[i2].getValues(), transform);
 
-            const [nx, ny, nz] = this.computeTriangleNormal(p0, p1, p2);
+//             const [nx, ny, nz] = this.computeTriangleNormal(p0, p1, p2);
 
-            normals[i0][0] = nx; normals[i0][1] = ny; normals[i0][2] = nz;
-            normals[i1][0] = nx; normals[i1][1] = ny; normals[i1][2] = nz;
-            normals[i2][0] = nx; normals[i2][1] = ny; normals[i2][2] = nz;
-        }
+//             normals[i0][0] = nx; normals[i0][1] = ny; normals[i0][2] = nz;
+//             normals[i1][0] = nx; normals[i1][1] = ny; normals[i1][2] = nz;
+//             normals[i2][0] = nx; normals[i2][1] = ny; normals[i2][2] = nz;
+//         }
 
-        const colors: number[] = [];
-        const directionalLight = this.directionalLights.find((light) => light !== undefined);
-        if(!directionalLight) return;
-        const sunDirection = vec3.fromValues(directionalLight!.direction.x.value, directionalLight!.direction.y.value, directionalLight!.direction.z.value);
-        // const sunDirection = vec3.fromValues(1, 1, 1);
-        vec3.normalize(sunDirection, sunDirection);
-        const globalIlluminationIntensity = 0.1;
+//         const colors: number[] = [];
+//         const directionalLight = this.directionalLights.find((light) => light !== undefined);
+//         if(!directionalLight) return;
+//         const sunDirection = vec3.fromValues(directionalLight!.direction.x.value, directionalLight!.direction.y.value, directionalLight!.direction.z.value);
+//         // const sunDirection = vec3.fromValues(1, 1, 1);
+//         vec3.normalize(sunDirection, sunDirection);
+//         const globalIlluminationIntensity = 0.1;
 
-        for (let i = 0; i < numVertices; i++) {
-          const normal = normals[i]
-          const dot = vec3.dot(sunDirection, normal);
-          const intensity = Math.max(0, dot) * directionalLight!.intensity.value;
-          let r = intensity * directionalLight!.color.r.value;
-          let g = intensity * directionalLight!.color.g.value;
-          let b = intensity * directionalLight!.color.b.value;
-          r = Math.min(r + globalIlluminationIntensity, 1);
-          g = Math.min(g + globalIlluminationIntensity, 1);
-          b = Math.min(b + globalIlluminationIntensity, 1);
-          colors.push(r, g, b, 1.0);
-        }
+//         for (let i = 0; i < numVertices; i++) {
+//           const normal = normals[i]
+//           const dot = vec3.dot(sunDirection, normal);
+//           const intensity = Math.max(0, dot) * directionalLight!.intensity.value;
+//           let r = intensity * directionalLight!.color.r.value;
+//           let g = intensity * directionalLight!.color.g.value;
+//           let b = intensity * directionalLight!.color.b.value;
+//           r = Math.min(r + globalIlluminationIntensity, 1);
+//           g = Math.min(g + globalIlluminationIntensity, 1);
+//           b = Math.min(b + globalIlluminationIntensity, 1);
+//           colors.push(r, g, b, 1.0);
+//         }
 
-        const colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+//         const colorBuffer = gl.createBuffer();
+//         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+//         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
-        return colorBuffer;
-    }
+//         return colorBuffer;
+//     }
 
-  private setColorAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
-    const numComponents = 4;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset,
-    );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-  }
+//   private setColorAttribute(gl: WebGLRenderingContext, buffers: any, programInfo: any) {
+//     const numComponents = 4;
+//     const type = gl.FLOAT;
+//     const normalize = false;
+//     const stride = 0;
+//     const offset = 0;
+//     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+//     gl.vertexAttribPointer(
+//       programInfo.attribLocations.vertexColor,
+//       numComponents,
+//       type,
+//       normalize,
+//       stride,
+//       offset,
+//     );
+//     gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+//   }
 
-  private initIndexBuffer(gl: WebGLRenderingContext, indices: number[]) {
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+//   private initIndexBuffer(gl: WebGLRenderingContext, indices: number[]) {
+//     const indexBuffer = gl.createBuffer();
+//     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-    gl.bufferData(
-      gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices),
-      gl.STATIC_DRAW,
-    );
+//     gl.bufferData(
+//       gl.ELEMENT_ARRAY_BUFFER,
+//       new Uint16Array(indices),
+//       gl.STATIC_DRAW,
+//     );
 
-    return indexBuffer;
-  }
-}
+//     return indexBuffer;
+//   }
+// }

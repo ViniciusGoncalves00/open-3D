@@ -97,11 +97,11 @@ export class Builder {
             else if (typeof value === 'string') Builder.buildStringProperty(property, container);
             else if (typeof value === 'boolean') Builder.buildBooleanProperty(property, container);
         }
-        // else if (property instanceof ObservableList) {
-        //     container.classList.add("space-y-1", "flex-col");
-        //     if (property.items[0] instanceof ObservableVector3) Builder.buildArrayVector3Property(property, container);
-        //     else if (typeof property.items[0]?.value === 'number') Builder.buildArrayNumberProperty(property, container);
-        // }
+        else if (property instanceof ObservableList) {
+            container.classList.add("space-y-1", "flex-col");
+            if (property.items[0] instanceof ObservableVector3) Builder.buildArrayVector3Property(property, container);
+            else if (typeof property.items[0]?.value === 'number') Builder.buildArrayNumberProperty(property, container);
+        }
     }
 
     private static buildParentDropdown(property: any, container: HTMLElement, scene: Entity, entity: Entity) {

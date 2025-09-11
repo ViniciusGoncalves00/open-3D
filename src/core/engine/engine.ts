@@ -19,7 +19,6 @@ import { isIAwake, isIFixedUpdate, isILateUpdate, isIStart, isIUpdate } from "./
  */
 
 export class Engine {
-  public readonly time: Time = new Time();
   public readonly timeController: TimeController = new TimeController();
   public readonly currentProject: ObservableField<Project>;
   public backup: Entity | null = null;
@@ -37,6 +36,12 @@ export class Engine {
 
     this.timeController.isRunning.subscribe(wasStarted => this.toggleSceneState(wasStarted));
     this.timeController.isPaused.subscribe(wasPaused => this.toggleLoopPause(wasPaused));
+
+    const loop = () => {
+      Time.update()
+      requestAnimationFrame(loop)
+    }
+    loop()
   }
 
   public registerSystem(system: ISystem) {
@@ -82,7 +87,6 @@ export class Engine {
 
   private loop = () => {
     this._animationFrameId = requestAnimationFrame(this.loop);
-    this.time.update();
 
     const root = this.currentProject.value?.activeScene.value;
     if (!root) return;
@@ -99,9 +103,9 @@ export class Engine {
     // notStarted.forEach(entity => entity.isStarted = true);
 
     this.updateRecursively(root, (entity) => {
-      this._fixedUpdateSystems.forEach(system => system.fixedUpdate([entity], this.time.deltaTime));
-      this._updateSystems.forEach(system => system.update([entity], this.time.deltaTime));
-      this._lateUpdateSystems.forEach(system => system.lateUpdate([entity], this.time.deltaTime));
+      this._fixedUpdateSystems.forEach(system => system.fixedUpdate([entity], Time.deltaTime.value));
+      this._updateSystems.forEach(system => system.update([entity], Time.deltaTime.value));
+      this._lateUpdateSystems.forEach(system => system.lateUpdate([entity], Time.deltaTime.value));
     });
   };
 
