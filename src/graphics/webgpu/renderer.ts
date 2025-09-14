@@ -90,6 +90,9 @@ export class Renderer {
     public modelBuffer!: GPUBuffer;
     public cameraModelBindGroup!: GPUBindGroup;
     public depthTexture!: GPUTexture;
+    public msaaColorTexture: GPUTexture;
+
+    public sampleCount: number = 4;
 
     constructor(
         device: GPUDevice,
@@ -130,8 +133,16 @@ export class Renderer {
             entries: [{ binding: 0, resource: { buffer: this.lightBuffer } }]
         });
 
+        this.msaaColorTexture = device.createTexture({
+          size: [canvas.width, canvas.height],
+          sampleCount: this.sampleCount,
+          format: navigator.gpu.getPreferredCanvasFormat(),
+          usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
         this.depthTexture = this.device.createTexture({
             size: [this.canvas.width, this.canvas.height],
+            sampleCount: this.sampleCount,
             format: "depth24plus",
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         });
@@ -168,7 +179,8 @@ export class Renderer {
 
         const descriptor: GPURenderPassDescriptor = {
             colorAttachments: [{
-                view,
+                view: this.msaaColorTexture.createView(),
+                resolveTarget: this.context.getCurrentTexture().createView(),
                 clearValue: { r: 0.95, g: 0.95, b: 0.95, a: 1 },
                 loadOp: "clear",
                 storeOp: "store"
@@ -220,18 +232,30 @@ export class Renderer {
         const dpr = window.devicePixelRatio || 1;
         const w = Math.floor(this.canvas.clientWidth * dpr);
         const h = Math.floor(this.canvas.clientHeight * dpr);
+
         if (this.canvas.width !== w || this.canvas.height !== h) {
             this.canvas.width = w;
             this.canvas.height = h;
+
+            const format = navigator.gpu.getPreferredCanvasFormat();
             this.context.configure({
                 device: this.device,
-                format: navigator.gpu.getPreferredCanvasFormat(),
+                format,
                 alphaMode: "opaque"
             });
+
             this.depthTexture = this.device.createTexture({
                 size: [w, h],
+                sampleCount: this.sampleCount,
                 format: "depth24plus",
                 usage: GPUTextureUsage.RENDER_ATTACHMENT
+            });
+
+            this.msaaColorTexture = this.device.createTexture({
+                size: [w, h],
+                sampleCount: this.sampleCount,
+                format,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT,
             });
         }
     }

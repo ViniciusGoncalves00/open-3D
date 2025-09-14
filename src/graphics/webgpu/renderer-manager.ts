@@ -128,6 +128,9 @@ export class RendererManager {
                 format: "depth24plus",
                 depthWriteEnabled: true,
                 depthCompare: "less"
+            },
+            multisample: {
+                count: 4
             }
         });
 
