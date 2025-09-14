@@ -95,51 +95,58 @@ export class Camera extends Component {
     public destroy(): void {}
 
     public viewProjection(transform: Transform): Float32Array {
-    // Posição da câmera
-    const eye = vec3.fromValues(
-        transform.position.x.value,
-        transform.position.y.value,
-        transform.position.z.value
-    );
+        const view = this.viewMatrix(transform);
 
-    // Direção para onde a câmera olha (forward do transform)
-    const forward = transform.forward(); 
+        let projection: mat4;
+        if (this.isPerspective.value) {
+            projection = this.projectionMatrix();
+        }
+        else {
+            throw new Error("Orthographic camera not implemented.");
+            
+        }
+        // else {
+        //     proj = mat4.ortho(
+        //         mat4.create(),
+        //         -this.width.value / 2,
+        //         this.width.value / 2,
+        //         -this.height.value / 2,
+        //         this.height.value / 2,
+        //         this.nearClip.value,
+        //         this.farClip.value
+        //     );
+        // }
 
-    // Determinamos o ponto central que a câmera olha
-    const center = vec3.create();
-    vec3.add(center, eye, forward);
-
-    // Vetor up da câmera
-    const up = transform.up();
-
-    // Matriz de visão
-    const view = mat4.lookAt(mat4.create(), eye, center, up);
-
-    // Matriz de projeção
-    let proj: mat4;
-    if (this.isPerspective.value) {
-        proj = mat4.perspective(
-            mat4.create(),
-            (this.fov.value * Math.PI) / 180,
-            this.aspectRatio.value,
-            this.nearClip.value,
-            this.farClip.value
-        );
-    } else {
-        proj = mat4.ortho(
-            mat4.create(),
-            -this.width.value / 2,
-            this.width.value / 2,
-            -this.height.value / 2,
-            this.height.value / 2,
-            this.nearClip.value,
-            this.farClip.value
-        );
+        const viewProj = mat4.create();
+        mat4.multiply(viewProj, projection, view);
+        return new Float32Array(viewProj);
     }
 
-    // Multiplica projeção * view
-    const viewProj = mat4.create();
-    mat4.multiply(viewProj, proj, view);
-    return new Float32Array(viewProj);
-}
+    public viewMatrix(transform: Transform): Float32Array {
+        const eye = vec3.fromValues(
+            transform.position.x.value,
+            transform.position.y.value,
+            transform.position.z.value
+        );
+
+        const forward = transform.forward(); 
+
+        const target = vec3.create();
+        vec3.add(target, eye, forward);
+
+        const up = transform.up();
+        return new Float32Array(mat4.lookAt(mat4.create(), eye, target, up));
+    }
+
+    public projectionMatrix(): Float32Array {
+        const projection = mat4.create();
+        mat4.perspective(
+            projection,
+            this.fov.value * Math.PI / 180,
+            this.aspectRatio.value,
+            this.nearClip.value,
+            this.farClip.value 
+        );
+        return new Float32Array(projection);
+    }
 }

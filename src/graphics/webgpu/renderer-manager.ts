@@ -8,9 +8,16 @@ export class RendererManager {
     public constructor(device: GPUDevice) {
         const camera = `
             struct Camera {
-                projection : mat4x4<f32>
+                viewProjection : mat4x4<f32>
             };
             @group(0) @binding(0) var<uniform> uCamera : Camera;
+        `;
+
+        const model = `
+            struct Model {
+                model : mat4x4<f32>
+            };
+            @group(0) @binding(1) var<uniform> uModel : Model;
         `;
 
         const light = `
@@ -20,11 +27,11 @@ export class RendererManager {
             };
 
             struct Lights {
-                lights : array<Light, 16>,
+                lights : array<Light, 16>
             };
 
             @group(1) @binding(0) var<uniform> uLights : Lights;
-        `
+        `;
 
         const vertexOutput = `
             struct VertexOutput {
@@ -36,48 +43,24 @@ export class RendererManager {
         const vertexWorld = `
             ${vertexOutput}
             ${light}
+            ${camera}
+            ${model}
 
             @vertex
-            fn main(@builtin(vertex_index) VertexIndex : u32) -> VertexOutput {
-                var positions = array<vec2<f32>, 6>(
-                    vec2<f32>(-0.5, -0.5),
-                    vec2<f32>( 0.5, -0.5),
-                    vec2<f32>(-0.5,  0.5),
-                    
-                    vec2<f32>(-0.5,  0.5),
-                    vec2<f32>(-0.5, -0.5),
-                    vec2<f32>( 0.5,  0.5),
-                );
+            fn main(
+                @location(0) position : vec3<f32>,
+                @location(1) color : vec3<f32>
+            ) -> VertexOutput {
+                var vertex : VertexOutput;
 
-                let baseColors = array<vec3<f32>, 6>(
-                    vec3<f32>(1.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 1.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 1.0),
-                    vec3<f32>(0.0, 0.0, 1.0),
-                    vec3<f32>(0.0, 0.0, 1.0),
-                    vec3<f32>(0.0, 0.0, 1.0),
-                );
-
-                var finalColors = array<vec3<f32>, 6>(
-                    vec3<f32>(0.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 0.0),
-                    vec3<f32>(0.0, 0.0, 0.0)
-                );
-
-                for (var i: u32 = 0u; i < 16; i = i + 1u) {
-                    let light = uLights.lights[i];
-                    finalColors[0] = finalColors[0] + baseColors[0] * light.color * light.intensity;
-                    finalColors[1] = finalColors[1] + baseColors[1] * light.color * light.intensity;
-                    finalColors[2] = finalColors[2] + baseColors[2] * light.color * light.intensity;
+                let localPos = vec4<f32>(position, 1.0);
+                vertex.Position = uCamera.viewProjection * uModel.model * localPos;
+                var finalColor =  vec3<f32>(0, 0, 0);
+                for (var i: u32 = 0u; i < 16u; i = i + 1u) {
+                    finalColor += color * uLights.lights[i].color * uLights.lights[i].intensity;
                 }
-
-                var output : VertexOutput;
-                output.Position = vec4<f32>(positions[VertexIndex], 0.0, 1.0);
-                output.color = finalColors[VertexIndex];
-                return output;
+                vertex.color = finalColor;
+                return vertex;
             }
         `;
 
@@ -116,12 +99,20 @@ export class RendererManager {
         // this.shaders.set("vertexScreen", device.createShaderModule({ code: vertexScreen }));
         // this.shaders.set("fragmentScreen", device.createShaderModule({ code: fragmentScreen }));
 
+        const vertexBufferLayout: GPUVertexBufferLayout = {
+            arrayStride: 6 * 4,
+            attributes: [
+                { shaderLocation: 0, offset: 0, format: "float32x3" },
+                { shaderLocation: 1, offset: 3 * 4, format: "float32x3" },
+            ],
+        };
+
         const world = device.createRenderPipeline({
             layout: "auto",
             vertex: {
                 module: this.shaders.get("vertexWorld")!,
                 entryPoint: "main",
-                buffers: []
+                buffers: [vertexBufferLayout]
             },
             fragment: {
                 module: this.shaders.get("fragmentWorld")!,
@@ -129,7 +120,14 @@ export class RendererManager {
                 targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }]
             },
             primitive: {
-                topology: "triangle-list"
+                topology: "triangle-list",
+                frontFace: "ccw",
+                cullMode: "back"
+            },
+            depthStencil: {
+                format: "depth24plus",
+                depthWriteEnabled: true,
+                depthCompare: "less"
             }
         });
 
