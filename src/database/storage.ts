@@ -1,4 +1,4 @@
-import { Console } from "../ui/editor/sections/console/console";
+import { ConsoleLogger } from "../ui/editor/sections/console/console";
 import { Engine } from "../core/engine/engine";
 import { Project } from "../core/engine/project";
 import { Metadata } from "./metadata";
@@ -17,9 +17,9 @@ export class Storage {
   private readonly hour: number = 3600000;
   private readonly second: number = 1000;
   public engine!: Engine | undefined;
-  public console!: Console | undefined;
+  public console!: ConsoleLogger | undefined;
     
-  public constructor(engine?: Engine, console?: Console) {
+  public constructor(engine?: Engine, console?: ConsoleLogger) {
     this.engine = engine;
     this.console = console;
   }

@@ -19,13 +19,26 @@ export class BufferView {
 }
 
 export class Accessor {
-  constructor(
-    public bufferView: BufferView,
-    public componentType: number, // glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
-    public count: number,
-    public type: string,          // "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
-    public byteOffset: number = 0
-  ) {}
+	/**
+	 * @param bufferView BufferView
+	 * @param componentType glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
+	 * @param count count of elements of this accessor
+	 * @param type "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
+	 * @param byteOffset offset from start of buffer
+	 * @param byteStride amount of bytes between an component in buffer
+	 * 
+	 * @example
+	 * count: if this accessor access a quad buffer, this count will be 4;
+	 * byteStride: if this accessor access positions of a quad buffer, with no other data, and components are X, Y, Z float32, so byteStride wiil be 12 (3 components * 4 bytes of float32);
+ 	 */
+    public constructor(
+    	public bufferView: BufferView,
+    	public componentType: number, // glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
+    	public count: number,
+    	public type: string,          // "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
+    	public byteOffset: number = 0,
+    	public byteStride?: number
+    ) {}
 
   // Converte para um objeto JSON
   public toJSON() {
@@ -64,6 +77,10 @@ export class Accessor {
       binary += String.fromCharCode(uint8[i]);
     }
     return btoa(binary);
+  }
+
+  public getStride(): number {
+    return this.byteStride ?? (this.getComponentSize() * this.getNumComponents());
   }
 
   // Número de bytes por componente

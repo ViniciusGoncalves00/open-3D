@@ -14,7 +14,7 @@ import { InputHandler } from './ui/editor/others/input-handler';
 import { Utils } from './ui/editor/others/utils';
 import { Assets } from './ui/editor/sections/assets/assets';
 import { Builder, Icons } from './ui/editor/sections/builder';
-import { Console } from './ui/editor/sections/console/console';
+import { ConsoleLogger } from './ui/editor/sections/console/console';
 import { Player } from './ui/editor/sections/controls/player';
 import { Screen } from './ui/editor/sections/controls/screen';
 import { Timescale } from './ui/editor/sections/controls/timescale';
@@ -98,10 +98,10 @@ export class Program {
 
         const sceneManager = new SceneManager(engine.currentProject.value);
         
-        const consoleLogger = new Console();
+        const consoleLogger = new ConsoleLogger();
 
         engine.timeController.isRunning.subscribe((wasStarted => {
-                wasStarted ? consoleLogger.log("Started.") : consoleLogger.log("Stoped.");
+                wasStarted ? ConsoleLogger.log("Started.") : ConsoleLogger.log("Stoped.");
                 const project = engine.currentProject.value;
                 if(!project) return;
                 wasStarted ? storage.saveAll(project) : '';
@@ -109,7 +109,7 @@ export class Program {
         ))
 
         engine.timeController.isPaused.subscribe((wasPaused => {
-                wasPaused ? consoleLogger.log("Paused.") : consoleLogger.log("Unpaused.")
+                wasPaused ? ConsoleLogger.log("Paused.") : ConsoleLogger.log("Unpaused.")
             }
         ))
 
@@ -223,8 +223,8 @@ export class Program {
         const device = await adapter.requestDevice()
 
         const rendererManager = new RendererManager(device);
-        const renderer = new Renderer(device, canvasA, rendererManager.pipelines.get("world")!, cameraCamera, cameraTransform, light);
-        rendererManager.renderers.set("renderer", renderer)
+        const renderer = new Renderer(rendererManager, device, canvasA, rendererManager.pipelines.get("world")!, cameraCamera, cameraTransform, light);
+        rendererManager.renderers.set("renderer", renderer);
 
         const loop = () => {
             renderer.render();
@@ -235,7 +235,8 @@ export class Program {
         const scene = engine.currentProject.value.activeScene.value;
         if(!scene) return;
 
-        const entityHandler = new EntityHandler(scene);
+        const entityHandler = new EntityHandler(scene, rendererManager);
+
         const hierarchy = new Hierarchy(scene, entityHandler);
 
         const inspector = new Inspector(engine, entityHandler, hierarchy);
@@ -278,7 +279,7 @@ export class Program {
         sceneManager.assign(this.leftDetails, groupStartLeft);
         
         inspector.assign(this.rightDetails, groupStartRight);
-        consoleLogger.assign(this.centerBotDetails, groupStartRight);
+        ConsoleLogger.assign(this.centerBotDetails, groupStartRight);
 
         const settingsButton = Builder.sectionButton(Icons.Gear, () => settings.toggle());
         groupEndLeft.appendChild(settingsButton);
@@ -301,6 +302,6 @@ export class Program {
             event.preventDefault();
         });
 
-        consoleLogger.log("All right! You can start now!")
+        ConsoleLogger.log("All right! You can start now!")
     }
 }

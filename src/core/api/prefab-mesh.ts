@@ -29,108 +29,85 @@ export class MeshBufferDescriptor {
 }
 
 export class PrefabMesh {
-    public static quad(size: number = 1): Mesh {
+    public static quad(size: number = 1, color?: [number, number, number]): Mesh {
     	const half = size / 2;
 
-    	const positions = new Float32Array([
-    	    -half, -half,  0, 1, 0, 0,
-    	     half, -half,  0, 1, 0, 0,
-    	     half,  half,  0, 1, 0, 0,
-    	    -half,  half,  0, 1, 0, 0,
+    	const r = color ? color[0] : Math.random();
+    	const g = color ? color[1] : Math.random();
+    	const b = color ? color[2] : Math.random();
+
+    	const vertices = new Float32Array([
+    	    -half, -half, 0, r, g, b,
+    	     half, -half, 0, r, g, b,
+    	     half,  half, 0, r, g, b,
+    	    -half,  half, 0, r, g, b,
     	]);
 
     	const indices = new Uint32Array([
     	    0, 1, 2, 0, 2, 3,
     	]);
 
-    	const vertexBuffer = new Buffer(positions.buffer);
+    	const vertexBuffer = new Buffer(vertices.buffer);
     	const indexBuffer = new Buffer(indices.buffer);
 
-    	const vertexBufferView = new BufferView(vertexBuffer, 0, positions.byteLength);
+    	const vertexBufferView = new BufferView(vertexBuffer, 0, vertices.byteLength);
     	const indexBufferView = new BufferView(indexBuffer, 0, indices.byteLength);
 
-const stride = 6 * 4; // 24 bytes
-
-// POSITION (primeiros 3 floats de cada vértice)
-const positionAccessor = new Accessor(
-    vertexBufferView,
-    5126,           // FLOAT
-    4,              // 4 vértices
-    "VEC3",
-    0,              // byteOffset
-	
-);
-
-// COLOR (3 floats seguintes)
-const colorAccessor = new Accessor(
-    vertexBufferView,
-    5126,           // FLOAT
-    4,              // 4 vértices
-    "VEC3",
-    12,             // byteOffset (pula os 3 primeiros floats = 12 bytes)
-);
-
-const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
-
-const primitive = new Primitive({
-    POSITION: positionAccessor,
-    COLOR: colorAccessor
-}, indexAccessor);
-
-return new Mesh("Quad", [primitive]);
+		const positionAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 0, 24);
+		const colorAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 12, 24);
+		
+		const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
+		
+		const primitive = new Primitive({
+		    POSITION: positionAccessor,
+		    COLOR_0: colorAccessor
+		}, indexAccessor);
+		
+		return new Mesh("Quad", [primitive]);
   	}
 
-    public static cube(size = 1): Mesh {
+    public static cube(size = 1, color?: [number, number, number]): Mesh {
     	const half = size / 2;
 
-    	// --- vertices do cubo (Float32Array) ---
+		const r = color ? color[0] : Math.random();
+    	const g = color ? color[1] : Math.random();
+    	const b = color ? color[2] : Math.random();
+
     	const positions = new Float32Array([
-    	    // front
-    	    -half, -half,  half, // 0
-    	     half, -half,  half, // 1
-    	     half,  half,  half, // 2
-    	    -half,  half,  half, // 3
-    	    // back
-    	    -half, -half, -half, // 4
-    	     half, -half, -half, // 5
-    	     half,  half, -half, // 6
-    	    -half,  half, -half  // 7
+    	    -half, -half,  half, r, g, b,
+    	     half, -half,  half, r, g, b,
+    	     half,  half,  half, r, g, b,
+    	    -half,  half,  half, r, g, b,
+    	    -half, -half, -half, r, g, b,
+    	     half, -half, -half, r, g, b,
+    	     half,  half, -half, r, g, b,
+    	    -half,  half, -half, r, g, b,
     	]);
 
-    	// --- indices (Uint32Array, sentido CCW para cada face) ---
     	const indices = new Uint32Array([
-    	    // front
     	    0, 1, 2, 0, 2, 3,
-    	    // right
     	    1, 5, 6, 1, 6, 2,
-    	    // back
     	    5, 4, 7, 5, 7, 6,
-    	    // left
     	    4, 0, 3, 4, 3, 7,
-    	    // top
     	    3, 2, 6, 3, 6, 7,
-    	    // bottom
     	    4, 5, 1, 4, 1, 0
     	]);
 
-    	// --- buffers ---
     	const vertexBuffer = new Buffer(positions.buffer);
     	const indexBuffer = new Buffer(indices.buffer);
 
     	const vertexBufferView = new BufferView(vertexBuffer, 0, positions.byteLength);
     	const indexBufferView = new BufferView(indexBuffer, 0, indices.byteLength);
-
-    	// --- accessors ---
-    	const positionAccessor = new Accessor(vertexBufferView, 5126, positions.length / 3, "VEC3"); // FLOAT32
+		
+    	const positionAccessor = new Accessor(vertexBufferView, 5126, positions.length / 3, "VEC3", 0, 24); // FLOAT32
+		const colorAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 12, 24);
     	const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");        // UINT32
 
-    	// --- primitive ---
     	const primitive = new Primitive({
-    	    POSITION: positionAccessor
-    	    // NORMAL e TEXCOORD_0 podem ser adicionados aqui
+    	    POSITION: positionAccessor,
+    	    COLOR_0: colorAccessor
     	}, indexAccessor);
 
-    	// --- mesh ---
     	return new Mesh("Cube", [primitive]);
 	}
 

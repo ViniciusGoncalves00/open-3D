@@ -1,77 +1,12 @@
 import { Light } from "../../assets/components/abstract/light";
 import { Camera } from "../../assets/components/camera";
 import { Transform } from "../../assets/components/transform";
-import { Entity } from "../../core/api/entity";
-
-export class TestModel {
-    public vertexData: Float32Array;
-    public vertexBuffer!: GPUBuffer;
-    public transform: Transform;
-
-    constructor(transform?: Transform) {
-        this.transform = transform ?? new Transform(true, new Entity("0-0-0-0-0"))
-        // Um triângulo simples no plano XY
-        this.vertexData = new Float32Array([
-                // Face frontal (z = 0.5)
-    -0.5, -0.5,  0.5, 1, 0, 0, // vermelho
-     0.5, -0.5,  0.5, 1, 0, 0,
-     0.5,  0.5,  0.5, 1, 0, 0,
-    -0.5, -0.5,  0.5, 1, 0, 0,
-     0.5,  0.5,  0.5, 1, 0, 0,
-    -0.5,  0.5,  0.5, 1, 0, 0,
-
-    // Face traseira (z = -0.5)
-    -0.5, -0.5, -0.5, 0, 1, 0, // verde
-     0.5,  0.5, -0.5, 0, 1, 0,
-     0.5, -0.5, -0.5, 0, 1, 0,
-    -0.5, -0.5, -0.5, 0, 1, 0,
-    -0.5,  0.5, -0.5, 0, 1, 0,
-     0.5,  0.5, -0.5, 0, 1, 0,
-
-    // Face esquerda (x = -0.5)
-    -0.5, -0.5, -0.5, 0, 0, 1, // azul
-    -0.5, -0.5,  0.5, 0, 0, 1,
-    -0.5,  0.5,  0.5, 0, 0, 1,
-    -0.5, -0.5, -0.5, 0, 0, 1,
-    -0.5,  0.5,  0.5, 0, 0, 1,
-    -0.5,  0.5, -0.5, 0, 0, 1,
-
-    // Face direita (x = 0.5)
-     0.5, -0.5, -0.5, 1, 1, 0, // amarelo
-     0.5,  0.5,  0.5, 1, 1, 0,
-     0.5, -0.5,  0.5, 1, 1, 0,
-     0.5, -0.5, -0.5, 1, 1, 0,
-     0.5,  0.5, -0.5, 1, 1, 0,
-     0.5,  0.5,  0.5, 1, 1, 0,
-
-    // Face superior (y = 0.5)
-    -0.5,  0.5, -0.5, 1, 0, 1, // magenta
-    -0.5,  0.5,  0.5, 1, 0, 1,
-     0.5,  0.5,  0.5, 1, 0, 1,
-    -0.5,  0.5, -0.5, 1, 0, 1,
-     0.5,  0.5,  0.5, 1, 0, 1,
-     0.5,  0.5, -0.5, 1, 0, 1,
-
-    // Face inferior (y = -0.5)
-    -0.5, -0.5, -0.5, 0, 1, 1, // ciano
-     0.5, -0.5,  0.5, 0, 1, 1,
-    -0.5, -0.5,  0.5, 0, 1, 1,
-    -0.5, -0.5, -0.5, 0, 1, 1,
-     0.5, -0.5, -0.5, 0, 1, 1,
-     0.5, -0.5,  0.5, 0, 1, 1,
-        ]);
-    }
-
-    public createBuffer(device: GPUDevice) {
-        this.vertexBuffer = device.createBuffer({
-            size: this.vertexData.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-        });
-        device.queue.writeBuffer(this.vertexBuffer, 0, new Float32Array(this.vertexData));
-    }
-}
+import { ConsoleLogger } from "../../ui/editor/sections/console/console";
+import { RendererManager } from "./renderer-manager";
 
 export class Renderer {
+    public rendererManager: RendererManager;
+
     public device!: GPUDevice;
     public context!: GPUCanvasContext;
     public canvas!: HTMLCanvasElement;
@@ -80,7 +15,6 @@ export class Renderer {
     public camera!: Camera;
     public cameraTransform!: Transform;
     public lights: Light[] = [];
-    public testModel!: TestModel;
 
     public lightData!: Float32Array;
     public lightBuffer!: GPUBuffer;
@@ -95,6 +29,7 @@ export class Renderer {
     public sampleCount: number = 4;
 
     constructor(
+        rendererManager: RendererManager,
         device: GPUDevice,
         canvas: HTMLCanvasElement,
         pipeline: GPURenderPipeline,
@@ -102,6 +37,8 @@ export class Renderer {
         cameraTransform: Transform,
         lights: Light[]
     ) {
+        this.rendererManager = rendererManager;
+
         this.device = device;
         this.canvas = canvas;
         this.pipeline = pipeline;
@@ -110,10 +47,6 @@ export class Renderer {
         this.camera = camera;
         this.cameraTransform = cameraTransform;
         this.lights = lights;
-
-        // Test model
-        this.testModel = new TestModel();
-        this.testModel.createBuffer(this.device);
 
         // Buffer de luz
         const MAX_LIGHTS = 16;
@@ -181,7 +114,7 @@ export class Renderer {
             colorAttachments: [{
                 view: this.msaaColorTexture.createView(),
                 resolveTarget: this.context.getCurrentTexture().createView(),
-                clearValue: { r: 0.95, g: 0.95, b: 0.95, a: 1 },
+                clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
                 loadOp: "clear",
                 storeOp: "store"
             }],
@@ -196,21 +129,36 @@ export class Renderer {
         const pass = encoder.beginRenderPass(descriptor);
         pass.setPipeline(this.pipeline);
 
-        // Atualiza buffers
         this.device.queue.writeBuffer(this.lightBuffer, 0, this.lightData.buffer);
 
         const cameraMat = this.camera.viewProjection(this.cameraTransform);
         this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraMat.buffer);
 
-        const modelMat = this.testModel.transform.worldMatrix.value;
-        this.device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(modelMat));
-
-        // Bind groups e vertices
         pass.setBindGroup(0, this.cameraModelBindGroup);
         pass.setBindGroup(1, this.lightBindGroup);
 
-        pass.setVertexBuffer(0, this.testModel.vertexBuffer);
-        pass.draw(this.testModel.vertexData.length / 6, 1, 0, 0); // triângulo
+        this.rendererManager.entities.forEach(entity => {
+            const resources = this.rendererManager.entityResources.get(entity.id);
+            if(!resources) {
+                ConsoleLogger.log("An attempt was made to render an entity where the corresponding resources were not found. Check synchronization between entities and buffers.");
+                return;
+            }
+
+            const transform = entity.getComponent(Transform);
+            if (!transform) return;
+
+            const modelMatrix = transform.worldMatrix.value;
+            const modelBuffer = new Float32Array(modelMatrix);
+            this.device.queue.writeBuffer(this.modelBuffer, 0, modelBuffer.buffer);
+
+            pass.setVertexBuffer(0, resources.vertexBuffer);
+            if (resources.indexBuffer) {
+                pass.setIndexBuffer(resources.indexBuffer, "uint32");
+                pass.drawIndexed(resources.indexCount!);
+            } else {
+                pass.draw(resources.vertexCount);
+            }
+        })
 
         pass.end();
         this.device.queue.submit([encoder.finish()]);
