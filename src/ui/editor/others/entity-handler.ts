@@ -24,7 +24,7 @@ export class EntityHandler {
     const entity = new Entity(crypto.randomUUID());
     entity.addComponent(new Transform(true, entity));
 
-    const mesh = PrefabMesh.cube();
+    const mesh = PrefabMesh.sphere();
     entity.addComponent(mesh);
 
     entity.parent = this._scene;
