@@ -9,10 +9,10 @@ export class PrefabMesh {
     	const b = color ? color[2] : Math.random();
 
     	const vertices = new Float32Array([
-    	    -half, -half, 0, r, g, b,
-    	     half, -half, 0, r, g, b,
-    	     half,  half, 0, r, g, b,
-    	    -half,  half, 0, r, g, b,
+    	    -half, -half, 0, r, g, b, 0, 0, 1,
+    	     half, -half, 0, r, g, b, 0, 0, 1,
+    	     half,  half, 0, r, g, b, 0, 0, 1,
+    	    -half,  half, 0, r, g, b, 0, 0, 1,
     	]);
 
     	const indices = new Uint32Array([
@@ -25,16 +25,18 @@ export class PrefabMesh {
     	const vertexBufferView = new BufferView(vertexBuffer, 0, vertices.byteLength);
     	const indexBufferView = new BufferView(indexBuffer, 0, indices.byteLength);
 
-		const stride = 24;
+		const stride = 36;
 		
 		const positionAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 0, stride);
 		const colorAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 12, stride);
+		const normalAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 24, stride);
 		
 		const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
 		
 		const primitive = new Primitive({
 		    POSITION: positionAccessor,
-		    COLOR_0: colorAccessor
+		    COLOR_0: colorAccessor,
+		    NORMAL: normalAccessor,
 		}, indexAccessor);
 		
 		return new Mesh("Quad", [primitive]);
@@ -48,24 +50,57 @@ export class PrefabMesh {
     	const b = color ? color[2] : Math.random();
 
     	const positions = new Float32Array([
-    	    -half, -half,  half, r, g, b,
-    	     half, -half,  half, r, g, b,
-    	     half,  half,  half, r, g, b,
-    	    -half,  half,  half, r, g, b,
-    	    -half, -half, -half, r, g, b,
-    	     half, -half, -half, r, g, b,
-    	     half,  half, -half, r, g, b,
-    	    -half,  half, -half, r, g, b,
+    		// Front
+    		-half, -half,  half, r, g, b, 0, 0, 1,
+    		 half, -half,  half, r, g, b, 0, 0, 1,
+    		 half,  half,  half, r, g, b, 0, 0, 1,
+    		-half,  half,  half, r, g, b, 0, 0, 1,
+
+    		// Back
+    		-half, -half, -half, r, g, b, 0, 0, -1,
+    		 half, -half, -half, r, g, b, 0, 0, -1,
+    		 half,  half, -half, r, g, b, 0, 0, -1,
+    		-half,  half, -half, r, g, b, 0, 0, -1,
+
+    		// Right
+    		 half, -half, -half, r, g, b, 1, 0, 0,
+    		 half, -half,  half, r, g, b, 1, 0, 0,
+    		 half,  half,  half, r, g, b, 1, 0, 0,
+    		 half,  half, -half, r, g, b, 1, 0, 0,
+
+    		// Left
+    		-half, -half, -half, r, g, b, -1, 0, 0,
+    		-half, -half,  half, r, g, b, -1, 0, 0,
+    		-half,  half,  half, r, g, b, -1, 0, 0,
+    		-half,  half, -half, r, g, b, -1, 0, 0,
+
+    		// Up
+    		-half,  half,  half, r, g, b, 0, 1, 0,
+    		 half,  half,  half, r, g, b, 0, 1, 0,
+    		 half,  half, -half, r, g, b, 0, 1, 0,
+    		-half,  half, -half, r, g, b, 0, 1, 0,
+
+    		// Down
+    		-half, -half,  half, r, g, b, 0, -1, 0,
+    		 half, -half,  half, r, g, b, 0, -1, 0,
+    		 half, -half, -half, r, g, b, 0, -1, 0,
+    		-half, -half, -half, r, g, b, 0, -1, 0,
     	]);
 
-    	const indices = new Uint32Array([
-    	    0, 1, 2, 0, 2, 3,
-    	    1, 5, 6, 1, 6, 2,
-    	    5, 4, 7, 5, 7, 6,
-    	    4, 0, 3, 4, 3, 7,
-    	    3, 2, 6, 3, 6, 7,
-    	    4, 5, 1, 4, 1, 0
-    	]);
+		const indices = new Uint32Array([
+			// Front
+    		0, 1, 2,   0, 2, 3,
+    		// Back
+    		4, 6, 5,   4, 7, 6,
+    		// Right
+    		8, 10, 9,  8, 11, 10,
+    		// Left
+    		12, 13, 14,  12, 14, 15,
+    		// Up
+    		16, 17, 18,  16, 18, 19,
+    		// Down
+    		20, 22, 21,  20, 23, 22,
+		]);
 
     	const vertexBuffer = new Buffer(positions.buffer);
     	const indexBuffer = new Buffer(indices.buffer);
@@ -73,22 +108,30 @@ export class PrefabMesh {
     	const vertexBufferView = new BufferView(vertexBuffer, 0, positions.byteLength);
     	const indexBufferView = new BufferView(indexBuffer, 0, indices.byteLength);
 
-		const stride = 24;
+		const stride = 36;
 		
-    	const positionAccessor = new Accessor(vertexBufferView, 5126, positions.length / 3, "VEC3", 0, stride);
-		const colorAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 12, stride);
+    	const positionAccessor = new Accessor(vertexBufferView, 5126, 24, "VEC3", 0, stride);
+		const colorAccessor = new Accessor(vertexBufferView, 5126, 24, "VEC3", 12, stride);
+		const normalAccessor = new Accessor(vertexBufferView, 5126, 24, "VEC3", 24, stride);
+
     	const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
 
     	const primitive = new Primitive({
     	    POSITION: positionAccessor,
-    	    COLOR_0: colorAccessor
+    	    COLOR_0: colorAccessor,
+    	    NORMAL: normalAccessor,
     	}, indexAccessor);
 
     	return new Mesh("Cube", [primitive]);
 	}
 
 
-	public static sphere(radius = 1, latitudeBands = 12, longitudeBands = 12, color?: [number, number, number]): Mesh {
+	public static sphere(
+	    radius = 1,
+	    latitudeBands = 12,
+	    longitudeBands = 12,
+	    color?: [number, number, number]
+	): Mesh {
 	    const vertices: number[] = [];
 	    const indices: number[] = [];
 
@@ -106,12 +149,13 @@ export class PrefabMesh {
 	            const sinPhi = Math.sin(phi);
 	            const cosPhi = Math.cos(phi);
 
-	            const x = cosPhi * sinTheta;
-	            const y = cosTheta;
-	            const z = sinPhi * sinTheta;
+	            const x = cosPhi * sinTheta * radius;
+	            const y = cosTheta * radius;
+	            const z = sinPhi * sinTheta * radius;
 
-	            vertices.push(radius * x, radius * y, radius * z);
+	            vertices.push(x, y, z);
 	            vertices.push(r, g, b);
+	            vertices.push(x, y, z);
 	        }
 	    }
 
@@ -120,8 +164,8 @@ export class PrefabMesh {
 	            const first = lat * (longitudeBands + 1) + lon;
 	            const second = first + longitudeBands + 1;
 
-	            indices.push(first, second, first + 1);
-	            indices.push(second, second + 1, first + 1);
+	            indices.push(first, first + 1, second);
+				indices.push(second, first + 1, second + 1);
 	        }
 	    }
 
@@ -134,15 +178,18 @@ export class PrefabMesh {
 	    const vertexBufferView = new BufferView(vertexBuffer, 0, vertexArray.byteLength);
 	    const indexBufferView = new BufferView(indexBuffer, 0, indexArray.byteLength);
 
-	    const stride = 24;
+	    const stride = 36; // 3 pos (12) + 3 color (12) + 3 normal (12) = 36 bytes
 
-	    const positionAccessor = new Accessor(vertexBufferView, 5126, vertexArray.length / 6, "VEC3", 0, stride);
-	    const colorAccessor    = new Accessor(vertexBufferView, 5126, vertexArray.length / 6, "VEC3", 12, stride);
+	    const positionAccessor = new Accessor(vertexBufferView, 5126, vertexArray.length / 9, "VEC3", 0, stride);
+	    const colorAccessor    = new Accessor(vertexBufferView, 5126, vertexArray.length / 9, "VEC3", 12, stride);
+	    const normalAccessor   = new Accessor(vertexBufferView, 5126, vertexArray.length / 9, "VEC3", 24, stride);
+
 	    const indexAccessor    = new Accessor(indexBufferView, 5125, indexArray.length, "SCALAR");
 
 	    const primitive = new Primitive({
 	        POSITION: positionAccessor,
-	        COLOR_0: colorAccessor
+	        COLOR_0: colorAccessor,
+	        NORMAL: normalAccessor
 	    }, indexAccessor);
 
 	    return new Mesh("Sphere", [primitive]);

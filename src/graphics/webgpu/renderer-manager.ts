@@ -74,21 +74,24 @@ export class RendererManager {
             @vertex
             fn main(
                 @location(0) position : vec3<f32>,
-                @location(1) color : vec3<f32>
+                @location(1) color : vec3<f32>,
+                @location(2) normal : vec3<f32>
             ) -> VertexOutput {
                 var vertex : VertexOutput;
 
                 let localPos = vec4<f32>(position, 1.0);
                 vertex.Position = uCamera.viewProjection * uModel.model * localPos;
+
                 var finalColor = vec3<f32>(0, 0, 0);
-                let normal = normalize(vec3<f32>(0.0, 0.0, 1.0));
+                let worldNormal = normalize((uModel.model * vec4<f32>(normal, 0.0)).xyz);
+
                 for(var i: u32 = 0u; i < uLights.count; i = i + 1u){
                     let light = uLights.lights[i];
-                    let normalized = -normalize(light.direction);
-                    let dotResult = dot(normal, normalized);
-                    let NdotL = max(dotResult, 0.0);
+                    let L = -normalize(light.direction);
+                    let NdotL = max(dot(worldNormal, L), 0.0);
                     finalColor += color * light.color * light.intensity * NdotL;
                 }
+
                 vertex.color = finalColor;
                 return vertex;
             }
@@ -130,10 +133,11 @@ export class RendererManager {
         // this.shaders.set("fragmentScreen", device.createShaderModule({ code: fragmentScreen }));
 
         const vertexBufferLayout: GPUVertexBufferLayout = {
-            arrayStride: 6 * 4,
+            arrayStride: 9 * 4,
             attributes: [
                 { shaderLocation: 0, offset: 0, format: "float32x3" },
                 { shaderLocation: 1, offset: 3 * 4, format: "float32x3" },
+                { shaderLocation: 2, offset: 6 * 4, format: "float32x3" },
             ],
         };
 

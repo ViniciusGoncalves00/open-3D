@@ -114,7 +114,7 @@ export class Renderer {
             colorAttachments: [{
                 view: this.msaaColorTexture.createView(),
                 resolveTarget: this.context.getCurrentTexture().createView(),
-                clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
+                clearValue: { r: 0.98, g: 0.98, b: 0.98, a: 1 },
                 loadOp: "clear",
                 storeOp: "store"
             }],

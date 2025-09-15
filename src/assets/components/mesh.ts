@@ -155,7 +155,7 @@ export class Mesh extends Component {
   public override toJSON() {
     return {
       ...super.toJSON(),
-      name: this.name,
+      name: this.name.value,
       primitives: this.primitives.map(p => p.toJSON())
     };
   }
