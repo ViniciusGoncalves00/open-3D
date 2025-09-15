@@ -43,9 +43,15 @@ export class RendererManager {
             struct Light {
                 color : vec3<f32>,
                 intensity : f32,
+                direction : vec3<f32>,
+                padding : f32, 
             };
 
             struct Lights {
+                count : u32,
+                padding_0: u32,
+                padding_1: u32,
+                padding_2: u32,
                 lights : array<Light, 16>
             };
 
@@ -74,9 +80,14 @@ export class RendererManager {
 
                 let localPos = vec4<f32>(position, 1.0);
                 vertex.Position = uCamera.viewProjection * uModel.model * localPos;
-                var finalColor =  vec3<f32>(0, 0, 0);
-                for (var i: u32 = 0u; i < 16u; i = i + 1u) {
-                    finalColor += color * uLights.lights[i].color * uLights.lights[i].intensity;
+                var finalColor = vec3<f32>(0, 0, 0);
+                let normal = normalize(vec3<f32>(0.0, 0.0, 1.0));
+                for(var i: u32 = 0u; i < uLights.count; i = i + 1u){
+                    let light = uLights.lights[i];
+                    let normalized = -normalize(light.direction);
+                    let dotResult = dot(normal, normalized);
+                    let NdotL = max(dotResult, 0.0);
+                    finalColor += color * light.color * light.intensity * NdotL;
                 }
                 vertex.color = finalColor;
                 return vertex;
@@ -175,98 +186,91 @@ export class RendererManager {
     }
 
     public addEntity(entity: Entity): void {
-    if (!entity.hasComponent(Mesh)) {
-        ConsoleLogger.log("Entity doesn't have components necessary to be rendered.", LogType.Warning);
-        return;
-    }
-
-    const mesh = entity.getComponent(Mesh);
-
-    for (const primitive of mesh.primitives) {
-        const positionAccessor = primitive.attributes["POSITION"];
-        const colorAccessor = primitive.attributes["COLOR_0"];
-
-        if (!positionAccessor) {
-            ConsoleLogger.log("Mesh primitive missing POSITION accessor.", LogType.Error);
-            continue;
+        if (!entity.hasComponent(Mesh)) {
+            ConsoleLogger.log("Entity doesn't have components necessary to be rendered.", LogType.Warning);
+            return;
         }
 
-        let vertexBuffer: GPUBuffer;
+        const mesh = entity.getComponent(Mesh);
 
-        if (colorAccessor) {
-            // 🚀 Caso 1: posição + cor já intercalados no BufferView original
-            const slice = positionAccessor.bufferView.buffer.data.slice(
-                positionAccessor.bufferView.byteOffset,
-                positionAccessor.bufferView.byteOffset + positionAccessor.bufferView.byteLength
-            );
+        for (const primitive of mesh.primitives) {
+            const positionAccessor = primitive.attributes["POSITION"];
+            const colorAccessor = primitive.attributes["COLOR_0"];
 
-            vertexBuffer = this.device.createBuffer({
-                size: slice.byteLength,
-                usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-                mappedAtCreation: true,
-            });
-            new Uint8Array(vertexBuffer.getMappedRange()).set(new Uint8Array(slice));
-            vertexBuffer.unmap();
-        } else {
-            // 🚀 Caso 2: não tem cor → gerar um novo buffer com cor default
-            const positionData = new Float32Array(
-                positionAccessor.bufferView.buffer.data,
-                positionAccessor.bufferView.byteOffset,
-                positionAccessor.count * positionAccessor.getNumComponents()
-            );
-
-            const vertexData: number[] = [];
-            for (let i = 0; i < positionAccessor.count; i++) {
-                // posição
-                for (let j = 0; j < positionAccessor.getNumComponents(); j++) {
-                    vertexData.push(positionData[i * positionAccessor.getNumComponents() + j]);
-                }
-                // cor default (aqui deixei branco, mas pode ser aleatória)
-                vertexData.push(1, 1, 1);
+            if (!positionAccessor) {
+                ConsoleLogger.log("Mesh primitive missing POSITION accessor.", LogType.Error);
+                continue;
             }
 
-            vertexBuffer = this.device.createBuffer({
-                size: vertexData.length * 4,
-                usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-                mappedAtCreation: true,
+            let vertexBuffer: GPUBuffer;
+
+            if (colorAccessor) {
+                const slice = positionAccessor.bufferView.buffer.data.slice(
+                    positionAccessor.bufferView.byteOffset,
+                    positionAccessor.bufferView.byteOffset + positionAccessor.bufferView.byteLength
+                );
+
+                vertexBuffer = this.device.createBuffer({
+                    size: slice.byteLength,
+                    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Uint8Array(vertexBuffer.getMappedRange()).set(new Uint8Array(slice));
+                vertexBuffer.unmap();
+            } else {
+                const positionData = new Float32Array(
+                    positionAccessor.bufferView.buffer.data,
+                    positionAccessor.bufferView.byteOffset,
+                    positionAccessor.count * positionAccessor.getNumComponents()
+                );
+
+                const vertexData: number[] = [];
+                for (let i = 0; i < positionAccessor.count; i++) {
+                    for (let j = 0; j < positionAccessor.getNumComponents(); j++) {
+                        vertexData.push(positionData[i * positionAccessor.getNumComponents() + j]);
+                    }
+                    vertexData.push(1, 1, 1);
+                }
+
+                vertexBuffer = this.device.createBuffer({
+                    size: vertexData.length * 4,
+                    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Float32Array(vertexBuffer.getMappedRange()).set(vertexData);
+                vertexBuffer.unmap();
+            }
+
+            let indexBuffer: GPUBuffer | undefined;
+            let indexCount: number | undefined;
+
+            if (primitive.indices) {
+                const accessor = primitive.indices;
+                const slice = accessor.bufferView.buffer.data.slice(
+                    accessor.bufferView.byteOffset + accessor.byteOffset,
+                    accessor.bufferView.byteOffset + accessor.byteOffset + accessor.count * accessor.getComponentSize()
+                );
+                indexCount = accessor.count;
+
+                indexBuffer = this.device.createBuffer({
+                    size: slice.byteLength,
+                    usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true,
+                });
+                new Uint8Array(indexBuffer.getMappedRange()).set(new Uint8Array(slice));
+                indexBuffer.unmap();
+            }
+
+            this.entityResources.set(entity.id, {
+                vertexBuffer,
+                indexBuffer,
+                indexCount,
+                vertexCount: positionAccessor.count,
             });
-            new Float32Array(vertexBuffer.getMappedRange()).set(vertexData);
-            vertexBuffer.unmap();
         }
 
-        // Índices (igual ao seu código atual)
-        let indexBuffer: GPUBuffer | undefined;
-        let indexCount: number | undefined;
-
-        if (primitive.indices) {
-            const accessor = primitive.indices;
-            const slice = accessor.bufferView.buffer.data.slice(
-                accessor.bufferView.byteOffset + accessor.byteOffset,
-                accessor.bufferView.byteOffset + accessor.byteOffset + accessor.count * accessor.getComponentSize()
-            );
-            indexCount = accessor.count;
-
-            indexBuffer = this.device.createBuffer({
-                size: slice.byteLength,
-                usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-                mappedAtCreation: true,
-            });
-            new Uint8Array(indexBuffer.getMappedRange()).set(new Uint8Array(slice));
-            indexBuffer.unmap();
-        }
-
-        this.entityResources.set(entity.id, {
-            vertexBuffer,
-            indexBuffer,
-            indexCount,
-            vertexCount: positionAccessor.count,
-        });
+        this.entities.set(entity.id, entity);
     }
-
-    this.entities.set(entity.id, entity);
-}
-
-
 
     public removeEntity(entity: Entity): void {
         const resources = this.entityResources.get(entity.id);

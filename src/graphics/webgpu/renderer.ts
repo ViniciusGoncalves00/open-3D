@@ -1,5 +1,6 @@
 import { Light } from "../../assets/components/abstract/light";
 import { Camera } from "../../assets/components/camera";
+import { DirectionalLight } from "../../assets/components/directional-light";
 import { Transform } from "../../assets/components/transform";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console";
 import { RendererManager } from "./renderer-manager";
@@ -14,7 +15,7 @@ export class Renderer {
 
     public camera!: Camera;
     public cameraTransform!: Transform;
-    public lights: Light[] = [];
+    public lights: DirectionalLight[] = [];
 
     public lightData!: Float32Array;
     public lightBuffer!: GPUBuffer;
@@ -35,7 +36,7 @@ export class Renderer {
         pipeline: GPURenderPipeline,
         camera: Camera,
         cameraTransform: Transform,
-        lights: Light[]
+        lights: DirectionalLight[]
     ) {
         this.rendererManager = rendererManager;
 
@@ -48,18 +49,18 @@ export class Renderer {
         this.cameraTransform = cameraTransform;
         this.lights = lights;
 
-        // Buffer de luz
+        const LIGHT_STRUCT_SIZE = 32;
         const MAX_LIGHTS = 16;
-        const COMPONENTS_BY_LIGHT = 4;
-        const COUNT = 1;
-        const PADDING = 3;
-        const length = COUNT + PADDING + MAX_LIGHTS * COMPONENTS_BY_LIGHT;
-        this.lightData = new Float32Array(length);
+        const COUNT_SIZE = 4;
+        const PADDING = 12;
+        const bufferSize = Math.ceil((COUNT_SIZE + PADDING + LIGHT_STRUCT_SIZE * MAX_LIGHTS) / 256) * 256;
 
-        this.lightBuffer = this.device.createBuffer({
-            size: this.lightData.byteLength,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        this.lightData = new Float32Array(bufferSize / 4);
+        this.lightBuffer = device.createBuffer({
+            size: bufferSize,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
+
 
         this.lightBindGroup = this.device.createBindGroup({
             layout: pipeline.getBindGroupLayout(1),
@@ -108,7 +109,6 @@ export class Renderer {
         this.updateLights();
 
         const encoder = this.device.createCommandEncoder();
-        const view = this.context.getCurrentTexture().createView();
 
         const descriptor: GPURenderPassDescriptor = {
             colorAttachments: [{
@@ -165,15 +165,25 @@ export class Renderer {
     }
 
     private updateLights() {
-        this.lightData[0] = this.lights.length;
-        let offset = 4;
+        this.lightData.fill(0);
+
+        let OFFSET = 4;
         for (const light of this.lights) {
-            this.lightData[offset++] = light.color.r.value;
-            this.lightData[offset++] = light.color.g.value;
-            this.lightData[offset++] = light.color.b.value;
-            this.lightData[offset++] = light.intensity.value;
+            this.lightData[OFFSET++] = light.color.r.value;
+            this.lightData[OFFSET++] = light.color.g.value;
+            this.lightData[OFFSET++] = light.color.b.value;
+            this.lightData[OFFSET++] = light.intensity.value;
+
+            this.lightData[OFFSET++] = light.direction.x.value;
+            this.lightData[OFFSET++] = light.direction.y.value;
+            this.lightData[OFFSET++] = light.direction.z.value;
+            this.lightData[OFFSET++] = 0;
         }
-        while (offset < this.lightData.length) this.lightData[offset++] = 0;
+
+        const dataView = new DataView(this.lightData.buffer);
+        dataView.setUint32(0, this.lights.length, true);
+
+        this.device.queue.writeBuffer(this.lightBuffer, 0, dataView.buffer);
     }
 
     private resize() {
