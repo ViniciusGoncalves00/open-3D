@@ -22,6 +22,8 @@ export class ConsoleLogger{
     private static visible: ObservableField<boolean> = new ObservableField(true);
     private static pinned: ObservableField<boolean> = new ObservableField(false);
 
+    private static readonly linesToReturnToGetTheCaller = 4;
+
     public constructor() {
         // super("Console", Icons.FileText);
 
@@ -139,25 +141,25 @@ export class ConsoleLogger{
         if(ConsoleLogger.visible.value) ConsoleLogger.sectionContainer?.appendChild(ConsoleLogger.section);
     }
 
-    private static format(log: Log): string {
-        const time = new Date(log.time).toLocaleTimeString();
-        const type = LogType[log.logType];
-        return `[${time}] [${type}] ${log.message}`;
-    }
-
     private static append(message: string, logType: LogType = LogType.Log) {
-        const log = new Log(Date.now(), logType, message);
+        let caller: string | undefined;
+        if(logType === (LogType.Warning || LogType.Error)) {
+            caller = this.caller();
+        }
+
+        const log = new Log(Date.now(), logType, message, caller);
         this.logs.push(log);
 
         const logLine = document.createElement("p");
         logLine.className = "px-1";
-        logLine.textContent = ConsoleLogger.format(log);
+        logLine.textContent = this.format(log);
     
         switch (logType) {
             case LogType.Success: logLine.classList.add("log-success"); break;
             case LogType.Warning: logLine.classList.add("log-warning"); break;
             case LogType.Error:   logLine.classList.add("log-error");   break;
             case LogType.Debug:   logLine.classList.add("log-debug");   break;
+            case LogType.Log:     logLine.classList.add("log-log");     break;
             default:              logLine.classList.add("log-log");     break;
         }
         
@@ -167,5 +169,29 @@ export class ConsoleLogger{
     
         this.sectionBody.appendChild(logLine);
         this.sectionBody.scrollTop = this.sectionBody.scrollHeight;
+    }
+
+    private static format(log: Log): string {
+        const time = new Date(log.time).toLocaleTimeString();
+        const type = LogType[log.logType];
+        const caller = log.caller ? ` (${log.caller})` : "";
+        return `[${time}] [${type}] ${log.message}${caller}`;
+    }
+
+    private static caller(): string {
+        let caller: string | undefined;
+        const stack = new Error().stack;
+
+        if(!stack) return "";
+        
+        const lines = stack.split("\n");
+        caller = lines[this.linesToReturnToGetTheCaller]?.trim();
+
+        if(!caller) return "";
+
+        const parts = caller.split("/");
+        const last = parts[parts.length - 1];
+        const [file] = last.split("?");
+        return file;
     }
 }
