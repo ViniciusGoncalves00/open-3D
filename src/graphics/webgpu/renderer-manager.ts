@@ -1,5 +1,5 @@
 import { color } from "three/tsl";
-import { Mesh } from "../../assets/components/mesh";
+import { Attributes, Mesh } from "../../assets/components/mesh";
 import { Entity } from "../../core/api/entity";
 import { LogType } from "../../core/api/enum/log-type";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console";
@@ -211,8 +211,8 @@ export class RendererManager {
         const mesh = entity.getComponent(Mesh);
 
         for (const primitive of mesh.primitives) {
-            const positionAccessor = primitive.attributes["POSITION"];
-            const colorAccessor = primitive.attributes["COLOR_0"];
+            const positionAccessor = primitive.tryGetAttribute(Attributes.Position);
+            const colorAccessor = primitive.tryGetAttribute(Attributes.Color0);
 
             if (!positionAccessor) {
                 ConsoleLogger.log("Mesh primitive missing POSITION accessor.", LogType.Error);

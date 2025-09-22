@@ -1,7 +1,7 @@
 import { Light } from "../../assets/components/abstract/light";
 import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
-import { Mesh } from "../../assets/components/mesh";
+import { Attributes, Mesh } from "../../assets/components/mesh";
 import { Transform } from "../../assets/components/transform";
 import { Registry } from "../../core/engine/registry";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console";
@@ -168,8 +168,10 @@ export class Renderer {
                     pass.setIndexBuffer(primitive.indices.bufferView.buffer.data, "uint32");
                     pass.drawIndexed(primitive.indices.count);
                 } else {
-                    const acessor = primitive.attributes["POSITION"];
-                    pass.draw(acessor.count);
+                    const acessor = primitive.tryGetAttribute(Attributes.Position);
+                    if(acessor) {
+                        pass.draw(acessor.count);
+                    }
                 }
             })
 

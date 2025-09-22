@@ -1,4 +1,4 @@
-import { Accessor, BufferView, Buffer, Mesh, Primitive } from "../../assets/components/mesh";
+import { Accessor, BufferView, Buffer, Mesh, Primitive, Attributes } from "../../assets/components/mesh";
 
 export class PrefabMesh {
     public static quad(size: number = 1, color?: [number, number, number]): Mesh {
@@ -32,12 +32,13 @@ export class PrefabMesh {
 		const normalAccessor = new Accessor(vertexBufferView, 5126, 4, "VEC3", 24, stride);
 		
 		const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
+
+		const attributes = new Map();
+		attributes.set(Attributes.Position, positionAccessor);
+		attributes.set(Attributes.Color0, colorAccessor);
+		attributes.set(Attributes.Normal, normalAccessor);
 		
-		const primitive = new Primitive({
-		    POSITION: positionAccessor,
-		    COLOR_0: colorAccessor,
-		    NORMAL: normalAccessor,
-		}, "default", indexAccessor);
+		const primitive = new Primitive(attributes, "default", indexAccessor);
 		
 		return new Mesh("Quad", [primitive]);
   	}
@@ -116,11 +117,12 @@ export class PrefabMesh {
 
     	const indexAccessor = new Accessor(indexBufferView, 5125, indices.length, "SCALAR");
 
-    	const primitive = new Primitive({
-    	    POSITION: positionAccessor,
-    	    COLOR_0: colorAccessor,
-    	    NORMAL: normalAccessor,
-    	}, "default", indexAccessor);
+    	const attributes = new Map();
+		attributes.set(Attributes.Position, positionAccessor);
+		attributes.set(Attributes.Color0, colorAccessor);
+		attributes.set(Attributes.Normal, normalAccessor);
+		
+		const primitive = new Primitive(attributes, "default", indexAccessor);
 
     	return new Mesh("Cube", [primitive]);
 	}
@@ -190,11 +192,12 @@ export class PrefabMesh {
 
 	    const indexAccessor    = new Accessor(indexBufferView, 5125, indexArray.length, "SCALAR");
 
-	    const primitive = new Primitive({
-	        POSITION: positionAccessor,
-	        COLOR_0: colorAccessor,
-	        NORMAL: normalAccessor
-	    }, "default", indexAccessor);
+	    const attributes = new Map();
+		attributes.set(Attributes.Position, positionAccessor);
+		attributes.set(Attributes.Color0, colorAccessor);
+		attributes.set(Attributes.Normal, normalAccessor);
+		
+		const primitive = new Primitive(attributes, "default", indexAccessor);
 
 	    return new Mesh("Sphere", [primitive]);
 	}
@@ -257,10 +260,12 @@ export class PrefabMesh {
 
 	    const indexAccessor    = new Accessor(indexBufferView, 5125, indexArray.length, "SCALAR");
 
-	    const primitive = new Primitive({
-	        POSITION: positionAccessor,
-	        NORMAL: normalAccessor,
-	    }, "default", indexAccessor);
+	    const attributes = new Map();
+		attributes.set(Attributes.Position, positionAccessor);
+		// attributes.set(Attributes.Color0, colorAccessor);
+		attributes.set(Attributes.Normal, normalAccessor);
+		
+		const primitive = new Primitive(attributes, "default", indexAccessor);
 
 	    return new Mesh("Sphere", [primitive]);
 	}

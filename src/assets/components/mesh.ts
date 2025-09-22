@@ -1,7 +1,18 @@
 import { ObservableField } from "../../common/observer/observable-field";
+import { LogType } from "../../core/api/enum/log-type";
+import { ConsoleLogger } from "../../ui/editor/sections/console/console";
 import { Component } from "./abstract/component";
 
-// --- Estruturas auxiliares baseadas no glTF ---
+export enum Attributes {
+    Position = "POSITION",
+    Normal = "NORMAL",
+    Tangent = "TANGENT",
+    TexCoord0 = "TEXCOORD_0",
+    Color0 = "COLOR_0",
+    Joints0 = "JOINTS_0",
+    Weights0 = "WEIGHTS_0",
+}
+
 
 export class Buffer {
   constructor(
@@ -40,7 +51,6 @@ export class Accessor {
     	public byteStride?: number
     ) {}
 
-  // Converte para um objeto JSON
   public toJSON() {
     return {
       bufferViewIndex: this.bufferView ? this.bufferView.byteOffset : null,
@@ -53,7 +63,6 @@ export class Accessor {
     };
   }
 
-  // Reconstrói a partir de JSON
   public static fromJSON(json: any, bufferViewLookup?: (index: number) => BufferView): Accessor {
     const bufferView = bufferViewLookup ? bufferViewLookup(json.bufferViewIndex) : undefined;
     return new Accessor(
@@ -65,7 +74,6 @@ export class Accessor {
     );
   }
 
-  // Opcional: converte os dados em base64 para persistência
   public toBase64(): string {
     if (!this.bufferView) return "";
     const start = this.bufferView.byteOffset + this.byteOffset;
@@ -83,17 +91,15 @@ export class Accessor {
     return this.byteStride ?? (this.getComponentSize() * this.getNumComponents());
   }
 
-  // Número de bytes por componente
   public getComponentSize(): number {
     switch (this.componentType) {
-      case 5126: return 4; // FLOAT32
-      case 5123: return 2; // UNSIGNED_SHORT
-      case 5125: return 4; // UNSIGNED_INT
+      case 5126: return 4;
+      case 5123: return 2;
+      case 5125: return 4;
       default: throw new Error(`Componente tipo ${this.componentType} não suportado`);
     }
   }
 
-  // Número de elementos por tipo (SCALAR, VEC2, VEC3, VEC4, MAT4)
   public getNumComponents(): number {
     switch (this.type) {
       case "SCALAR": return 1;
@@ -109,39 +115,56 @@ export class Accessor {
 }
 
 
-// --- Primitive (parte da Mesh) ---
 export class Primitive {
-  public attributes: Record<string, Accessor>; // POSITION, NORMAL, TEXCOORD_0, COLOR_0...
-  public indices?: Accessor;
-  public material: string;
+    private attributes: Map<Attributes, Accessor>;
+    public indices?: Accessor;
+    public material: string;
 
-  public constructor(attributes: Record<string, Accessor>, material: string, indices?: Accessor, ) {
-    this.attributes = attributes;
-    this.material = material;
-    this.indices = indices;
-  }
-
-  toJSON() {
-    return {
-      attributes: Object.fromEntries(
-        Object.entries(this.attributes).map(([name, accessor]) => [name, accessor.toJSON?.() ?? null])
-      ),
-      indices: this.indices ? this.indices.toJSON?.() : undefined,
-      material: this.material
-    };
-  }
-
-  static fromJSON(json: any): Primitive {
-    const attrs: Record<string, Accessor> = {};
-    for (const key of Object.keys(json.attributes)) {
-      attrs[key] = Accessor.fromJSON(json.attributes[key]);
+    public constructor(attributes: Map<Attributes, Accessor>, material: string, indices?: Accessor, ) {
+        this.attributes = attributes;
+        this.material = material;
+        this.indices = indices;
     }
-    const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
-    return new Primitive(attrs, json.material, indices);
-  }
+
+    public toJSON() {
+        return {
+            attributes: Object.fromEntries(
+                Object.entries(this.attributes).map(([name, accessor]) => [name, accessor.toJSON?.() ?? null])
+            ),
+            indices: this.indices ? this.indices.toJSON?.() : undefined,
+            material: this.material
+        };
+    }
+
+    public static fromJSON(json: any): Primitive {
+        const attributes: Map<Attributes, Accessor> = new Map();
+        for (const key of Object.keys(json.attributes)) {
+            if(key in Attributes) {
+                const acessor = Accessor.fromJSON(json.attributes[key]);
+                attributes.set(key as Attributes, acessor);
+            }
+            else {
+                ConsoleLogger.log(`Unable to convert the attribute ${key} to an accessor.`, LogType.Warning);
+            }
+        }
+        const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
+        return new Primitive(attributes, json.material, indices);
+    }
+
+    public tryGetAttribute(attribute: Attributes): Accessor | null {
+        const acessor = this.attributes.get(attribute);
+        if(!acessor) {
+            ConsoleLogger.log(`Attribute was not founded: ${attribute}`, LogType.Warning);
+            return null;
+        }
+        return acessor;
+    }
+
+    public setAttribute(attribute: Attributes, acessor: Accessor): void {
+        this.attributes.set(attribute, acessor);
+    }
 }
 
-// --- Mesh (herda de Component) ---
 export class Mesh extends Component {
   public name: ObservableField<string>;
   public primitives: Primitive[];
