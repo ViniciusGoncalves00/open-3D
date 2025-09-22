@@ -57,28 +57,24 @@ export class ConsoleLogger{
         button.classList.add("border-gray-01");
     }
 
-    public static log(message: string, logType: LogType = LogType.Log) {
-        const log = new Log(Date.now(), logType, message);
-        this.logs.push(log);
+    public static log(message: string) {
+        this.append(message, LogType.Log);
+    }
 
-        const logLine = document.createElement("p");
-        logLine.className = "px-1";
-        logLine.textContent = ConsoleLogger.format(log);
-    
-        switch (logType) {
-            case LogType.Success: logLine.classList.add("log-success"); break;
-            case LogType.Warning: logLine.classList.add("log-warning"); break;
-            case LogType.Error:   logLine.classList.add("log-error");   break;
-            case LogType.Debug:   logLine.classList.add("log-debug");   break;
-            default:              logLine.classList.add("log-log");     break;
-        }
-        
-        if (this.selectedFilter !== null && logType !== this.selectedFilter) {
-            logLine.classList.add("hidden");
-        }
-    
-        this.sectionBody.appendChild(logLine);
-        this.sectionBody.scrollTop = this.sectionBody.scrollHeight;
+    public static warning(message: string): void {
+        this.append(message, LogType.Warning);
+    }
+
+    public static debug(message: string): void {
+        this.append(message, LogType.Debug);
+    }
+
+    public static error(message: string): void {
+        this.append(message, LogType.Error);
+    }
+
+    public static success(message: string): void {
+        this.append(message, LogType.Success);
     }
     
     public static clear(): void {
@@ -119,12 +115,6 @@ export class ConsoleLogger{
         });
     }
 
-    private static format(log: Log): string {
-        const time = new Date(log.time).toLocaleTimeString();
-        const type = LogType[log.logType];
-        return `[${time}] [${type}] ${log.message}`;
-    }
-
     public static toggle(): void {
         if(this.pinned.value) return;
 
@@ -147,5 +137,35 @@ export class ConsoleLogger{
 
         ConsoleLogger.buttonContainer.appendChild(ConsoleLogger.button);
         if(ConsoleLogger.visible.value) ConsoleLogger.sectionContainer?.appendChild(ConsoleLogger.section);
+    }
+
+    private static format(log: Log): string {
+        const time = new Date(log.time).toLocaleTimeString();
+        const type = LogType[log.logType];
+        return `[${time}] [${type}] ${log.message}`;
+    }
+
+    private static append(message: string, logType: LogType = LogType.Log) {
+        const log = new Log(Date.now(), logType, message);
+        this.logs.push(log);
+
+        const logLine = document.createElement("p");
+        logLine.className = "px-1";
+        logLine.textContent = ConsoleLogger.format(log);
+    
+        switch (logType) {
+            case LogType.Success: logLine.classList.add("log-success"); break;
+            case LogType.Warning: logLine.classList.add("log-warning"); break;
+            case LogType.Error:   logLine.classList.add("log-error");   break;
+            case LogType.Debug:   logLine.classList.add("log-debug");   break;
+            default:              logLine.classList.add("log-log");     break;
+        }
+        
+        if (this.selectedFilter !== null && logType !== this.selectedFilter) {
+            logLine.classList.add("hidden");
+        }
+    
+        this.sectionBody.appendChild(logLine);
+        this.sectionBody.scrollTop = this.sectionBody.scrollHeight;
     }
 }

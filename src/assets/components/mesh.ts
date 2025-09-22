@@ -144,7 +144,7 @@ export class Primitive {
                 attributes.set(key as Attributes, acessor);
             }
             else {
-                ConsoleLogger.log(`Unable to convert the attribute ${key} to an accessor.`, LogType.Warning);
+                ConsoleLogger.warning(`Unable to convert the attribute ${key} to an accessor.`);
             }
         }
         const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
@@ -154,7 +154,7 @@ export class Primitive {
     public tryGetAttribute(attribute: Attributes): Accessor | null {
         const acessor = this.attributes.get(attribute);
         if(!acessor) {
-            ConsoleLogger.log(`Attribute was not founded: ${attribute}`, LogType.Warning);
+            ConsoleLogger.warning(`Attribute was not founded: ${attribute}`);
             return null;
         }
         return acessor;

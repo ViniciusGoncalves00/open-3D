@@ -37,7 +37,7 @@ export class Registry {
     public removeMaterial(id: string): void {
         const material = this.materials.get(id);
         if(!material) {
-            ConsoleLogger.log(`Was not possible to remove material with id ${id}: material not founded.`, LogType.Warning);
+            ConsoleLogger.warning(`Was not possible to remove material with id ${id}: material not founded.`);
             return;
         }
 

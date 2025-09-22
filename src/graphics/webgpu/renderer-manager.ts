@@ -204,7 +204,7 @@ export class RendererManager {
 
     public addEntity(entity: Entity): void {
         if (!entity.hasComponent(Mesh)) {
-            ConsoleLogger.log("Entity doesn't have components necessary to be rendered.", LogType.Warning);
+            ConsoleLogger.warning("Entity doesn't have components necessary to be rendered.");
             return;
         }
 
@@ -215,7 +215,7 @@ export class RendererManager {
             const colorAccessor = primitive.tryGetAttribute(Attributes.Color0);
 
             if (!positionAccessor) {
-                ConsoleLogger.log("Mesh primitive missing POSITION accessor.", LogType.Error);
+                ConsoleLogger.warning("Mesh primitive missing POSITION accessor.");
                 continue;
             }
 
@@ -293,7 +293,7 @@ export class RendererManager {
         const resources = this.entityResources.get(entity.id);
 
         if (!resources) {
-            ConsoleLogger.log(`There is no data stored for the entity ${entity.name.value} to be removed.`, LogType.Warning);
+            ConsoleLogger.warning(`There is no data stored for the entity ${entity.name.value} to be removed.`);
             return;
         }
 
