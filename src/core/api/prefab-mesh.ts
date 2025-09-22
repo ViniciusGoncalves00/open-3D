@@ -37,7 +37,7 @@ export class PrefabMesh {
 		    POSITION: positionAccessor,
 		    COLOR_0: colorAccessor,
 		    NORMAL: normalAccessor,
-		}, indexAccessor);
+		}, "default", indexAccessor);
 		
 		return new Mesh("Quad", [primitive]);
   	}
@@ -120,7 +120,7 @@ export class PrefabMesh {
     	    POSITION: positionAccessor,
     	    COLOR_0: colorAccessor,
     	    NORMAL: normalAccessor,
-    	}, indexAccessor);
+    	}, "default", indexAccessor);
 
     	return new Mesh("Cube", [primitive]);
 	}
@@ -153,9 +153,13 @@ export class PrefabMesh {
 	            const y = cosTheta * radius;
 	            const z = sinPhi * sinTheta * radius;
 
+				const nx = x / radius;
+				const ny = y / radius;
+				const nz = z / radius;
+
 	            vertices.push(x, y, z);
 	            vertices.push(r, g, b);
-	            vertices.push(x, y, z);
+	            vertices.push(nx, ny, nz);
 	        }
 	    }
 
@@ -190,7 +194,73 @@ export class PrefabMesh {
 	        POSITION: positionAccessor,
 	        COLOR_0: colorAccessor,
 	        NORMAL: normalAccessor
-	    }, indexAccessor);
+	    }, "default", indexAccessor);
+
+	    return new Mesh("Sphere", [primitive]);
+	}
+
+	public static sphereWithMaterial(
+	    radius = 1,
+	    latitudeBands = 12,
+	    longitudeBands = 12,
+	    color?: [number, number, number]
+	): Mesh {
+	    const vertices: number[] = [];
+	    const indices: number[] = [];
+
+	    const r = color ? color[0] : Math.random();
+	    const g = color ? color[1] : Math.random();
+	    const b = color ? color[2] : Math.random();
+
+	    for (let latitude = 0; latitude <= latitudeBands; latitude++) {
+	        const theta = (latitude * Math.PI) / latitudeBands;
+	        const sinTheta = Math.sin(theta);
+	        const cosTheta = Math.cos(theta);
+
+	        for (let longitude = 0; longitude <= longitudeBands; longitude++) {
+	            const phi = (longitude * 2 * Math.PI) / longitudeBands;
+	            const sinPhi = Math.sin(phi);
+	            const cosPhi = Math.cos(phi);
+
+	            const x = cosPhi * sinTheta * radius;
+	            const y = cosTheta * radius;
+	            const z = sinPhi * sinTheta * radius;
+
+	            vertices.push(x, y, z);
+	            vertices.push(x, y, z);
+	        }
+	    }
+
+	    for (let lat = 0; lat < latitudeBands; lat++) {
+	        for (let lon = 0; lon < longitudeBands; lon++) {
+	            const first = lat * (longitudeBands + 1) + lon;
+	            const second = first + longitudeBands + 1;
+
+	            indices.push(first, first + 1, second);
+				indices.push(second, first + 1, second + 1);
+	        }
+	    }
+
+	    const vertexArray = new Float32Array(vertices);
+	    const indexArray = new Uint32Array(indices);
+
+	    const vertexBuffer = new Buffer(vertexArray.buffer);
+	    const indexBuffer = new Buffer(indexArray.buffer);
+
+	    const vertexBufferView = new BufferView(vertexBuffer, 0, vertexArray.byteLength);
+	    const indexBufferView = new BufferView(indexBuffer, 0, indexArray.byteLength);
+
+	    const stride = 36; // 3 pos (12) + 3 color (12) + 3 normal (12) = 36 bytes
+
+	    const positionAccessor = new Accessor(vertexBufferView, 5126, vertexArray.length / 9, "VEC3", 0, stride);
+	    const normalAccessor   = new Accessor(vertexBufferView, 5126, vertexArray.length / 9, "VEC3", 24, stride);
+
+	    const indexAccessor    = new Accessor(indexBufferView, 5125, indexArray.length, "SCALAR");
+
+	    const primitive = new Primitive({
+	        POSITION: positionAccessor,
+	        NORMAL: normalAccessor,
+	    }, "default", indexAccessor);
 
 	    return new Mesh("Sphere", [primitive]);
 	}

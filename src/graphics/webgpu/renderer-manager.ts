@@ -39,6 +39,18 @@ export class RendererManager {
             @group(0) @binding(1) var<uniform> uModel : Model;
         `;
 
+        const PBRUniform = `
+            struct uniformPBR {
+                baseColorFactor : vec4<f32>,
+                metallicFactor  : f32,
+                roughnessFactor : f32,
+                _pad0 : vec2<f32>, 
+            };
+            @group(2) @binding(0) var<uniform> uPBR : uniformPBR;
+            @group(2) @binding(1) var uBaseColorTexture : texture_2d<f32>;
+            @group(2) @binding(2) var uBaseColorSampler : sampler;
+        `
+
         const light = `
             struct Light {
                 color : vec3<f32>,
@@ -99,10 +111,11 @@ export class RendererManager {
 
         const fragmentWorld = `
             ${vertexOutput}
+            ${PBRUniform}
 
             @fragment
             fn main(input: VertexOutput) -> @location(0) vec4<f32> {
-                return vec4<f32>(input.color, 1.0);
+                return uPBR.baseColorFactor;
             }
         `;
 

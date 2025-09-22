@@ -1,7 +1,9 @@
 import { Light } from "../../assets/components/abstract/light";
 import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
+import { Mesh } from "../../assets/components/mesh";
 import { Transform } from "../../assets/components/transform";
+import { Registry } from "../../core/engine/registry";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console";
 import { RendererManager } from "./renderer-manager";
 
@@ -136,28 +138,51 @@ export class Renderer {
 
         pass.setBindGroup(0, this.cameraModelBindGroup);
         pass.setBindGroup(1, this.lightBindGroup);
+        
 
         this.rendererManager.entities.forEach(entity => {
-            const resources = this.rendererManager.entityResources.get(entity.id);
-            if(!resources) {
-                ConsoleLogger.log("An attempt was made to render an entity where the corresponding resources were not found. Check synchronization between entities and buffers.");
-                return;
-            }
+            // const resources = this.rendererManager.entityResources.get(entity.id);
+            // if(!resources) {
+            //     ConsoleLogger.log("An attempt was made to render an entity where the corresponding resources were not found. Check synchronization between entities and buffers.");
+            //     return;
+            // }
 
             const transform = entity.getComponent(Transform);
             if (!transform) return;
+
+            const mesh = entity.getComponent(Mesh);
+            if (!mesh) return;
 
             const modelMatrix = transform.worldMatrix.value;
             const modelBuffer = new Float32Array(modelMatrix);
             this.device.queue.writeBuffer(this.modelBuffer, 0, modelBuffer.buffer);
 
-            pass.setVertexBuffer(0, resources.vertexBuffer);
-            if (resources.indexBuffer) {
-                pass.setIndexBuffer(resources.indexBuffer, "uint32");
-                pass.drawIndexed(resources.indexCount!);
-            } else {
-                pass.draw(resources.vertexCount);
-            }
+            const registry = Registry.getInstance(this.device, this.pipeline);
+            mesh.primitives.forEach(primitive => {
+                const gpuMaterial = registry.GPUMaterials.get(primitive.material);
+                if(!gpuMaterial) return;
+
+                pass.setBindGroup(2, gpuMaterial.getBindGroup());
+                pass.setVertexBuffer(0, gpuMaterial.getBuffer());
+                if (primitive.indices) {
+                    pass.setIndexBuffer(primitive.indices.bufferView.buffer.data, "uint32");
+                    pass.drawIndexed(primitive.indices.count);
+                } else {
+                    const acessor = primitive.attributes["POSITION"];
+                    pass.draw(acessor.count);
+                }
+            })
+
+
+
+
+            // pass.setVertexBuffer(0, resources.vertexBuffer);
+            // if (resources.indexBuffer) {
+            //     pass.setIndexBuffer(resources.indexBuffer, "uint32");
+            //     pass.drawIndexed(resources.indexCount!);
+            // } else {
+            //     pass.draw(resources.vertexCount);
+            // }
         })
 
         pass.end();
@@ -203,14 +228,14 @@ export class Renderer {
             });
 
             this.depthTexture = this.device.createTexture({
-                size: [w, h],
+                size: { width: w, height: h },
                 sampleCount: this.sampleCount,
                 format: "depth24plus",
                 usage: GPUTextureUsage.RENDER_ATTACHMENT
             });
 
             this.msaaColorTexture = this.device.createTexture({
-                size: [w, h],
+                size: { width: w, height: h },
                 sampleCount: this.sampleCount,
                 format,
                 usage: GPUTextureUsage.RENDER_ATTACHMENT,

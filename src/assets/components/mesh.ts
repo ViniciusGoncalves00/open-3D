@@ -113,12 +113,12 @@ export class Accessor {
 export class Primitive {
   public attributes: Record<string, Accessor>; // POSITION, NORMAL, TEXCOORD_0, COLOR_0...
   public indices?: Accessor;
-  public material?: number;
+  public material: string;
 
-  constructor(attributes: Record<string, Accessor>, indices?: Accessor, material?: number) {
+  public constructor(attributes: Record<string, Accessor>, material: string, indices?: Accessor, ) {
     this.attributes = attributes;
-    this.indices = indices;
     this.material = material;
+    this.indices = indices;
   }
 
   toJSON() {
@@ -137,7 +137,7 @@ export class Primitive {
       attrs[key] = Accessor.fromJSON(json.attributes[key]);
     }
     const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
-    return new Primitive(attrs, indices, json.material);
+    return new Primitive(attrs, json.material, indices);
   }
 }
 
