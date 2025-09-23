@@ -99,7 +99,9 @@ export class RendererManager {
 
             @fragment
             fn main(input: VertexOutput) -> @location(0) vec4<f32> {
-                return uPBR.baseColorFactor;
+                let litColor = input.color;
+                let finalColor = litColor * uPBR.baseColorFactor.rgb;
+                return vec4<f32>(finalColor, uPBR.baseColorFactor.a);
             }
         `;
 
