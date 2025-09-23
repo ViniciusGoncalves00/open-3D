@@ -135,7 +135,7 @@ export class Inspector extends Section {
         parentElement.appendChild(parentDropdown.getElement());
 
         const items = [
-            { label: "Transform", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Transform(true, this.entityHandler.selectedEntity.value))},
+            { label: "Transform", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Transform(this.entityHandler.selectedEntity.value))},
             { label: "Rotate", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Rotate())},
             { label: "Orbit", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Orbit())},
             { label: "Mesh", action: () => this.entityHandler.selectedEntity.value?.addComponent(new Mesh())},

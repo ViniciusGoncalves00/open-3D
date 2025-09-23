@@ -17,7 +17,7 @@ export class Transform extends Component {
   @HideInInspector public readonly localMatrix: ObservableMatrix4 = new ObservableMatrix4();
   @HideInInspector public readonly worldMatrix: ObservableMatrix4 = new ObservableMatrix4();
 
-  constructor(enabled: boolean = true, owner: Entity, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
+  constructor(owner: Entity, enabled: boolean = true, position: ObservableVector3 = ObservableVector3.zero(), rotation: ObservableVector3 = ObservableVector3.zero(), scale: ObservableVector3 = ObservableVector3.one()) {
     super(enabled);
 
     this.owner = owner;
@@ -179,8 +179,8 @@ export class Transform extends Component {
 
   public clone(): Transform {
     const clone = new Transform(
-      this.enabled.value,
       this.owner,
+      this.enabled.value,
       this.position.clone(),
       this.rotation.clone(),
       this.scale.clone()

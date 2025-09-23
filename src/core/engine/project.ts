@@ -80,7 +80,7 @@ export class Project {
         const camera = new Entity(crypto.randomUUID());
         camera.name.value = "Camera";
         camera.addComponent(new Camera());
-        camera.addComponent(new Transform(true, camera));
+        camera.addComponent(new Transform(camera));
         scene.children.add(camera);
 
         return scene;

@@ -3,8 +3,9 @@ import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
 import { Attributes, Mesh } from "../../assets/components/mesh";
 import { Transform } from "../../assets/components/transform";
+import { EntityManager } from "../../core/engine/entity-manager";
 import { Registry } from "../../core/engine/registry";
-import { ConsoleLogger } from "../../ui/editor/sections/console/console";
+import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { RendererManager } from "./renderer-manager";
 
 export class Renderer {
@@ -138,18 +139,11 @@ export class Renderer {
 
         pass.setBindGroup(0, this.cameraModelBindGroup);
         pass.setBindGroup(1, this.lightBindGroup);
-        
 
-        this.rendererManager.entities.forEach(entity => {
-            // const resources = this.rendererManager.entityResources.get(entity.id);
-            // if(!resources) {
-            //     ConsoleLogger.log("An attempt was made to render an entity where the corresponding resources were not found. Check synchronization between entities and buffers.");
-            //     return;
-            // }
-
+        EntityManager.entities.forEach(entity => {
             const transform = entity.getComponent(Transform);
             if (!transform) return;
-
+            
             const mesh = entity.getComponent(Mesh);
             if (!mesh) return;
 
@@ -157,34 +151,21 @@ export class Renderer {
             const modelBuffer = new Float32Array(modelMatrix);
             this.device.queue.writeBuffer(this.modelBuffer, 0, modelBuffer.buffer);
 
-            const registry = Registry.getInstance(this.device, this.pipeline);
             mesh.primitives.forEach(primitive => {
-                const gpuMaterial = registry.GPUMaterials.get(primitive.material);
-                if(!gpuMaterial) return;
+                const position = primitive.tryGetAttribute(Attributes.Position);
+                if(!position) return;
 
-                pass.setBindGroup(2, gpuMaterial.getBindGroup());
-                pass.setVertexBuffer(0, gpuMaterial.getBuffer());
-                if (primitive.indices) {
-                    pass.setIndexBuffer(primitive.indices.bufferView.buffer.data, "uint32");
-                    pass.drawIndexed(primitive.indices.count);
-                } else {
-                    const acessor = primitive.tryGetAttribute(Attributes.Position);
-                    if(acessor) {
-                        pass.draw(acessor.count);
-                    }
-                }
+                const GPUPrimitive = Registry.getGPUPrimitive("sphere");
+                if(!GPUPrimitive) return;
+
+                const GPUMaterial = Registry.getGPUMaterial(primitive.material);
+                if(!GPUMaterial) return;
+
+                pass.setBindGroup(2, GPUMaterial.getBindGroup());
+                // pass.setVertexBuffer(0, GPUMaterial.getBuffer());
+
+                GPUPrimitive.draw(pass);
             })
-
-
-
-
-            // pass.setVertexBuffer(0, resources.vertexBuffer);
-            // if (resources.indexBuffer) {
-            //     pass.setIndexBuffer(resources.indexBuffer, "uint32");
-            //     pass.drawIndexed(resources.indexCount!);
-            // } else {
-            //     pass.draw(resources.vertexCount);
-            // }
         })
 
         pass.end();

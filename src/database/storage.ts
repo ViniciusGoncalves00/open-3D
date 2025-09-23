@@ -1,4 +1,4 @@
-import { ConsoleLogger } from "../ui/editor/sections/console/console";
+import { ConsoleLogger } from "../ui/editor/sections/console/console-logger";
 import { Engine } from "../core/engine/engine";
 import { Project } from "../core/engine/project";
 import { Metadata } from "./metadata";

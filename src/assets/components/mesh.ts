@@ -1,6 +1,6 @@
 import { ObservableField } from "../../common/observer/observable-field";
 import { LogType } from "../../core/api/enum/log-type";
-import { ConsoleLogger } from "../../ui/editor/sections/console/console";
+import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { Component } from "./abstract/component";
 
 export enum Attributes {
@@ -96,7 +96,7 @@ export class Accessor {
       case 5126: return 4;
       case 5123: return 2;
       case 5125: return 4;
-      default: throw new Error(`Componente tipo ${this.componentType} não suportado`);
+      default: throw new Error(`Component type ${this.componentType} not supported`);
     }
   }
 
@@ -109,18 +109,17 @@ export class Accessor {
       case "MAT2": return 4;
       case "MAT3": return 9;
       case "MAT4": return 16;
-      default: throw new Error(`Tipo ${this.type} não suportado`);
+      default: throw new Error(`Type ${this.type} not supported`);
     }
   }
 }
 
-
 export class Primitive {
-    private attributes: Map<Attributes, Accessor>;
+    public attributes: Map<Attributes, Accessor>;
     public indices?: Accessor;
     public material: string;
 
-    public constructor(attributes: Map<Attributes, Accessor>, material: string, indices?: Accessor, ) {
+    public constructor(attributes: Map<Attributes, Accessor>, material: string, indices?: Accessor) {
         this.attributes = attributes;
         this.material = material;
         this.indices = indices;

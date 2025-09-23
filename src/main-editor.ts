@@ -14,7 +14,7 @@ import { InputHandler } from './ui/editor/others/input-handler';
 import { Utils } from './ui/editor/others/utils';
 import { Assets } from './ui/editor/sections/assets/assets';
 import { Builder, Icons } from './ui/editor/sections/builder';
-import { ConsoleLogger } from './ui/editor/sections/console/console';
+import { ConsoleLogger } from './ui/editor/sections/console/console-logger';
 import { Player } from './ui/editor/sections/controls/player';
 import { Screen } from './ui/editor/sections/controls/screen';
 import { Timescale } from './ui/editor/sections/controls/timescale';
@@ -30,6 +30,8 @@ import { Time } from './core/engine/time';
 import { RendererManager } from './graphics/webgpu/renderer-manager';
 import { Light } from './assets/components/abstract/light';
 import { DirectionalLight } from './assets/components/directional-light';
+import { Registry } from './core/engine/registry';
+import { EntityManager } from './core/engine/entity-manager';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -253,6 +255,8 @@ export class Program {
         if (fpsContainer) Time.framesPerSecond.subscribe(() => fpsContainer.innerHTML = `${Time.framesPerSecond.value.toString()} FPS`);
         if (averageFpsContainer) Time.averageFramesPerSecond.subscribe(() => averageFpsContainer.innerHTML = `${Time.averageFramesPerSecond.value.toString()} avgFPS`);
 
+        EntityManager.initialize(scene, scene.descendants());
+        Registry.initialize(device, rendererManager.pipelines.get("world")!);
 
         //         const window = this.getElementOrFail<HTMLDivElement>("settingsOverlay");
 //         const open = this.getElementOrFail<HTMLButtonElement>("openSettings");

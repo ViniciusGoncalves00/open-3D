@@ -1,7 +1,7 @@
 import { Accessor, BufferView, Buffer, Mesh, Primitive, Attributes } from "../../assets/components/mesh";
 
-export class PrefabMesh {
-    public static quad(size: number = 1, color?: [number, number, number]): Mesh {
+export class PrefabPrimitive {
+    public static quad(size: number = 1, color?: [number, number, number]): Primitive {
     	const half = size / 2;
 
     	const r = color ? color[0] : Math.random();
@@ -38,12 +38,10 @@ export class PrefabMesh {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		const primitive = new Primitive(attributes, "default", indexAccessor);
-		
-		return new Mesh("Quad", [primitive]);
+		return new Primitive(attributes, "default", indexAccessor);
   	}
 
-    public static cube(size = 1, color?: [number, number, number]): Mesh {
+    public static cube(size = 1, color?: [number, number, number]): Primitive {
     	const half = size / 2;
 
 		const r = color ? color[0] : Math.random();
@@ -122,9 +120,7 @@ export class PrefabMesh {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		const primitive = new Primitive(attributes, "default", indexAccessor);
-
-    	return new Mesh("Cube", [primitive]);
+		return new Primitive(attributes, "default", indexAccessor);
 	}
 
 
@@ -133,7 +129,7 @@ export class PrefabMesh {
 	    latitudeBands = 12,
 	    longitudeBands = 12,
 	    color?: [number, number, number]
-	): Mesh {
+	): Primitive {
 	    const vertices: number[] = [];
 	    const indices: number[] = [];
 
@@ -197,9 +193,7 @@ export class PrefabMesh {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		const primitive = new Primitive(attributes, "default", indexAccessor);
-
-	    return new Mesh("Sphere", [primitive]);
+		return new Primitive(attributes, "default", indexAccessor);
 	}
 
 	public static sphereWithMaterial(
@@ -207,7 +201,7 @@ export class PrefabMesh {
 	    latitudeBands = 12,
 	    longitudeBands = 12,
 	    color?: [number, number, number]
-	): Mesh {
+	): Primitive {
 	    const vertices: number[] = [];
 	    const indices: number[] = [];
 
@@ -265,8 +259,6 @@ export class PrefabMesh {
 		// attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		const primitive = new Primitive(attributes, "default", indexAccessor);
-
-	    return new Mesh("Sphere", [primitive]);
+		return new Primitive(attributes, "default", indexAccessor);
 	}
 }
