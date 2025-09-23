@@ -59,6 +59,7 @@ export class EntityManager {
         const entity = this.findEntityById(this.scene, id);
         if (entity && entity.parent.value) {
             entity.parent.value?.children.remove(entity);
+            this.entities.delete(id);
         }
     }
 
