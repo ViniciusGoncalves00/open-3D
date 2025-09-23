@@ -143,7 +143,7 @@ export class ConsoleLogger{
 
     private static append(message: string, logType: LogType = LogType.Log) {
         let caller: string | undefined;
-        if(logType === (LogType.Warning || LogType.Error)) {
+        if(logType === LogType.Warning || LogType.Error) {
             caller = this.caller();
         }
 
