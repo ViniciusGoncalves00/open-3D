@@ -75,6 +75,8 @@ export class Program {
     }
 
     private async initialize(): Promise<void> {
+        const consoleLogger = new ConsoleLogger();
+
         //initialize database
         const storage = new Storage();
         await storage.init();
@@ -100,7 +102,6 @@ export class Program {
 
         const sceneManager = new SceneManager(engine.currentProject.value);
         
-        const consoleLogger = new ConsoleLogger();
 
         engine.timeController.isRunning.subscribe((wasStarted => {
                 wasStarted ? ConsoleLogger.log("Started.") : ConsoleLogger.log("Stoped.");

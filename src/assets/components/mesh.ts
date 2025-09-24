@@ -1,5 +1,4 @@
 import { ObservableField } from "../../common/observer/observable-field";
-import { LogType } from "../../core/api/enum/log-type";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { Component } from "./abstract/component";
 
@@ -13,24 +12,23 @@ export enum Attributes {
     Weights0 = "WEIGHTS_0",
 }
 
-
 export class Buffer {
-  constructor(
-    public readonly data: ArrayBuffer
-  ) {}
+    constructor(
+        public readonly data: ArrayBuffer
+    ) {}
 }
 
 export class BufferView {
-  constructor(
-    public buffer: Buffer,
-    public byteOffset: number,
-    public byteLength: number,
-    public byteStride?: number
-  ) {}
+    constructor(
+        public buffer: Buffer,
+        public byteOffset: number,
+        public byteLength: number,
+        public byteStride?: number
+    ) {}
 }
 
 export class Accessor {
-	/**
+  /**
 	 * @param bufferView BufferView
 	 * @param componentType glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
 	 * @param count count of elements of this accessor
@@ -42,75 +40,73 @@ export class Accessor {
 	 * count: if this accessor access a quad buffer, this count will be 4;
 	 * byteStride: if this accessor access positions of a quad buffer, with no other data, and components are X, Y, Z float32, so byteStride wiil be 12 (3 components * 4 bytes of float32);
  	 */
-    public constructor(
-    	public bufferView: BufferView,
-    	public componentType: number, // glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
-    	public count: number,
-    	public type: string,          // "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
-    	public byteOffset: number = 0,
-    	public byteStride?: number
-    ) {}
+  public constructor(
+      public bufferView: BufferView,
+      public componentType: number, // glTF enum: 5126 = FLOAT, 5123 = UNSIGNED_SHORT, 5125 = UNSIGNED_INT, etc.
+      public count: number,
+      public type: string,          // "SCALAR", "VEC2", "VEC3", "VEC4", "MAT4"
+      public byteOffset: number = 0,
+      public byteStride?: number
+  ) {}
 
-  public toJSON() {
-    return {
-      bufferViewIndex: this.bufferView ? this.bufferView.byteOffset : null,
-      componentType: this.componentType,
-      count: this.count,
-      type: this.type,
-      byteOffset: this.byteOffset,
-      // opcional: podemos serializar os dados em base64
-      // data: this.toBase64()
-    };
+  public toJSON(bufferViewIndex: number = 0) {
+      return {
+          bufferViewIndex,
+          componentType: this.componentType,
+          count: this.count,
+          type: this.type,
+          byteOffset: this.byteOffset,
+      };
   }
 
   public static fromJSON(json: any, bufferViewLookup?: (index: number) => BufferView): Accessor {
-    const bufferView = bufferViewLookup ? bufferViewLookup(json.bufferViewIndex) : undefined;
-    return new Accessor(
-      bufferView!,
-      json.componentType,
-      json.count,
-      json.type,
-      json.byteOffset
-    );
+      const bufferView = bufferViewLookup ? bufferViewLookup(json.bufferViewIndex) : undefined;
+      return new Accessor(
+          bufferView!,
+          json.componentType,
+          json.count,
+          json.type,
+          json.byteOffset
+      );
   }
 
   public toBase64(): string {
-    if (!this.bufferView) return "";
-    const start = this.bufferView.byteOffset + this.byteOffset;
-    const end = start + this.count * this.getComponentSize() * this.getNumComponents();
-    const slice = this.bufferView.buffer.data.slice(start, end);
-    const uint8 = new Uint8Array(slice);
-    let binary = '';
-    for (let i = 0; i < uint8.length; i++) {
-      binary += String.fromCharCode(uint8[i]);
-    }
-    return btoa(binary);
+      if (!this.bufferView) return "";
+      const start = this.bufferView.byteOffset + this.byteOffset;
+      const end = start + this.count * this.getComponentSize() * this.getNumComponents();
+      const slice = this.bufferView.buffer.data.slice(start, end);
+      const uint8 = new Uint8Array(slice);
+      let binary = "";
+      for (let i = 0; i < uint8.length; i++) {
+          binary += String.fromCharCode(uint8[i]);
+      }
+      return btoa(binary);
   }
 
   public getStride(): number {
-    return this.byteStride ?? (this.getComponentSize() * this.getNumComponents());
+      return this.byteStride ?? (this.getComponentSize() * this.getNumComponents());
   }
 
   public getComponentSize(): number {
-    switch (this.componentType) {
-      case 5126: return 4;
-      case 5123: return 2;
-      case 5125: return 4;
-      default: throw new Error(`Component type ${this.componentType} not supported`);
-    }
+      switch (this.componentType) {
+          case 5126: return 4; // FLOAT
+          case 5123: return 2; // UNSIGNED_SHORT
+          case 5125: return 4; // UNSIGNED_INT
+          default: throw new Error(`Component type ${this.componentType} not supported`);
+      }
   }
 
   public getNumComponents(): number {
-    switch (this.type) {
-      case "SCALAR": return 1;
-      case "VEC2": return 2;
-      case "VEC3": return 3;
-      case "VEC4": return 4;
-      case "MAT2": return 4;
-      case "MAT3": return 9;
-      case "MAT4": return 16;
-      default: throw new Error(`Type ${this.type} not supported`);
-    }
+      switch (this.type) {
+          case "SCALAR": return 1;
+          case "VEC2": return 2;
+          case "VEC3": return 3;
+          case "VEC4": return 4;
+          case "MAT2": return 4;
+          case "MAT3": return 9;
+          case "MAT4": return 16;
+          default: throw new Error(`Type ${this.type} not supported`);
+      }
   }
 }
 
@@ -128,78 +124,79 @@ export class Primitive {
     public toJSON() {
         return {
             attributes: Object.fromEntries(
-                Object.entries(this.attributes).map(([name, accessor]) => [name, accessor.toJSON?.() ?? null])
+                Array.from(this.attributes.entries()).map(([name, accessor], i) => [name, accessor.toJSON(i)])
             ),
-            indices: this.indices ? this.indices.toJSON?.() : undefined,
+            indices: this.indices ? this.indices.toJSON() : undefined,
             material: this.material
         };
     }
 
-    public static fromJSON(json: any): Primitive {
+    public static fromJSON(json: any, bufferViewLookup?: (index: number) => BufferView): Primitive {
         const attributes: Map<Attributes, Accessor> = new Map();
         for (const key of Object.keys(json.attributes)) {
-            if(key in Attributes) {
-                const acessor = Accessor.fromJSON(json.attributes[key]);
-                attributes.set(key as Attributes, acessor);
-            }
-            else {
+            if (Object.values(Attributes).includes(key as Attributes)) {
+                const accessor = Accessor.fromJSON(json.attributes[key], bufferViewLookup);
+                attributes.set(key as Attributes, accessor);
+            } else {
                 ConsoleLogger.warning(`Unable to convert the attribute ${key} to an accessor.`);
             }
         }
-        const indices = json.indices ? Accessor.fromJSON(json.indices) : undefined;
+        const indices = json.indices ? Accessor.fromJSON(json.indices, bufferViewLookup) : undefined;
         return new Primitive(attributes, json.material, indices);
     }
 
     public tryGetAttribute(attribute: Attributes): Accessor | null {
-        const acessor = this.attributes.get(attribute);
-        if(!acessor) {
-            ConsoleLogger.warning(`Attribute was not founded: ${attribute}`);
+        const accessor = this.attributes.get(attribute);
+        if (!accessor) {
+            ConsoleLogger.warning(`Attribute was not found: ${attribute}`);
             return null;
         }
-        return acessor;
+        return accessor;
     }
 
-    public setAttribute(attribute: Attributes, acessor: Accessor): void {
-        this.attributes.set(attribute, acessor);
+    public setAttribute(attribute: Attributes, accessor: Accessor): void {
+        this.attributes.set(attribute, accessor);
     }
 }
 
 export class Mesh extends Component {
-  public name: ObservableField<string>;
-  public primitives: Primitive[];
+    public name: ObservableField<string>;
+    public primitives: Primitive[];
 
-  constructor(name: string = "DefaultMeshName", primitives: Primitive[] = []) {
-    super();
-    this.name = new ObservableField(name);
-    this.primitives = primitives;
-  }
+    constructor(name: string = "DefaultMeshName", primitives: Primitive[] = []) {
+        super();
+        this.name = new ObservableField(name);
+        this.primitives = primitives;
+    }
 
-  public override toJSON() {
-    return {
-      ...super.toJSON(),
-      name: this.name.value,
-      primitives: this.primitives.map(p => p.toJSON())
-    };
-  }
+    public override toJSON() {
+        return {
+            ...super.toJSON(),
+            name: this.name.value,
+            primitives: this.primitives.map((primitive) => primitive.toJSON())
+        };
+    }
 
-  public override fromJSON(json: any): void {
-    super.fromJSON(json);
-    this.name = json.name;
-    this.primitives = json.primitives.map((p: any) => Primitive.fromJSON(p));
-  }
+    public override fromJSON(json: any, bufferViewLookup?: (index: number) => BufferView): void {
+        super.fromJSON(json);
+        this.name.value = json.name;
+        this.primitives = json.primitives.map((primitive: any) => Primitive.fromJSON(primitive, bufferViewLookup));
+    }
 
-  public clone(): Component {
-    return new Mesh(this.name.value, this.primitives);
-  }
+    public clone(): Component {
+        return new Mesh(
+            this.name.value,
+            this.primitives.map((p) => Primitive.fromJSON(p.toJSON()))
+        );
+    }
 
-  public copyFrom(component: Mesh): void {
-    super.copyFrom(component);
-    
-    this.name.value = component.name.value;
-    this.primitives = component.primitives;
-  }
+    public copyFrom(component: Mesh): void {
+        super.copyFrom(component);
+        this.name.value = component.name.value;
+        this.primitives = component.primitives.map((p) => Primitive.fromJSON(p.toJSON()));
+    }
 
-  public destroy(): void {
-    throw new Error("Method not implemented.");
-  }
+    public destroy(): void {
+        throw new Error("Method not implemented.");
+    }
 }
