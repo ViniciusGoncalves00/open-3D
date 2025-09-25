@@ -145,21 +145,19 @@ export class Renderer {
         EntityManager.entities.forEach(entity => {
             const transform = entity.getComponent(Transform);
             if (!transform) return;
-                
+
             const mesh = entity.getComponent(Mesh);
             if (!mesh) return;
-                
+
             const modelMatrix = transform.worldMatrix.value;
             const modelMatrixBuffer = new Float32Array(modelMatrix);
-                
-            // Cria buffer exclusivo da entidade
+
             const entityModelBuffer = this.device.createBuffer({
                 size: 16 * 4,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
             this.device.queue.writeBuffer(entityModelBuffer, 0, modelMatrixBuffer.buffer);
         
-            // Cria bind group da entidade (câmera + modelo)
             const entityBindGroup = this.device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(BindingGroups.camera.group),
                 entries: [
@@ -175,12 +173,10 @@ export class Renderer {
                 const GPUMaterial = Registry.getGPUMaterial(primitive.material);
                 if (!GPUMaterial) return;
             
-                // Bind groups
                 pass.setBindGroup(BindingGroups.camera.group, entityBindGroup);
                 pass.setBindGroup(BindingGroups.light.group, this.lightBindGroup);
                 pass.setBindGroup(BindingGroups.material.pbrUniform.group, GPUMaterial.getBindGroup());
             
-                // Draw
                 let slot = 0;
                 for (const [, buffer] of GPUPrimitive.vertexBuffers.entries()) {
                     pass.setVertexBuffer(slot++, buffer);
