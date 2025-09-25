@@ -1,3 +1,4 @@
+import { BindingGroups } from "../../core/gltf/binding-groups";
 import { Renderer } from "./renderer";
 
 export class RendererManager {
@@ -13,14 +14,14 @@ export class RendererManager {
             struct Camera {
                 viewProjection : mat4x4<f32>
             };
-            @group(0) @binding(0) var<uniform> uCamera : Camera;
+            @group(${BindingGroups.camera.group}) @binding(${BindingGroups.camera.binding}) var<uniform> uCamera : Camera;
         `;
 
         const model = `
             struct Model {
                 model : mat4x4<f32>
             };
-            @group(0) @binding(1) var<uniform> uModel : Model;
+            @group(${BindingGroups.model.group}) @binding(${BindingGroups.model.binding}) var<uniform> uModel : Model;
         `;
 
         const PBRUniform = `
@@ -30,9 +31,9 @@ export class RendererManager {
                 roughnessFactor : f32,
                 _pad0 : vec2<f32>, 
             };
-            @group(2) @binding(0) var<uniform> uPBR : uniformPBR;
-            @group(2) @binding(1) var uBaseColorTexture : texture_2d<f32>;
-            @group(2) @binding(2) var uBaseColorSampler : sampler;
+            @group(${BindingGroups.material.pbrUniform.group}) @binding(${BindingGroups.material.pbrUniform.binding}) var<uniform> uPBR : uniformPBR;
+            @group(${BindingGroups.material.baseColorTexture.group}) @binding(${BindingGroups.material.baseColorTexture.binding}) var uBaseColorTexture : texture_2d<f32>;
+            @group(${BindingGroups.material.baseColorSampler.group}) @binding(${BindingGroups.material.baseColorSampler.binding}) var uBaseColorSampler : sampler;
         `
 
         const light = `
@@ -51,7 +52,7 @@ export class RendererManager {
                 lights : array<Light, 16>
             };
 
-            @group(1) @binding(0) var<uniform> uLights : Lights;
+            @group(${BindingGroups.light.group}) @binding(${BindingGroups.light.binding}) var<uniform> uLights : Lights;
         `;
 
         const vertexOutput = `

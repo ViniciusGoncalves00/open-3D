@@ -1,3 +1,4 @@
+import { BindingGroups } from "../gltf/binding-groups";
 import { Material } from "./material";
 
 export class GPUMaterial {
@@ -30,12 +31,12 @@ export class GPUMaterial {
         device.queue.writeBuffer(this.buffer, 0, this.uniformData.buffer);
 
         const entries: GPUBindGroupEntry[] = [
-            { binding: 0, resource: { buffer: this.buffer } },
+            { binding: BindingGroups.material.pbrUniform.binding, resource: { buffer: this.buffer } },
         ];
 
         if (textureView && sampler) {
-            entries.push({ binding: 1, resource: textureView });
-            entries.push({ binding: 2, resource: sampler });
+            entries.push({ binding: BindingGroups.material.baseColorTexture.binding, resource: textureView });
+            entries.push({ binding: BindingGroups.material.baseColorSampler.binding, resource: sampler });
         }
 
         this.bindGroup = device.createBindGroup({

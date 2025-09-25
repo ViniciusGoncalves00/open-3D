@@ -6,6 +6,7 @@ import { Transform } from "../../assets/components/transform";
 import { EntityManager } from "../../core/engine/entity-manager";
 import { Registry } from "../../core/engine/registry";
 import { Attributes } from "../../core/gltf/attributes";
+import { BindingGroups } from "../../core/gltf/binding-groups";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { RendererManager } from "./renderer-manager";
 
@@ -67,8 +68,8 @@ export class Renderer {
 
 
         this.lightBindGroup = this.device.createBindGroup({
-            layout: pipeline.getBindGroupLayout(1),
-            entries: [{ binding: 0, resource: { buffer: this.lightBuffer } }]
+            layout: pipeline.getBindGroupLayout(BindingGroups.light.group),
+            entries: [{ binding: BindingGroups.light.binding, resource: { buffer: this.lightBuffer } }]
         });
 
         this.msaaColorTexture = device.createTexture({
@@ -97,10 +98,10 @@ export class Renderer {
         });
 
         this.cameraModelBindGroup = device.createBindGroup({
-            layout: pipeline.getBindGroupLayout(0),
+            layout: pipeline.getBindGroupLayout(BindingGroups.camera.group),
             entries: [
-                { binding: 0, resource: { buffer: this.cameraBuffer } },
-                { binding: 1, resource: { buffer: this.modelBuffer } },
+                { binding: BindingGroups.camera.binding, resource: { buffer: this.cameraBuffer } },
+                { binding: BindingGroups.model.binding, resource: { buffer: this.modelBuffer } },
             ],
         });
 
@@ -138,36 +139,61 @@ export class Renderer {
         const cameraMat = this.camera.viewProjection(this.cameraTransform);
         this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraMat.buffer);
 
-        pass.setBindGroup(0, this.cameraModelBindGroup);
-        pass.setBindGroup(1, this.lightBindGroup);
+        pass.setBindGroup(BindingGroups.camera.group, this.cameraModelBindGroup);
+        pass.setBindGroup(BindingGroups.light.group, this.lightBindGroup);
 
         EntityManager.entities.forEach(entity => {
             const transform = entity.getComponent(Transform);
             if (!transform) return;
-            
+                
             const mesh = entity.getComponent(Mesh);
             if (!mesh) return;
-
+                
             const modelMatrix = transform.worldMatrix.value;
-            const modelBuffer = new Float32Array(modelMatrix);
-            this.device.queue.writeBuffer(this.modelBuffer, 0, modelBuffer.buffer);
-
+            const modelMatrixBuffer = new Float32Array(modelMatrix);
+                
+            // Cria buffer exclusivo da entidade
+            const entityModelBuffer = this.device.createBuffer({
+                size: 16 * 4,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            this.device.queue.writeBuffer(entityModelBuffer, 0, modelMatrixBuffer.buffer);
+        
+            // Cria bind group da entidade (câmera + modelo)
+            const entityBindGroup = this.device.createBindGroup({
+                layout: this.pipeline.getBindGroupLayout(BindingGroups.camera.group),
+                entries: [
+                    { binding: BindingGroups.camera.binding, resource: { buffer: this.cameraBuffer } },
+                    { binding: BindingGroups.model.binding, resource: { buffer: entityModelBuffer } },
+                ],
+            });
+        
             mesh.primitives.forEach(primitive => {
-                const position = primitive.tryGetAttribute(Attributes.Position);
-                if(!position) return;
-
                 const GPUPrimitive = Registry.getGPUPrimitive("sphere");
-                if(!GPUPrimitive) return;
-
+                if (!GPUPrimitive) return;
+            
                 const GPUMaterial = Registry.getGPUMaterial(primitive.material);
-                if(!GPUMaterial) return;
-
-                pass.setBindGroup(2, GPUMaterial.getBindGroup());
-                // pass.setVertexBuffer(0, GPUMaterial.getBuffer());
-
-                GPUPrimitive.draw(pass);
-            })
-        })
+                if (!GPUMaterial) return;
+            
+                // Bind groups
+                pass.setBindGroup(BindingGroups.camera.group, entityBindGroup);
+                pass.setBindGroup(BindingGroups.light.group, this.lightBindGroup);
+                pass.setBindGroup(BindingGroups.material.pbrUniform.group, GPUMaterial.getBindGroup());
+            
+                // Draw
+                let slot = 0;
+                for (const [, buffer] of GPUPrimitive.vertexBuffers.entries()) {
+                    pass.setVertexBuffer(slot++, buffer);
+                }
+            
+                if (GPUPrimitive.indexBuffer && GPUPrimitive.indexCount) {
+                    pass.setIndexBuffer(GPUPrimitive.indexBuffer, "uint32");
+                    pass.drawIndexed(GPUPrimitive.indexCount, 1, 0, 0, 0);
+                } else {
+                    pass.draw(GPUPrimitive.vertexCount, 1, 0, 0);
+                }
+            });
+        });
 
         pass.end();
         this.device.queue.submit([encoder.finish()]);

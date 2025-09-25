@@ -3,11 +3,11 @@ import { Attributes } from "../gltf/attributes";
 import { Primitive } from "../gltf/primitive";
 
 export class GPUPrimitive {
-    private device: GPUDevice;
-    private vertexBuffers: Map<Attributes, GPUBuffer> = new Map();
-    private indexBuffer: GPUBuffer | null = null;
-    private indexCount: number | null = null;
-    private vertexCount: number = 0;
+    public device: GPUDevice;
+    public vertexBuffers: Map<Attributes, GPUBuffer> = new Map();
+    public indexBuffer: GPUBuffer | null = null;
+    public indexCount: number | null = null;
+    public vertexCount: number = 0;
 
     public constructor(device: GPUDevice, primitive: Primitive) {
         this.device = device;
