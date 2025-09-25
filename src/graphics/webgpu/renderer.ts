@@ -1,10 +1,11 @@
 import { Light } from "../../assets/components/abstract/light";
 import { Camera } from "../../assets/components/camera";
 import { DirectionalLight } from "../../assets/components/directional-light";
-import { Attributes, Mesh } from "../../assets/components/mesh";
+import { Mesh } from "../../assets/components/mesh";
 import { Transform } from "../../assets/components/transform";
 import { EntityManager } from "../../core/engine/entity-manager";
 import { Registry } from "../../core/engine/registry";
+import { Attributes } from "../../core/gltf/attributes";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { RendererManager } from "./renderer-manager";
 

@@ -1,13 +1,20 @@
-import { Mesh, Primitive } from "../../assets/components/mesh";
 import { ObservableMap } from "../../common/observer/observable-map";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { GPUMaterial } from "../api/GPUMaterial";
 import { GPUPrimitive } from "../api/GPUPrimitive";
 import { Material } from "../api/material";
 import { PrefabPrimitive } from "../api/prefab-mesh";
+import { Accessor } from "../gltf/accessor";
+import { Buffer } from "../gltf/buffer";
+import { BufferView } from "../gltf/buffer-view";
+import { Primitive } from "../gltf/primitive";
 
 export class Registry {
     private static device: GPUDevice;
+
+    private static buffers: Buffer[];
+    private static bufferViews: BufferView[];
+    private static accessors: Accessor[];
 
     private static primitives: ObservableMap<string, Primitive> = new ObservableMap();
     private static materials: ObservableMap<string, Material> = new ObservableMap();

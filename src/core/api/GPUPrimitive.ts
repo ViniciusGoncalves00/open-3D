@@ -1,4 +1,6 @@
-import { Accessor, Attributes, Primitive } from "../../assets/components/mesh";
+import { Accessor } from "../gltf/accessor";
+import { Attributes } from "../gltf/attributes";
+import { Primitive } from "../gltf/primitive";
 
 export class GPUPrimitive {
     private device: GPUDevice;
