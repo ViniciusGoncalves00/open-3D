@@ -86,9 +86,8 @@ export class Renderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         });
 
-        // Buffers de câmera e modelo
         this.cameraBuffer = device.createBuffer({
-            size: 16 * 4,
+            size: 24 * 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
 
@@ -136,8 +135,17 @@ export class Renderer {
 
         this.device.queue.writeBuffer(this.lightBuffer, 0, this.lightData.buffer);
 
-        const cameraMat = this.camera.viewProjection(this.cameraTransform);
-        this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraMat.buffer);
+        const viewProjection = this.camera.viewProjection(this.cameraTransform);
+        const position = this.cameraTransform.position.getValues();
+        const direction = this.cameraTransform.forward();
+
+        const cameraData = new Float32Array(24); // 16 + 4 + 4
+        cameraData.set(viewProjection, 0);      // 16 floats
+        cameraData.set(position, 16);           // posição começa no offset 16
+        // padding [16+3] é ignorado
+        cameraData.set(direction, 20);          // direção começa no offset 20
+
+        this.device.queue.writeBuffer(this.cameraBuffer, 0, cameraData.buffer);
 
         pass.setBindGroup(BindingGroups.camera.group, this.cameraModelBindGroup);
         pass.setBindGroup(BindingGroups.light.group, this.lightBindGroup);
@@ -199,20 +207,25 @@ export class Renderer {
         this.lightData.fill(0);
 
         let OFFSET = 4;
+        let activeLights = 0;
         for (const light of this.lights) {
-            this.lightData[OFFSET++] = light.color.r.value;
-            this.lightData[OFFSET++] = light.color.g.value;
-            this.lightData[OFFSET++] = light.color.b.value;
-            this.lightData[OFFSET++] = light.intensity.value;
+            if(light.enabled.value) {
+                this.lightData[OFFSET++] = light.color.r.value;
+                this.lightData[OFFSET++] = light.color.g.value;
+                this.lightData[OFFSET++] = light.color.b.value;
+                this.lightData[OFFSET++] = light.intensity.value;
 
-            this.lightData[OFFSET++] = light.direction.x.value;
-            this.lightData[OFFSET++] = light.direction.y.value;
-            this.lightData[OFFSET++] = light.direction.z.value;
-            this.lightData[OFFSET++] = 0;
+                this.lightData[OFFSET++] = light.direction.x.value;
+                this.lightData[OFFSET++] = light.direction.y.value;
+                this.lightData[OFFSET++] = light.direction.z.value;
+                this.lightData[OFFSET++] = 0;
+
+                activeLights++;
+            }
         }
 
         const dataView = new DataView(this.lightData.buffer);
-        dataView.setUint32(0, this.lights.length, true);
+        dataView.setUint32(0, activeLights, true);
 
         this.device.queue.writeBuffer(this.lightBuffer, 0, dataView.buffer);
     }

@@ -8,9 +8,9 @@ export class PrefabPrimitive {
     public static quad(size: number = 1, color?: [number, number, number]): Primitive {
     	const half = size / 2;
 
-    	const r = color ? color[0] : Math.random();
-    	const g = color ? color[1] : Math.random();
-    	const b = color ? color[2] : Math.random();
+    	const r = color ? color[0] : 1;
+    	const g = color ? color[1] : 1;
+    	const b = color ? color[2] : 1;
 
     	const vertices = new Float32Array([
     	    -half, -half, 0, r, g, b, 0, 0, 1,
@@ -48,9 +48,9 @@ export class PrefabPrimitive {
     public static cube(size = 1, color?: [number, number, number]): Primitive {
     	const half = size / 2;
 
-		const r = color ? color[0] : Math.random();
-    	const g = color ? color[1] : Math.random();
-    	const b = color ? color[2] : Math.random();
+		const r = color ? color[0] : 1;
+    	const g = color ? color[1] : 1;
+    	const b = color ? color[2] : 1;
 
     	const positions = new Float32Array([
     		// Front
@@ -130,16 +130,16 @@ export class PrefabPrimitive {
 
 	public static sphere(
 	    radius = 1,
-	    latitudeBands = 12,
-	    longitudeBands = 12,
+	    latitudeBands = 512,
+	    longitudeBands = 512,
 	    color?: [number, number, number]
 	): Primitive {
 	    const vertices: number[] = [];
 	    const indices: number[] = [];
 
-	    const r = color ? color[0] : Math.random();
-	    const g = color ? color[1] : Math.random();
-	    const b = color ? color[2] : Math.random();
+	    const r = color ? color[0] : 1;
+	    const g = color ? color[1] : 1;
+	    const b = color ? color[2] : 1;
 
 	    for (let latitude = 0; latitude <= latitudeBands; latitude++) {
 	        const theta = (latitude * Math.PI) / latitudeBands;
@@ -202,16 +202,16 @@ export class PrefabPrimitive {
 
 	public static sphereWithMaterial(
 	    radius = 1,
-	    latitudeBands = 12,
-	    longitudeBands = 12,
+	    latitudeBands = 24,
+	    longitudeBands = 24,
 	    color?: [number, number, number]
 	): Primitive {
 	    const vertices: number[] = [];
 	    const indices: number[] = [];
 
-	    const r = color ? color[0] : Math.random();
-	    const g = color ? color[1] : Math.random();
-	    const b = color ? color[2] : Math.random();
+	    const r = color ? color[0] : 1;
+	    const g = color ? color[1] : 1;
+	    const b = color ? color[2] : 1;
 
 	    for (let latitude = 0; latitude <= latitudeBands; latitude++) {
 	        const theta = (latitude * Math.PI) / latitudeBands;

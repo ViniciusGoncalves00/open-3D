@@ -12,7 +12,10 @@ export class RendererManager {
 
         const camera = `
             struct Camera {
-                viewProjection : mat4x4<f32>
+                viewProjection : mat4x4<f32>,
+                position : vec3<f32>,
+                _pad : f32,
+                direction : vec3<f32>,
             };
             @group(${BindingGroups.camera.group}) @binding(${BindingGroups.camera.binding}) var<uniform> uCamera : Camera;
         `;
@@ -58,13 +61,14 @@ export class RendererManager {
         const vertexOutput = `
             struct VertexOutput {
                 @builtin(position) Position : vec4<f32>,
-                @location(0) color : vec3<f32>
+                @location(0) worldPos : vec3<f32>,
+                @location(1) worldNormal : vec3<f32>,
+                @location(2) color : vec3<f32>
             };
         `
 
         const vertexWorld = `
             ${vertexOutput}
-            ${light}
             ${camera}
             ${model}
 
@@ -73,36 +77,48 @@ export class RendererManager {
                 @location(0) position : vec3<f32>,
                 @location(1) color : vec3<f32>,
                 @location(2) normal : vec3<f32>
-            ) -> VertexOutput {
-                var vertex : VertexOutput;
-
+                ) -> VertexOutput {
+                var output : VertexOutput;
                 let localPos = vec4<f32>(position, 1.0);
-                vertex.Position = uCamera.viewProjection * uModel.model * localPos;
 
-                var finalColor = vec3<f32>(0, 0, 0);
-                let worldNormal = normalize((uModel.model * vec4<f32>(normal, 0.0)).xyz);
+                output.Position = uCamera.viewProjection * uModel.model * localPos;
+                output.worldPos = (uModel.model * localPos).xyz;
+                output.worldNormal = normalize((uModel.model * vec4<f32>(normal, 0.0)).xyz);
+                output.color = color;
 
-                for(var i: u32 = 0u; i < uLights.count; i = i + 1u){
-                    let light = uLights.lights[i];
-                    let L = -normalize(light.direction);
-                    let NdotL = max(dot(worldNormal, L), 0.0);
-                    finalColor += color * light.color * light.intensity * NdotL;
-                }
-
-                vertex.color = finalColor;
-                return vertex;
+                return output;
             }
         `;
 
         const fragmentWorld = `
             ${vertexOutput}
             ${PBRUniform}
+            ${light}
+            ${camera}
 
             @fragment
             fn main(input: VertexOutput) -> @location(0) vec4<f32> {
-                let litColor = input.color;
-                let finalColor = litColor * uPBR.baseColorFactor.rgb;
-                return vec4<f32>(finalColor, uPBR.baseColorFactor.a);
+                var finalColor = vec3<f32>(0.01, 0.01, 0.01);
+
+                for (var i: u32 = 0u; i < uLights.count; i = i + 1u) {
+                    let light = uLights.lights[i];
+                    let lightDirection = -normalize(light.direction);
+
+                    // diffuse
+                    let NdotL = max(dot(input.worldNormal, lightDirection), 0.0);
+                    let diffuse = input.color * light.color * light.intensity * NdotL;
+
+                    // specular (Blinn-Phong)
+                    let viewDirection = normalize(uCamera.position - input.worldPos);
+                    let halfDirection = normalize(lightDirection + viewDirection);
+                    let NdotH = max(dot(input.worldNormal, halfDirection), 0.0);
+                    let specular = light.intensity * pow(NdotH, 1024.0);
+
+                    finalColor += diffuse + specular;
+                }
+
+                let litColor = finalColor * uPBR.baseColorFactor.rgb;
+                return vec4<f32>(litColor, uPBR.baseColorFactor.a);
             }
         `;
 
