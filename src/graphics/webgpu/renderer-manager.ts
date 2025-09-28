@@ -97,7 +97,7 @@ export class RendererManager {
             ${camera}
 
             @fragment
-            fn main(input: VertexOutput) -> @location(0) vec4<f32> {
+            fn main(vertex: VertexOutput) -> @location(0) vec4<f32> {
                 var finalColor = vec3<f32>(0.01, 0.01, 0.01);
 
                 for (var i: u32 = 0u; i < uLights.count; i = i + 1u) {
@@ -105,13 +105,13 @@ export class RendererManager {
                     let lightDirection = -normalize(light.direction);
 
                     // diffuse
-                    let NdotL = max(dot(input.worldNormal, lightDirection), 0.0);
-                    let diffuse = input.color * light.color * light.intensity * NdotL;
+                    let NdotL = max(dot(vertex.worldNormal, lightDirection), 0.0);
+                    let diffuse = vertex.color * light.color * light.intensity * NdotL;
 
                     // specular (Blinn-Phong)
-                    let viewDirection = normalize(uCamera.position - input.worldPos);
+                    let viewDirection = normalize(uCamera.position - vertex.worldPos);
                     let halfDirection = normalize(lightDirection + viewDirection);
-                    let NdotH = max(dot(input.worldNormal, halfDirection), 0.0);
+                    let NdotH = max(dot(vertex.worldNormal, halfDirection), 0.0);
                     let specular = light.intensity * pow(NdotH, 1024.0);
 
                     finalColor += diffuse + specular;
