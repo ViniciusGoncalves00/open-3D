@@ -34,6 +34,10 @@ export class Registry {
         this.addPrimitive("quad", PrefabPrimitive.quad());
         this.addPrimitive("cube", PrefabPrimitive.cube());
         this.addPrimitive("sphere", PrefabPrimitive.sphere());
+        this.addPrimitive("cylinder", PrefabPrimitive.cylinder());
+        this.addPrimitive("pyramid", PrefabPrimitive.pyramid());
+        this.addPrimitive("torus", PrefabPrimitive.torus());
+        this.addPrimitive("cone", PrefabPrimitive.cone());
 
         this.addMaterial(new Material("default"), pipeline);
     }

@@ -357,9 +357,13 @@ export class Builder {
                 {label: "quad", action: () => primitive.id = "quad"},
                 {label: "cube", action: () => primitive.id = "cube"},
                 {label: "sphere", action: () => primitive.id = "sphere"},
+                {label: "cylinder", action: () => primitive.id = "cylinder"},
+                {label: "pyramid", action: () => primitive.id = "pyramid"},
+                {label: "torus", action: () => primitive.id = "torus"},
+                {label: "cone", action: () => primitive.id = "cone"},
             )
 
-            const dropdown = new Dropdown(entitiesRepresentation, "cube");
+            const dropdown = new Dropdown(entitiesRepresentation, primitive.id);
             container.appendChild(dropdown.getElement());
         })
     }

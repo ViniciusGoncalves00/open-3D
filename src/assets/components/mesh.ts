@@ -26,6 +26,7 @@ export class Mesh extends Component {
         super.fromJSON(json);
         this.name.value = json.name;
 
+        this.primitives.clear();
         json.primitives.forEach((primitive: any) => {
             this.primitives.add(Primitive.fromJSON(primitive, bufferViewLookup));
         });
@@ -42,7 +43,7 @@ export class Mesh extends Component {
         super.copyFrom(component);
         this.name.value = component.name.value;
         component.primitives.items.forEach(primitive => {
-            this.primitives.add(Primitive.fromJSON(primitive.toJSON()));
+            this.primitives.add(primitive);
         });
     }
 
