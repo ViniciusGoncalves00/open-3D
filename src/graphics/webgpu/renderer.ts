@@ -174,8 +174,8 @@ export class Renderer {
                 ],
             });
         
-            mesh.primitives.forEach(primitive => {
-                const GPUPrimitive = Registry.getGPUPrimitive("sphere");
+            mesh.primitives.items.forEach(primitive => {
+                const GPUPrimitive = Registry.getGPUPrimitive(primitive.id);
                 if (!GPUPrimitive) return;
             
                 const GPUMaterial = Registry.getGPUMaterial(primitive.material);

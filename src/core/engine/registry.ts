@@ -2,7 +2,7 @@ import { ObservableMap } from "../../common/observer/observable-map";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
 import { GPUMaterial } from "../api/GPUMaterial";
 import { GPUPrimitive } from "../api/GPUPrimitive";
-import { Material } from "../api/material";
+import { Material } from "../gltf/material";
 import { PrefabPrimitive } from "../api/prefab-mesh";
 import { Accessor } from "../gltf/accessor";
 import { Buffer } from "../gltf/buffer";

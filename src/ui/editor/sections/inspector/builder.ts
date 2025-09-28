@@ -1,10 +1,13 @@
 import { Color } from "../../../../assets/components/abstract/color";
 import { Component } from "../../../../assets/components/abstract/component";
+import { Mesh } from "../../../../assets/components/mesh";
 import { ObservableField } from "../../../../common/observer/observable-field";
 import { ObservableList } from "../../../../common/observer/observable-list";
 import { ObservableVector3 } from "../../../../common/observer/observable-vector3";
 import { getInspectableProperties } from "../../../../common/reflection/reflection";
 import { Entity } from "../../../../core/api/entity";
+import { Registry } from "../../../../core/engine/registry";
+import { Primitive } from "../../../../core/gltf/primitive";
 import { Icons } from "../builder";
 import { Dropdown, DropdownItem } from "../components/dropdown";
 import { InputOptions } from "./options";
@@ -101,6 +104,7 @@ export class Builder {
             container.classList.add("space-y-1", "flex-col");
             if (property.items[0] instanceof ObservableVector3) Builder.buildArrayVector3Property(property, container);
             else if (typeof property.items[0]?.value === 'number') Builder.buildArrayNumberProperty(property, container);
+            else if (property.items[0] instanceof Primitive) Builder.buildPrimitivesField(property, container, scene, entity);
         }
     }
 
@@ -343,5 +347,20 @@ export class Builder {
         }
 
         return field;
+    }
+
+    private static buildPrimitivesField(property: ObservableList<Primitive>, container: HTMLElement, scene: Entity, entity: Entity) {
+        const entitiesRepresentation: DropdownItem[] = [];
+
+        property.items.forEach(primitive => {
+            entitiesRepresentation.push(
+                {label: "quad", action: () => primitive.id = "quad"},
+                {label: "cube", action: () => primitive.id = "cube"},
+                {label: "sphere", action: () => primitive.id = "sphere"},
+            )
+
+            const dropdown = new Dropdown(entitiesRepresentation, "cube");
+            container.appendChild(dropdown.getElement());
+        })
     }
 }

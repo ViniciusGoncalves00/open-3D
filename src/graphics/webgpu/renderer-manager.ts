@@ -112,7 +112,7 @@ export class RendererManager {
                     let viewDirection = normalize(uCamera.position - vertex.worldPos);
                     let halfDirection = normalize(lightDirection + viewDirection);
                     let NdotH = max(dot(vertex.worldNormal, halfDirection), 0.0);
-                    let specular = light.intensity * pow(NdotH, 1024.0);
+                    let specular = light.intensity * pow(NdotH, 128.0);
 
                     finalColor += diffuse + specular;
                 }

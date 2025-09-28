@@ -4,11 +4,13 @@ import { Attributes } from "./attributes";
 import { BufferView } from "./buffer-view";
 
 export class Primitive {
+    public id: string;
     public attributes: Map<Attributes, Accessor>;
     public indices?: Accessor;
     public material: string;
 
-    public constructor(attributes: Map<Attributes, Accessor>, material: string, indices?: Accessor) {
+    public constructor(id: string, attributes: Map<Attributes, Accessor>, material: string, indices?: Accessor) {
+        this.id = id;
         this.attributes = attributes;
         this.material = material;
         this.indices = indices;
@@ -16,6 +18,7 @@ export class Primitive {
 
     public toJSON() {
         return {
+            id: this.id,
             attributes: Object.fromEntries(
                 Array.from(this.attributes.entries()).map(([name, accessor], i) => [name, accessor.toJSON(i)])
             ),
@@ -35,7 +38,7 @@ export class Primitive {
             }
         }
         const indices = json.indices ? Accessor.fromJSON(json.indices, bufferViewLookup) : undefined;
-        return new Primitive(attributes, json.material, indices);
+        return new Primitive(json.id, attributes, json.material, indices);
     }
 
     public tryGetAttribute(attribute: Attributes): Accessor | null {

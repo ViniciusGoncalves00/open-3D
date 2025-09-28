@@ -42,7 +42,7 @@ export class PrefabPrimitive {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		return new Primitive(attributes, "default", indexAccessor);
+		return new Primitive("quad", attributes, "default", indexAccessor);
   	}
 
     public static cube(size = 1, color?: [number, number, number]): Primitive {
@@ -124,7 +124,7 @@ export class PrefabPrimitive {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		return new Primitive(attributes, "default", indexAccessor);
+		return new Primitive("cube", attributes, "default", indexAccessor);
 	}
 
 
@@ -197,7 +197,7 @@ export class PrefabPrimitive {
 		attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		return new Primitive(attributes, "default", indexAccessor);
+		return new Primitive("sphere", attributes, "default", indexAccessor);
 	}
 
 	public static sphereWithMaterial(
@@ -263,6 +263,6 @@ export class PrefabPrimitive {
 		// attributes.set(Attributes.Color0, colorAccessor);
 		attributes.set(Attributes.Normal, normalAccessor);
 		
-		return new Primitive(attributes, "default", indexAccessor);
+		return new Primitive("sphere", attributes, "default", indexAccessor);
 	}
 }

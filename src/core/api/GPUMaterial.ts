@@ -1,5 +1,5 @@
 import { BindingGroups } from "../gltf/binding-groups";
-import { Material } from "./material";
+import { Material } from "../gltf/material";
 
 export class GPUMaterial {
     private device: GPUDevice;
