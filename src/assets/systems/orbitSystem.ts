@@ -2,7 +2,7 @@ import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
 import { Entity } from "../../core/api/entity";
 import { Orbit } from "../components/orbit";
-import { VectorUtils } from "ts-math-utils/dist/vector-utils";
+import * as MathUtils from "ts-math-utils";
 
 export class OrbitSystem implements ISystem, IUpdate {
   public update(entities: Entity[], deltaTime: number): void {
@@ -22,7 +22,7 @@ export class OrbitSystem implements ISystem, IUpdate {
       orbit.angle.value += orbit.speed.value * deltaTime;
       orbit.angle.value %= Math.PI * 2;
 
-      const [x, y, z] = VectorUtils.rotateAround([1, 0, 0], orbit.axis.getValues(), orbit.angle.value);
+      const [x, y, z] = MathUtils.VectorUtils.rotateAround([1, 0, 0], orbit.axis.getValues(), orbit.angle.value);
       const [cx, cy, cz] = orbit.center.getValues();
 
       transform.position.x.value = x + cx;
