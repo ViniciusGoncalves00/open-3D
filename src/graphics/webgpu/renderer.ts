@@ -8,6 +8,7 @@ import { Registry } from "../../core/engine/registry";
 import { Attributes } from "../../core/gltf/attributes";
 import { BindingGroups } from "../../core/gltf/binding-groups";
 import { ConsoleLogger } from "../../ui/editor/sections/console/console-logger";
+import { GraphicSettings } from "../graphicSettings";
 import { RendererManager } from "./renderer-manager";
 
 export class Renderer {
@@ -113,12 +114,13 @@ export class Renderer {
         this.updateLights();
 
         const encoder = this.device.createCommandEncoder();
+        const bg = GraphicSettings.backgroundColor;
 
         const descriptor: GPURenderPassDescriptor = {
             colorAttachments: [{
                 view: this.msaaColorTexture.createView(),
                 resolveTarget: this.context.getCurrentTexture().createView(),
-                clearValue: { r: 0.98, g: 0.98, b: 0.98, a: 1 },
+                clearValue: { r: bg.r, g: bg.g, b: bg.b, a: 1 },
                 loadOp: "clear",
                 storeOp: "store"
             }],

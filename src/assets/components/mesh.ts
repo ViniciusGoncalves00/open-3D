@@ -42,6 +42,8 @@ export class Mesh extends Component {
     public copyFrom(component: Mesh): void {
         super.copyFrom(component);
         this.name.value = component.name.value;
+
+        this.primitives.clear();
         component.primitives.items.forEach(primitive => {
             this.primitives.add(primitive);
         });

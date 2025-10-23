@@ -282,7 +282,7 @@ export class Builder {
     public static buildNumberField(observablefield: ObservableField<number>): HTMLInputElement {
         const field = document.createElement("input");
         field.type = "number";
-        field.step = "1";
+        field.step = "0.1";
         field.className = "w-full text-xs px-1 py-0.5 border border-gray-01 rounded focus:outline-none no-spinner";
 
         observablefield.subscribe(value => field.value = value.toString());
