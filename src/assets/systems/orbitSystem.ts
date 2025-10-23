@@ -2,7 +2,7 @@ import { ISystem, IUpdate } from "./interfaces/system";
 import { Transform } from "../components/transform";
 import { Entity } from "../../core/api/entity";
 import { Orbit } from "../components/orbit";
-import { VectorUtils } from 'ts-math-utils';
+import { VectorUtils } from "ts-math-utils/dist/vector-utils";
 
 export class OrbitSystem implements ISystem, IUpdate {
   public update(entities: Entity[], deltaTime: number): void {
