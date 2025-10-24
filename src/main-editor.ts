@@ -10,7 +10,7 @@ import { Storage } from './database/storage';
 // import { GPUMesh, WebGPUBuilder } from './graphics/webgpu/webGPUutils';
 import './styles.css';
 import { EntityHandler } from './ui/editor/others/entity-handler';
-import { InputHandler } from './ui/editor/others/input-handler';
+import { EditorCamera } from './ui/editor/others/editor-camera';
 import { Utils } from './ui/editor/others/utils';
 import { Assets } from './ui/editor/sections/assets/assets';
 import { Builder, Icons } from './ui/editor/sections/builder';
@@ -125,8 +125,8 @@ export class Program {
         viewport.appendChild(canvasB);
 
         const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const inputHandler = new InputHandler(storage.preferences.editor);
-        const viewports = new Viewports(canvasA,  canvasB, inputHandler, camera.getComponent(Transform));
+        const editorCamera = new EditorCamera(storage.preferences.editor);
+        const viewports = new Viewports(canvasA,  canvasB, editorCamera, camera.getComponent(Transform));
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
         // const graphicEngine = new Open3DAdapter(engine);
@@ -248,7 +248,7 @@ export class Program {
         const player = new Player(engine.timeController);
         const timescale = new Timescale();
         const screen = new Screen(engine.timeController, viewport);
-        const settings = new Settings(storage, inputHandler);
+        const settings = new Settings(storage, editorCamera);
 
         const fpsContainer = Utils.getElementOrFail<HTMLElement>('fpsContainer');
         const averageFpsContainer = Utils.getElementOrFail<HTMLElement>('averageFpsContainer');

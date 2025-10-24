@@ -2,7 +2,7 @@ import { Transform } from "../../../assets/components/transform";
 import { MathUtils } from 'ts-math-utils';
 import { EditorPreferences } from "../../../database/editorPreferences";
 
-export class InputHandler {
+export class EditorCamera {
     // #region [const]
     private readonly max_pitch = 89.99;
     // #endregion

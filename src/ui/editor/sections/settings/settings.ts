@@ -1,13 +1,13 @@
 import { ObservableField } from "../../../../common/observer/observable-field";
 import { Storage } from "../../../../database/storage";
-import { InputHandler } from "../../others/input-handler";
+import { EditorCamera } from "../../others/editor-camera";
 import { Icons } from "../builder";
 import { Builder } from "./builder";
 
 export class Settings {
     private readonly element: HTMLDivElement;
 
-    public constructor(storage: Storage, inputHandler: InputHandler) {
+    public constructor(storage: Storage, editorCamera: EditorCamera) {
         const title = "settings";
         const icon = Icons.Gear;
 
@@ -57,27 +57,27 @@ export class Settings {
         const orbitDiv = section.querySelector('[role="orbit"]') as HTMLDivElement;
         const zoomDiv = section.querySelector('[role="zoom"]') as HTMLDivElement;
 
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", inputHandler.preferences.panButtons));
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", inputHandler.preferences.orbitButtons));
-        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", inputHandler.preferences.rotateButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Pan buttons", editorCamera.preferences.panButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Orbit buttons", editorCamera.preferences.orbitButtons));
+        keybindingDiv.appendChild(Builder.buildKeyBindingMouseProperty("Rotate buttons", editorCamera.preferences.rotateButtons));
 
-        panDiv.appendChild(Builder.buildNumberProperty("Direction X", inputHandler.preferences.xPanDirection));
-        panDiv.appendChild(Builder.buildNumberProperty("Direction Y", inputHandler.preferences.yPanDirection));
-        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity X", inputHandler.preferences.xPanSensivity));
-        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity Y", inputHandler.preferences.yPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction X", editorCamera.preferences.xPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Direction Y", editorCamera.preferences.yPanDirection));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity X", editorCamera.preferences.xPanSensivity));
+        panDiv.appendChild(Builder.buildNumberProperty("Sensitivity Y", editorCamera.preferences.yPanSensivity));
 
-        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.preferences.yawRotateDirection));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.preferences.pitchRotateDirection));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.preferences.pitchRotateSensivity));
-        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.preferences.yawRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", editorCamera.preferences.yawRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", editorCamera.preferences.pitchRotateDirection));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", editorCamera.preferences.pitchRotateSensivity));
+        rotateDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", editorCamera.preferences.yawRotateSensivity));
 
-        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", inputHandler.preferences.yawOrbitDirection));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", inputHandler.preferences.pitchOrbitDirection));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", inputHandler.preferences.yawOrbitSensivity));
-        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", inputHandler.preferences.pitchOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Yaw", editorCamera.preferences.yawOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Direction Pitch", editorCamera.preferences.pitchOrbitDirection));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Yaw", editorCamera.preferences.yawOrbitSensivity));
+        orbitDiv.appendChild(Builder.buildNumberProperty("Sensitivity Pitch", editorCamera.preferences.pitchOrbitSensivity));
 
-        zoomDiv.appendChild(Builder.buildNumberProperty("Direction Zoom", inputHandler.preferences.zoomDirection));
-        zoomDiv.appendChild(Builder.buildNumberProperty("Sensitivity Zoom", inputHandler.preferences.zoomSensivity));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Direction Zoom", editorCamera.preferences.zoomDirection));
+        zoomDiv.appendChild(Builder.buildNumberProperty("Sensitivity Zoom", editorCamera.preferences.zoomSensivity));
 
         const element = template.content.firstElementChild as HTMLDivElement;
         this.element = element;
