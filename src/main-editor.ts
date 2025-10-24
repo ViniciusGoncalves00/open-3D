@@ -32,6 +32,7 @@ import { Light } from './assets/components/abstract/light';
 import { DirectionalLight } from './assets/components/directional-light';
 import { Registry } from './core/engine/registry';
 import { EntityManager } from './core/engine/entity-manager';
+import { Input } from './ui/editor/others/input';
 
 window.addEventListener('DOMContentLoaded', () => {
     new Program();
@@ -125,8 +126,9 @@ export class Program {
         viewport.appendChild(canvasB);
 
         const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const editorCamera = new EditorCamera(storage.preferences.editor);
-        const viewports = new Viewports(canvasA,  canvasB, editorCamera, camera.getComponent(Transform));
+        const editorCamera = new EditorCamera(storage.preferences.editor, canvasA, camera.getComponent(Transform));
+        const inputHandler = new Input(canvasA, storage.preferences.editor);
+        const viewports = new Viewports(canvasA, canvasB);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
         
         // const graphicEngine = new Open3DAdapter(engine);

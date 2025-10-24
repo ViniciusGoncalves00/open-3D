@@ -1,6 +1,7 @@
 import { Transform } from "../../../assets/components/transform";
 import { MathUtils } from 'ts-math-utils';
 import { EditorPreferences } from "../../../database/editorPreferences";
+import { Input } from "./input";
 
 export class EditorCamera {
     // #region [const]
@@ -12,8 +13,31 @@ export class EditorCamera {
 
     public preferences: EditorPreferences;
 
-    public constructor(preferences: EditorPreferences) {
+    public constructor(preferences: EditorPreferences, editorContainer: HTMLCanvasElement, transform: Transform) {
         this.preferences = preferences;
+        // editorContainer.addEventListener("mousedown", (event) => {
+        //     const pressedButton = event.button;
+        //     this.preferences.panButtons.value.has(pressedButton) ? pan = true : '';
+        //     if(this.preferences.orbitButtons.value.has(pressedButton)) {
+        //       orbit = true;
+        //       this.findCameraTarget();
+        //     }
+        //     this.preferences.rotateButtons.value.has(pressedButton) ? rotate = true : '';
+        // })
+        // editorContainer.addEventListener("mouseup", (event) => {
+        //     const pressedButton = event.button;
+        //     this.preferences.panButtons.value.has(pressedButton) ? pan = false : '';
+        //     this.preferences.orbitButtons.value.has(pressedButton) ? orbit = false : '';
+        //     this.preferences.rotateButtons.value.has(pressedButton) ? rotate = false : '';
+        // })
+        // editorContainer.addEventListener("mousemove", (event) => {
+        //     pan ? this.pan(event, transform) : "";
+        //     rotate ? this.rotate(event, transform) : "";
+        //     orbit ? this.orbit(event, transform) : "";
+        // })
+        // editorContainer.addEventListener("wheel", (event) => this.mouseWheel(event, transform));
+
+        if(Input..subscribe(() => this.pan())
     }
 
     public click(click: MouseEvent): void {}
