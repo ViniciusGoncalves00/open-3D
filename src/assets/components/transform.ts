@@ -6,6 +6,7 @@ import { quat as quaternion } from "gl-matrix";
 import { ObservableMatrix4 } from "../../common/observer/observable-matrix4";
 import { HideInInspector } from "../../common/reflection/reflection";
 import type { Entity } from "../../core/api/entity";
+import { MathUtils } from "ts-math-utils";
 
 export class Transform extends Component {
   @HideInInspector public readonly owner: Entity;
@@ -158,6 +159,45 @@ export class Transform extends Component {
     vector3.scaleAndAdd(delta, delta, this.forward(), dz);
     
     this.position.translate(delta[0], delta[1], delta[2]);
+  }
+
+  public translateLocalForward(distance: number): void {
+    const delta = vector3.create();
+    const forward = this.forward();
+    vector3.scale(delta, forward, distance);
+
+    this.position.translate(delta[0], delta[1], delta[2]);
+  }
+
+  public translateLocalRight(distance: number): void {
+    const delta = vector3.create();
+    const right = this.right();
+    vector3.scale(delta, right, distance);
+    
+    this.position.translate(delta[0], delta[1], delta[2]);
+  }
+
+  public translateLocalUp(distance: number): void {
+    const delta = vector3.create();
+    const up = this.up();
+    vector3.scale(delta, up, distance);
+
+    this.position.translate(delta[0], delta[1], delta[2]);
+  }
+
+  public rotateLocalForward(angle: number): void {
+    const z = this.rotation.z.value + angle;
+    this.rotation.z.value = ((z % 360) + 360) % 360;
+  }
+
+  public rotateLocalRight(angle: number): void {
+    const x = this.rotation.x.value + angle;
+    this.rotation.x.value = ((x % 360) + 360) % 360;
+  }
+
+  public rotateLocalUp(angle: number): void {
+    const y = this.rotation.y.value + angle;
+    this.rotation.y.value = ((y % 360) + 360) % 360;
   }
 
   public quatToEulerXYZ(out: vector3, q: quaternion): vector3 {

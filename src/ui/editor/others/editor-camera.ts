@@ -2,6 +2,8 @@ import { Transform } from "../../../assets/components/transform";
 import { MathUtils } from 'ts-math-utils';
 import { EditorPreferences } from "../../../database/editorPreferences";
 import { Input } from "./input";
+import { int } from "three/tsl";
+import { ConsoleLogger } from "../sections/console/console-logger";
 
 export class EditorCamera {
     // #region [const]
@@ -12,48 +14,40 @@ export class EditorCamera {
     public target: [number, number, number] = [0, 0, 0];
 
     public preferences: EditorPreferences;
+    private transform: Transform;
 
-    public constructor(preferences: EditorPreferences, editorContainer: HTMLCanvasElement, transform: Transform) {
+    public constructor(preferences: EditorPreferences, transform: Transform) {
         this.preferences = preferences;
-        // editorContainer.addEventListener("mousedown", (event) => {
-        //     const pressedButton = event.button;
-        //     this.preferences.panButtons.value.has(pressedButton) ? pan = true : '';
-        //     if(this.preferences.orbitButtons.value.has(pressedButton)) {
-        //       orbit = true;
-        //       this.findCameraTarget();
-        //     }
-        //     this.preferences.rotateButtons.value.has(pressedButton) ? rotate = true : '';
-        // })
-        // editorContainer.addEventListener("mouseup", (event) => {
-        //     const pressedButton = event.button;
-        //     this.preferences.panButtons.value.has(pressedButton) ? pan = false : '';
-        //     this.preferences.orbitButtons.value.has(pressedButton) ? orbit = false : '';
-        //     this.preferences.rotateButtons.value.has(pressedButton) ? rotate = false : '';
-        // })
-        // editorContainer.addEventListener("mousemove", (event) => {
-        //     pan ? this.pan(event, transform) : "";
-        //     rotate ? this.rotate(event, transform) : "";
-        //     orbit ? this.orbit(event, transform) : "";
-        // })
-        // editorContainer.addEventListener("wheel", (event) => this.mouseWheel(event, transform));
+        this.transform = transform;
 
-        if(Input..subscribe(() => this.pan())
+        Input.mouseMoveCallbacks.add(() => this.pan());
+        Input.mouseMoveCallbacks.add(() => this.rotate());
+        Input.mouseMoveCallbacks.add(() => this.orbit());
+        Input.mouseWheelCallbacks.add(() => this.wheel());
     }
 
-    public click(click: MouseEvent): void {}
+    private pan(): void {
+        if(!Input.panning.value) return;
 
-    public mouseDown(): void {}
+        this.transform.translateLocalRight(Input.deltaPan[0] * this.preferences.xPanSensivity.value * this.preferences.xPanDirection.value);
+        this.transform.translateLocalUp(Input.deltaPan[1] * this.preferences.yPanSensivity.value * this.preferences.yPanDirection.value)
 
-    public mouseUp(): void {}
-
-    public pan(event: MouseEvent, transform: Transform): void {
-        const dx = event.movementX * this.preferences.xPanSensivity.value * this.preferences.xPanDirection.value;
-        const dy = event.movementY * this.preferences.yPanSensivity.value * this.preferences.yPanDirection.value;
-        transform.translateLocal(dx, dy, 0);
+        this.updateTarget();
     }
 
-    public orbit(event: MouseEvent, transform: Transform): void {
-        const position = transform.position;
+    private rotate(): void {
+        if(!Input.rotating.value) return;
+
+        this.transform.rotateLocalRight(Input.deltaRotate[1] * this.preferences.pitchRotateSensivity.value * this.preferences.pitchRotateDirection.value);
+        this.transform.rotateLocalUp(Input.deltaRotate[0] * this.preferences.yawRotateSensivity.value * this.preferences.yawRotateDirection.value);
+
+        this.updateTarget();
+    }
+
+    private orbit(): void {
+        if(!Input.orbiting.value) return;
+
+        const position = this.transform.position;
 
         const dx = position.x.value - this.target[0];
         const dy = position.y.value - this.target[1];
@@ -65,8 +59,8 @@ export class EditorCamera {
         let pitch = Math.asin(dy / distance);
 
         const smooth = MathUtils.smooth(distance, this.preferences.orbitSmoothness.value)
-        const deltaYaw = event.movementX * this.preferences.yawOrbitSensivity.value * this.preferences.yawOrbitDirection.value * smooth;
-        const deltaPitch = event.movementY * this.preferences.pitchOrbitSensivity.value * this.preferences.pitchOrbitDirection.value * smooth;
+        const deltaYaw = Input.deltaOrbit[0] * this.preferences.yawOrbitSensivity.value * this.preferences.yawOrbitDirection.value * smooth;
+        const deltaPitch = Input.deltaOrbit[1] * this.preferences.pitchOrbitSensivity.value * this.preferences.pitchOrbitDirection.value * smooth;
 
         pitch = MathUtils.clamp(pitch + deltaPitch, -Math.PI / 2 + 0.01, Math.PI / 2 - 0.01);
         yaw += deltaYaw;
@@ -75,49 +69,32 @@ export class EditorCamera {
         const newY = this.target[1] + distance * Math.sin(pitch);
         const newZ = this.target[2] + distance * Math.cos(pitch) * Math.cos(yaw);
 
-        transform.position.set(newX, newY, newZ);
+        this.transform.position.set(newX, newY, newZ);
 
         const dir: [number, number, number] = [this.target[0] - newX, this.target[1] - newY, this.target[2] - newZ];
 
         const newYaw = MathUtils.rad2deg(Math.atan2(dir[0], dir[2]));
         const newPitch = MathUtils.rad2deg(Math.atan2(dir[1], Math.sqrt(dir[0]*dir[0] + dir[2]*dir[2]))) * -1;
 
-        transform.rotation.set(newPitch, newYaw, 0);
+        this.transform.rotation.set(newPitch, newYaw, 0);
     }
 
-    public rotate(event: MouseEvent, transform: Transform): void {
-        transform.rotation.x.value += event.movementY * this.preferences.pitchRotateSensivity.value * this.preferences.pitchRotateDirection.value;
-        transform.rotation.y.value += event.movementX * this.preferences.yawRotateSensivity.value * this.preferences.yawRotateDirection.value;
-        
-        transform.rotation.x.value = MathUtils.clamp(transform.rotation.x.value, -this.max_pitch, this.max_pitch);
+    private wheel(): void {
+        if(!Input.wheeling.value) return;
+
+        this.transform.translateLocalForward(Input.deltaWheel * this.preferences.zoomSensivity.value * this.preferences.zoomDirection.value);
+
+        this.updateTarget();
     }
 
-    public mouseWheel(event: WheelEvent, transform: Transform): void {
-        const dz = event.deltaY * this.preferences.zoomSensivity.value * this.preferences.zoomDirection.value;
-        transform.translateLocal(0, 0, dz);
-    }
+    private updateTarget(): void {
+        const position =  this.transform.position;
+        const forward = this.transform.forward();
 
-    public findCameraTarget(): void {
-        this.target = [0, 0, 0];
+        const distance = 5;
 
-        // const normalX: [number, number, number] = [1, 0, 0];
-        // const normalY: [number, number, number] = [0, 1, 0];
-        // const normalZ: [number, number, number] = [0, 0, 1];
-
-        // let closestT = Infinity;
-        // let hitPoint: [number, number, number] | null = null;
-
-        // const up: [number, number, number] = [transform.up()[0], transform.up()[1], transform.up()[2]];
-        // const forward: [number, number, number] = [transform.forward()[0], transform.forward()[1], transform.forward()[2]];
-
-        // for (const planeNormal of [normalX, normalY, normalZ]) {
-        //     const t = VectorUtils.intersectRayPlane(transform.position.getValues(), up, planeNormal, [0, 0, 0]);
-        //     if (t !== null && t < closestT) {
-        //         closestT = t;
-        //         hitPoint = VectorUtils.scaleAndAdd(transform.position.getValues(), forward, t);
-        //     }
-        // }
-
-        // if(hitPoint != null) this.target = hitPoint;
+        this.target[0] = position.x.value + forward[0] * distance;
+        this.target[1] = position.y.value + forward[1] * distance;
+        this.target[2] = position.z.value + forward[2] * distance;
     }
 }

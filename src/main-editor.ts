@@ -125,8 +125,8 @@ export class Program {
         canvasB.classList = "w-full h-full hidden";
         viewport.appendChild(canvasB);
 
-        const camera = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
-        const editorCamera = new EditorCamera(storage.preferences.editor, canvasA, camera.getComponent(Transform));
+        const cameraEntity = engine.currentProject.value.activeScene.value.children.items.find(entity => entity.hasComponent(Transform) && entity.hasComponent(Camera))!;
+        const editorCamera = new EditorCamera(storage.preferences.editor, cameraEntity.getComponent(Transform));
         const inputHandler = new Input(canvasA, storage.preferences.editor);
         const viewports = new Viewports(canvasA, canvasB);
         engine.timeController.isRunning.subscribe(() => viewports.toggleHighlight())      
@@ -215,8 +215,8 @@ export class Program {
 
         // graphicEngine.startRender();
 
-        const cameraCamera = camera.getComponent(Camera);
-        const cameraTransform = camera.getComponent(Transform);
+        const cameraCamera = cameraEntity.getComponent(Camera);
+        const cameraTransform = cameraEntity.getComponent(Transform);
         const light = engine.currentProject.value.activeScene.value.children.items.filter(entity => entity.hasComponent(DirectionalLight)).map(entity => entity.getComponent(DirectionalLight))
 
         const adapter = await navigator.gpu.requestAdapter();

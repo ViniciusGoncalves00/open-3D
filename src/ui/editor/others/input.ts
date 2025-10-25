@@ -32,9 +32,16 @@ export class Input {
     public static worldUpSpeed: number;
     public static wheelingSpeed: number;
 
-    private static deltaPan: [number, number] = [0, 0];
-    private static deltaRotate: [number, number] = [0, 0];
-    private static deltaOrbit: [number, number] = [0, 0];
+    // public static mouseMovement: [number, number] = [0, 0];
+    public static deltaPan: [number, number] = [0, 0];
+    public static deltaRotate: [number, number] = [0, 0];
+    public static deltaOrbit: [number, number] = [0, 0];
+    public static deltaWheel: number = 0;
+
+    public static readonly mouseDownCallbacks: Set<() => void> = new Set();
+    public static readonly mouseUpCallbacks: Set<() => void> = new Set();
+    public static readonly mouseMoveCallbacks: Set<() => void> = new Set();
+    public static readonly mouseWheelCallbacks: Set<() => void> = new Set();
 
     private static readonly DEFAULT_LOCAL_FORWARD_SPEED: number = 10.0;
     private static readonly DEFAULT_LOCAL_RIGHT_SPEED: number = 10.0;
@@ -69,10 +76,8 @@ export class Input {
         Input.worldUpSpeed = Input.DEFAULT_WORLD_UP_SPEED;
         Input.wheelingSpeed = Input.DEFAULT_WHEELING_SPEED;
 
-        document.addEventListener("DOMContentLoaded", () => {
-            this.mouseListeners();
-            this.keyboardListeners();
-        });
+        this.mouseListeners();
+        this.keyboardListeners();
     }
 
     public setActiveCanvas(canvas: HTMLCanvasElement): void {
@@ -93,13 +98,18 @@ export class Input {
         });
 
         Input.activeCanvas.addEventListener("mousemove", (event) => {
-            Input.panning ? Input.deltaPan = [event.movementX, event.movementY] : [0, 0];
-            Input.rotating ? Input.deltaRotate = [event.movementX, event.movementY] : [0, 0];
-            Input.orbiting ? Input.deltaOrbit = [event.movementX, event.movementY] : [0, 0];
+            Input.panning.value ? Input.deltaPan = [event.movementX, event.movementY] : [0, 0];
+            Input.rotating.value ? Input.deltaRotate = [event.movementX, event.movementY] : [0, 0];
+            Input.orbiting.value ? Input.deltaOrbit = [event.movementX, event.movementY] : [0, 0];
+            
+            Input.mouseMoveCallbacks.forEach(callback => callback());
         });
 
         Input.activeCanvas.addEventListener("wheel", (event) => {
             Input.wheeling.value = true;
+            Input.deltaWheel = event.deltaY;
+
+            Input.mouseWheelCallbacks.forEach(callback => callback());
 
             if (event.deltaY < 0) {
                 Input.wheelIn.value = true;
