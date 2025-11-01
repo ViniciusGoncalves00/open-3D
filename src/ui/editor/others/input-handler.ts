@@ -1,5 +1,5 @@
+import { MathUtils } from "@viniciusgoncalves/ts-utils";
 import { Transform } from "../../../assets/components/transform";
-import { MathUtils } from 'ts-math-utils';
 import { EditorPreferences } from "../../../database/editorPreferences";
 
 export class InputHandler {

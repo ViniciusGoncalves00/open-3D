@@ -1,4 +1,3 @@
-import { MathUtils, VectorUtils } from 'ts-math-utils';
 import { Camera } from './assets/components/camera';
 import { Mesh } from './assets/components/mesh';
 import { Transform } from './assets/components/transform';
