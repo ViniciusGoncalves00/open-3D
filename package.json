@@ -16,12 +16,12 @@
   "type": "module",
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.3",
+    "@viniciusgoncalves/ts-utils": "file:../ts-utils",
     "bootstrap-icons": "^1.11.3",
     "gl-matrix": "^3.4.3",
     "reflect-metadata": "^0.2.2",
     "tailwind": "^4.0.0",
-    "three": "^0.175.0",
-    "ts-math-utils": "git+https://github.com/ViniciusGoncalves00/ts-utils.git"
+    "three": "^0.175.0"
   },
   "devDependencies": {
     "@types/three": "^0.175.0",
